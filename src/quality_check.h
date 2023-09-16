@@ -8,18 +8,23 @@
 int 
 grid_quality_check(io_quality_t *io_quality, gd_t *gdcurv, par_t *par);
 
+int 
+cal_xiet(io_quality_t *io_quality, gd_t *gdcurv);
 
 int 
-cal_orth(io_quality_t *io_quality, gd_t *gdcurv);
+cal_xizt(io_quality_t *io_quality, gd_t *gdcurv);
+
+int 
+cal_etzt(io_quality_t *io_quality, gd_t *gdcurv);
 
 int 
 cal_jacobi(io_quality_t *io_quality, gd_t *gdcurv);
 
 int 
-cal_ratio(io_quality_t *io_quality, gd_t *gdcurv);
+cal_step_x(io_quality_t *io_quality, gd_t *gdcurv);
 
 int 
-cal_step_x(io_quality_t *io_quality, gd_t *gdcurv);
+cal_step_y(io_quality_t *io_quality, gd_t *gdcurv);
 
 int 
 cal_step_z(io_quality_t *io_quality, gd_t *gdcurv);
@@ -28,6 +33,12 @@ int
 cal_smooth_x(io_quality_t *io_quality, gd_t *gdcurv);
 
 int 
+cal_smooth_y(io_quality_t *io_quality, gd_t *gdcurv);
+
+int 
 cal_smooth_z(io_quality_t *io_quality, gd_t *gdcurv);
+
+int extend_var(float *var, int nx, int ny, int nz,
+               size_t siz_iy, size_t siz_iz);
 
 #endif

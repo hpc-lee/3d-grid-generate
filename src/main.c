@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 
   // argc checking
   if (argc < 3) {
-    fprintf(stdout,"usage: main_grid_2d <par_file> <opt: verbose>\n");
+    fprintf(stdout,"usage: main_grid_3d <par_file> <opt: verbose>\n");
     exit(1);
   }
 
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
   par_read_from_file(par_fname, par, verbose);
 
   if (verbose>0) par_print(par);
-   
+
   // generate grid 
   gd_t *gdcurv = (gd_t *) malloc(sizeof(gd_t));
   // for grid sample space
@@ -61,63 +61,22 @@ int main(int argc, char** argv)
 
       break;
     }
-    case HERMITE : {
 
-      grid_init_set(gdcurv,par->geometry_input_file);
-      // before grid generate
-      if(par->dire_itype == X_DIRE)
-      {
-        permute_coord(gdcurv);
-      }
-
-      // grid method
-      one_hermite(gdcurv,par->coef);
-
-      // after grid generate
-      if(par->dire_itype == X_DIRE)
-      {
-        permute_coord(gdcurv);
-      }
-
-      break;
-    }
     case ELLI_DIRI : {
 
       grid_init_set(gdcurv,par->geometry_input_file);
-      // before grid generate
-      if(par->dire_itype == X_DIRE)
-      {
-        permute_coord(gdcurv);
-      }
       // linear tfi generate init iter grid
       linear_tfi(gdcurv);
       diri_gene(gdcurv,par);
-
-      // after grid generate
-      if(par->dire_itype == X_DIRE)
-      {
-        permute_coord(gdcurv);
-      }
 
       break;
     }
     case ELLI_HIGEN : {
 
       grid_init_set(gdcurv,par->geometry_input_file);
-      // before grid generate
-      if(par->dire_itype == X_DIRE)
-      {
-        permute_coord(gdcurv);
-      }
       // linear tfi generate init iter grid
       linear_tfi(gdcurv);
       higen_gene(gdcurv,par);
-
-      // after grid generate
-      if(par->dire_itype == X_DIRE)
-      {
-        permute_coord(gdcurv);
-      }
 
       break;
     }
@@ -127,7 +86,11 @@ int main(int argc, char** argv)
       // before grid generate
       if(par->dire_itype == X_DIRE)
       {
-        permute_coord(gdcurv);
+        permute_coord_x(gdcurv);
+      }
+      if(par->dire_itype == Y_DIRE)
+      {
+        permute_coord_y(gdcurv);
       }
 
       para_gene(gdcurv,par->coef,par->o2i);
@@ -135,32 +98,36 @@ int main(int argc, char** argv)
       // after grid generate
       if(par->dire_itype == X_DIRE)
       {
-        permute_coord(gdcurv);
+        permute_coord_x(gdcurv);
+      }
+      if(par->dire_itype == Y_DIRE)
+      {
+        permute_coord_y(gdcurv);
       }
 
       break;
     }
-    case HYPERBOLIC : {
+    //case HYPERBOLIC : {
 
-      grid_init_set_hyper(gdcurv,par->geometry_input_file,par->step_input_file);
-      // before grid generate
-      if(par->dire_itype == X_DIRE)
-      {
-        permute_coord(gdcurv);
-      }
+    //  grid_init_set_hyper(gdcurv,par->geometry_input_file,par->step_input_file);
+    //  // before grid generate
+    //  if(par->dire_itype == X_DIRE)
+    //  {
+    //    permute_coord(gdcurv);
+    //  }
 
-      hyper_gene(gdcurv,par->coef,par->o2i,par->bdry_itype,par->epsilon);
+    //  hyper_gene(gdcurv,par->coef,par->o2i,par->bdry_itype,par->epsilon);
 
-      // after grid generate
-      if(par->dire_itype == X_DIRE)
-      {
-        permute_coord(gdcurv);
-      }
+    //  // after grid generate
+    //  if(par->dire_itype == X_DIRE)
+    //  {
+    //    permute_coord(gdcurv);
+    //  }
 
-      break;
-    }
+    //  break;
+    //}
   }
-  
+ /* 
   // strech x-direction grid
   if(par->flag_strech_x == 1)
   {
@@ -172,6 +139,7 @@ int main(int argc, char** argv)
   {
     zt_arc_strech(gdcurv,par->strech_z_coef);
   }
+  */
 
   if(par->flag_sample_x == 1 || par->flag_sample_z == 1)
   {
@@ -203,4 +171,3 @@ int main(int argc, char** argv)
   }
   return 0;
 }
-

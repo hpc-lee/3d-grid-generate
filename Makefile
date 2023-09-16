@@ -32,7 +32,7 @@ LDFLAGS := -L$(NETCDF)/lib -lnetcdf -lm $(LDFLAGS)
 # 	$< The names of the first prerequisite
 #   $^ The names of all the prerequisites 
 
-main_grid_2d: cJSON.o sacLib.o	lib_mem.o \
+main_grid_3d: cJSON.o sacLib.o	lib_mem.o \
 				lib_math.o par_t.o par_t.o gd_t.o \
 				io_funcs.o algebra.o quality_check.o \
 				parabolic.o elliptic.o hyperbolic.o \
@@ -70,7 +70,7 @@ main.o: src/main.c
 	${CC} -c -o $@ $(CFLAGS) $<
 
 cleanexe:
-	rm -f main_grid_2d
+	rm -f main_grid_3d
 
 cleanobj:
 	rm -f *.o

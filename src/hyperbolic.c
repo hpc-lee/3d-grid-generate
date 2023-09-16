@@ -17,8 +17,8 @@ hyper_gene(gd_t *gdcurv, float coef, int o2i, int bdry_itype, float epsilon)
   int nz = gdcurv->nz;
   int n = nx-2;  // not include bdry 2 points
 
-  float *x2d = gdcurv->x2d;
-  float *z2d = gdcurv->z2d;
+  float *x3d = gdcurv->x3d;
+  float *z3d = gdcurv->z3d;
   float *step = gdcurv->step;
 
   float *coef_e = NULL;
@@ -43,12 +43,12 @@ hyper_gene(gd_t *gdcurv, float coef, int o2i, int bdry_itype, float epsilon)
 
   for(int k=1; k<nz; k++)
   {
-    cal_smooth_coef(coef,x2d,z2d,nx,nz,k,coef_e);
-    cal_matrix(x2d,z2d,nx,k,step,a,b,c,d,area);
-    modify_smooth(x2d,z2d,nx,k,a,b,c,d,coef_e);
+    cal_smooth_coef(coef,x3d,z3d,nx,nz,k,coef_e);
+    cal_matrix(x3d,z3d,nx,k,step,a,b,c,d,area);
+    modify_smooth(x3d,z3d,nx,k,a,b,c,d,coef_e);
     modify_bdry(n,a,b,c,d,epsilon,bdry_itype);
     thomas_block(n,a,b,c,d,xz,D,y);
-    assign_coords(xz,x2d,z2d,nx,k,epsilon,bdry_itype);
+    assign_coords(xz,x3d,z3d,nx,k,epsilon,bdry_itype);
   }
 
   if(o2i == 1)
@@ -56,8 +56,7 @@ hyper_gene(gd_t *gdcurv, float coef, int o2i, int bdry_itype, float epsilon)
     fprintf(stdout,"hyperbolic method, inner bdry(k=0), outer bdry(nz-1)\n");
     fprintf(stdout,"we default set read init bdry is inner bdry(k=0)\n");
     fprintf(stdout,"so if the init bdry is outer bdry actually, must be flip\n");
-    flip_coord(x2d,nx,nz);
-    flip_coord(z2d,nx,nz);
+    flip_coord_z(gdcurv);
   }
 
   free(coef_e);
@@ -74,7 +73,7 @@ hyper_gene(gd_t *gdcurv, float coef, int o2i, int bdry_itype, float epsilon)
 }
 
 int
-cal_smooth_coef(float coef, float *x2d, float *z2d, int nx, int nz, int k, float *coef_e)
+cal_smooth_coef(float coef, float *x3d, float *z3d, int nx, int nz, int k, float *coef_e)
 {
   float S;
   size_t iptr1, iptr2, iptr3, iptr4;
@@ -109,10 +108,10 @@ cal_smooth_coef(float coef, float *x2d, float *z2d, int nx, int nz, int k, float
       iptr2 = (k-1)*nx + i-1;   // (i-1,k-1)
       iptr3 = (k-1)*nx + i;     // (i,k-1)
       iptr4 = (k-2)*nx + i;     // (i,k-2)
-      x_xi = 0.5*(x2d[iptr1] - x2d[iptr2]);
-      z_xi = 0.5*(z2d[iptr1] - z2d[iptr2]); 
-      x_zt = x2d[iptr3] - x2d[iptr4];
-      z_zt = z2d[iptr3] - z2d[iptr4];
+      x_xi = 0.5*(x3d[iptr1] - x3d[iptr2]);
+      z_xi = 0.5*(z3d[iptr1] - z3d[iptr2]); 
+      x_zt = x3d[iptr3] - x3d[iptr4];
+      z_zt = z3d[iptr3] - z3d[iptr4];
       xi_len = sqrt(pow(x_xi,2) + pow(z_xi,2));
       zt_len = sqrt(pow(x_zt,2) + pow(z_zt,2));
       N_xi = zt_len/xi_len;
@@ -120,21 +119,21 @@ cal_smooth_coef(float coef, float *x2d, float *z2d, int nx, int nz, int k, float
       iptr1 = (k-2)*nx + i+1;   // (i+1,k-2)
       iptr2 = (k-2)*nx + i;     // (i,  k-2)
       iptr3 = (k-2)*nx + i-1;   // (i-1,k-2)
-      x_xi_plus = x2d[iptr1] - x2d[iptr2];
-      z_xi_plus = z2d[iptr1] - z2d[iptr2];
+      x_xi_plus = x3d[iptr1] - x3d[iptr2];
+      z_xi_plus = z3d[iptr1] - z3d[iptr2];
       xi_plus1 = sqrt(pow(x_xi_plus,2) + pow(z_xi_plus,2));
-      x_xi_minus = x2d[iptr3] - x2d[iptr2];
-      z_xi_minus = z2d[iptr3] - z2d[iptr2];
+      x_xi_minus = x3d[iptr3] - x3d[iptr2];
+      z_xi_minus = z3d[iptr3] - z3d[iptr2];
       xi_minus1 = sqrt(pow(x_xi_minus,2) + pow(z_xi_minus,2));
 
       iptr1 = (k-1)*nx + i+1;   // (i+1,k-1)
       iptr2 = (k-1)*nx + i;     // (i,  k-1)
       iptr3 = (k-1)*nx + i-1;   // (i-1,k-1)
-      x_xi_plus = x2d[iptr1] - x2d[iptr2];
-      z_xi_plus = z2d[iptr1] - z2d[iptr2];
+      x_xi_plus = x3d[iptr1] - x3d[iptr2];
+      z_xi_plus = z3d[iptr1] - z3d[iptr2];
       xi_plus2 = sqrt(pow(x_xi_plus,2) + pow(z_xi_plus,2));
-      x_xi_minus = x2d[iptr3] - x2d[iptr2];
-      z_xi_minus = z2d[iptr3] - z2d[iptr2];
+      x_xi_minus = x3d[iptr3] - x3d[iptr2];
+      z_xi_minus = z3d[iptr3] - z3d[iptr2];
       xi_minus2 = sqrt(pow(x_xi_minus,2) + pow(z_xi_minus,2));
 
       d1 = xi_plus1 + xi_minus1;
@@ -143,10 +142,10 @@ cal_smooth_coef(float coef, float *x2d, float *z2d, int nx, int nz, int k, float
       delta_mdfy = fmax(pow(delta,2/S),0.1);
 
       // normalization
-      x_plus = (x2d[iptr1]-x2d[iptr2])/xi_plus2;
-      z_plus = (z2d[iptr1]-z2d[iptr2])/xi_plus2;
-      x_minus = (x2d[iptr3]-x2d[iptr2])/xi_minus2;
-      z_minus = (z2d[iptr3]-z2d[iptr2])/xi_minus2;
+      x_plus = (x3d[iptr1]-x3d[iptr2])/xi_plus2;
+      z_plus = (z3d[iptr1]-z3d[iptr2])/xi_plus2;
+      x_minus = (x3d[iptr3]-x3d[iptr2])/xi_minus2;
+      z_minus = (z3d[iptr3]-z3d[iptr2])/xi_minus2;
 
       dot = x_plus*x_minus + z_plus*z_minus;
       det = x_plus*z_minus - z_plus*x_minus;
@@ -176,7 +175,7 @@ cal_smooth_coef(float coef, float *x2d, float *z2d, int nx, int nz, int k, float
 }
 
 int 
-cal_matrix(float *x2d, float *z2d, int nx, int k, float *step,
+cal_matrix(float *x3d, float *z3d, int nx, int k, float *step,
            double *a, double *b, double *c, double *d, float *area)
 {
   double A[2][2], B[2][2];
@@ -194,13 +193,13 @@ cal_matrix(float *x2d, float *z2d, int nx, int k, float *step,
       iptr1 = (k-1)*nx + i+1;
       iptr2 = (k-1)*nx + i;
       iptr3 = (k-1)*nx + i-1;
-      x_xi0 = 0.5*(x2d[iptr1] - x2d[iptr3]);
-      z_xi0 = 0.5*(z2d[iptr1] - z2d[iptr3]);
-      x_plus = x2d[iptr1] - x2d[iptr2];
-      z_plus = z2d[iptr1] - z2d[iptr2];
+      x_xi0 = 0.5*(x3d[iptr1] - x3d[iptr3]);
+      z_xi0 = 0.5*(z3d[iptr1] - z3d[iptr3]);
+      x_plus = x3d[iptr1] - x3d[iptr2];
+      z_plus = z3d[iptr1] - z3d[iptr2];
       arc_plus = sqrt(pow(x_plus,2) + pow(z_plus,2));
-      x_minus = x2d[iptr3] - x2d[iptr2];
-      z_minus = z2d[iptr3] - z2d[iptr2];
+      x_minus = x3d[iptr3] - x3d[iptr2];
+      z_minus = z3d[iptr3] - z3d[iptr2];
       arc_minus = sqrt(pow(x_minus,2) + pow(z_minus,2));
       arc_len = 0.5*(arc_plus + arc_minus);
       // arc_length -> area
@@ -237,13 +236,13 @@ cal_matrix(float *x2d, float *z2d, int nx, int k, float *step,
       iptr1 = (k-1)*nx + i+1;
       iptr2 = (k-1)*nx + i;
       iptr3 = (k-1)*nx + i-1;
-      x_xi0 = 0.5*(x2d[iptr1] - x2d[iptr3]);
-      z_xi0 = 0.5*(z2d[iptr1] - z2d[iptr3]);
-      x_plus = x2d[iptr1] - x2d[iptr2];
-      z_plus = z2d[iptr1] - z2d[iptr2];
+      x_xi0 = 0.5*(x3d[iptr1] - x3d[iptr3]);
+      z_xi0 = 0.5*(z3d[iptr1] - z3d[iptr3]);
+      x_plus = x3d[iptr1] - x3d[iptr2];
+      z_plus = z3d[iptr1] - z3d[iptr2];
       arc_plus = sqrt(pow(x_plus,2) + pow(z_plus,2));
-      x_minus = x2d[iptr3] - x2d[iptr2];
-      z_minus = z2d[iptr3] - z2d[iptr2];
+      x_minus = x3d[iptr3] - x3d[iptr2];
+      z_minus = z3d[iptr3] - z3d[iptr2];
       arc_minus = sqrt(pow(x_minus,2) + pow(z_minus,2));
       arc_len = 0.5*(arc_plus + arc_minus);
       // arc_length -> area
@@ -280,7 +279,7 @@ cal_matrix(float *x2d, float *z2d, int nx, int k, float *step,
 }
 
 int
-modify_smooth(float *x2d, float *z2d, int nx, int k, double *a,
+modify_smooth(float *x3d, float *z3d, int nx, int k, double *a,
               double *b, double *c, double *d, float *coef_e)
 {
   double mat[2][2], vec1[2], vec2[2], vec3[2];
@@ -292,12 +291,12 @@ modify_smooth(float *x2d, float *z2d, int nx, int k, double *a,
     iptr1 = (k-1)*nx + i-1;
     iptr2 = (k-1)*nx + i;
     iptr3 = (k-1)*nx + i+1;
-    vec1[0] = x2d[iptr1];
-    vec1[1] = z2d[iptr1];
-    vec2[0] = x2d[iptr2];
-    vec2[1] = z2d[iptr2];
-    vec3[0] = x2d[iptr3];
-    vec3[1] = z2d[iptr3];
+    vec1[0] = x3d[iptr1];
+    vec1[1] = z3d[iptr1];
+    vec2[0] = x3d[iptr2];
+    vec2[1] = z3d[iptr2];
+    vec3[0] = x3d[iptr3];
+    vec3[1] = z3d[iptr3];
 
     iptr4 = (i-1)*CONST_NDIM*CONST_NDIM;
     iptr5 = (i-1)*CONST_NDIM;
@@ -356,7 +355,7 @@ modify_bdry(int n, double *a, double *b, double *c, double *d,
 }
 
 int
-assign_coords(double *xz, float *x2d, float *z2d, int nx, int k,
+assign_coords(double *xz, float *x3d, float *z3d, int nx, int k,
               float epsilon, int bdry_itype)
 {
   size_t iptr,iptr1,iptr2;
@@ -366,8 +365,8 @@ assign_coords(double *xz, float *x2d, float *z2d, int nx, int k,
     iptr  =  k*nx + i;
     iptr1 = (k-1)*nx + i;
     iptr2 = (i-1)*CONST_NDIM;
-    x2d[iptr] = x2d[iptr1] + xz[iptr2];
-    z2d[iptr] = z2d[iptr1] + xz[iptr2+1];
+    x3d[iptr] = x3d[iptr1] + xz[iptr2];
+    z3d[iptr] = z3d[iptr1] + xz[iptr2+1];
   }
 
   // floating boundary
@@ -380,10 +379,10 @@ assign_coords(double *xz, float *x2d, float *z2d, int nx, int k,
     iptr4 = k*nx+2;       // (2,k)
     iptr5 = (k-1)*nx+2;   // (2,k-1)
 
-    x2d[iptr] = x2d[iptr1] + (1+epsilon)*(x2d[iptr2]-x2d[iptr3])
-               -epsilon*(x2d[iptr4]-x2d[iptr5]);
-    z2d[iptr] = z2d[iptr1] + (1+epsilon)*(z2d[iptr2]-z2d[iptr3])
-               -epsilon*(z2d[iptr4]-z2d[iptr5]);
+    x3d[iptr] = x3d[iptr1] + (1+epsilon)*(x3d[iptr2]-x3d[iptr3])
+               -epsilon*(x3d[iptr4]-x3d[iptr5]);
+    z3d[iptr] = z3d[iptr1] + (1+epsilon)*(z3d[iptr2]-z3d[iptr3])
+               -epsilon*(z3d[iptr4]-z3d[iptr5]);
 
     iptr  = k*nx+(nx-1);       // (nx-1,k)
     iptr1 = (k-1)*nx+(nx-1);   // (nx-1,k-1)
@@ -392,10 +391,10 @@ assign_coords(double *xz, float *x2d, float *z2d, int nx, int k,
     iptr4 = k*nx+(nx-3);       // (nx-3,k)
     iptr5 = (k-1)*nx+(nx-3);   // (nx-3,k-1)
 
-    x2d[iptr] = x2d[iptr1] + (1+epsilon)*(x2d[iptr2]-x2d[iptr3])
-               -epsilon*(x2d[iptr4]-x2d[iptr5]);
-    z2d[iptr] = z2d[iptr1] + (1+epsilon)*(z2d[iptr2]-z2d[iptr3])
-               -epsilon*(z2d[iptr4]-z2d[iptr5]);
+    x3d[iptr] = x3d[iptr1] + (1+epsilon)*(x3d[iptr2]-x3d[iptr3])
+               -epsilon*(x3d[iptr4]-x3d[iptr5]);
+    z3d[iptr] = z3d[iptr1] + (1+epsilon)*(z3d[iptr2]-z3d[iptr3])
+               -epsilon*(z3d[iptr4]-z3d[iptr5]);
   }
 
   // cartesian boundary
@@ -406,16 +405,16 @@ assign_coords(double *xz, float *x2d, float *z2d, int nx, int k,
     iptr2 = k*nx+1;       // (1,k)
     iptr3 = (k-1)*nx+1;   // (1,k-1)
 
-    x2d[iptr] = x2d[iptr1];
-    z2d[iptr] = z2d[iptr1] + z2d[iptr2] - z2d[iptr3];
+    x3d[iptr] = x3d[iptr1];
+    z3d[iptr] = z3d[iptr1] + z3d[iptr2] - z3d[iptr3];
 
     iptr = k*nx+(nx-1);        // (nx-1,k) 
     iptr1 = (k-1)*nx+(nx-1);   // (nx-1,k-1)
     iptr2 = k*nx+1;            // (nx-2,k)
     iptr3 = (k-1)*nx+1;        // (nx-2,k-1)
 
-    x2d[iptr] = x2d[iptr1];
-    z2d[iptr] = z2d[iptr1] + z2d[iptr2] - z2d[iptr3];
+    x3d[iptr] = x3d[iptr1];
+    z3d[iptr] = z3d[iptr1] + z3d[iptr2] - z3d[iptr3];
   }
 
   return 0;

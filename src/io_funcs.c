@@ -13,6 +13,7 @@ int
 init_io_quality(io_quality_t *io_quality, gd_t *gdcurv)
 {
   io_quality->nx = gdcurv->nx;
+  io_quality->ny = gdcurv->ny;
   io_quality->nz = gdcurv->nz;
   
   // malloc quality space 
@@ -31,8 +32,9 @@ gd_curv_coord_export(gd_t *gdcurv, char *output_dir)
 {
   size_t *restrict c3d_pos   = gdcurv->cmp_pos;
   char  **restrict c3d_name  = gdcurv->cmp_name;
-  int  nx = gdcurv->nx;
-  int  nz = gdcurv->nz;
+  int nx = gdcurv->nx;
+  int ny = gdcurv->ny;
+  int nz = gdcurv->nz;
 
   // construct file name
   char ou_file[CONST_MAX_STRLEN];
@@ -47,7 +49,9 @@ gd_curv_coord_export(gd_t *gdcurv, char *output_dir)
   handle_nc_err(ierr);
 
   // define dimension
-  ierr = nc_def_dim(ncid, "i", nx, &dimid[1]);
+  ierr = nc_def_dim(ncid, "i", nx, &dimid[2]);
+  handle_nc_err(ierr);
+  ierr = nc_def_dim(ncid, "j", ny, &dimid[1]);
   handle_nc_err(ierr);
   ierr = nc_def_dim(ncid, "k", nz, &dimid[0]);
   handle_nc_err(ierr);
@@ -58,7 +62,7 @@ gd_curv_coord_export(gd_t *gdcurv, char *output_dir)
     handle_nc_err(ierr);
   }
 
-  int l_count[] = { nx, nz };
+  int l_count[] = { nx, ny, nz };
   nc_put_att_int(ncid,NC_GLOBAL,"number_of_points",
                    NC_INT,CONST_NDIM,l_count);
 
@@ -68,7 +72,7 @@ gd_curv_coord_export(gd_t *gdcurv, char *output_dir)
 
   // add vars
   for (int ivar=0; ivar<gdcurv->ncmp; ivar++) {
-    float *ptr = gdcurv->v3d + gdcurv->cmp_pos[ivar];
+    float *ptr = gdcurv->v4d + gdcurv->cmp_pos[ivar];
     ierr = nc_put_var_float(ncid, varid[ivar],ptr);
     handle_nc_err(ierr);
   }
@@ -84,6 +88,7 @@ int
 quality_export(io_quality_t *io_quality, char *output_dir, char *var_name)
 {
   int  nx = io_quality->nx;
+  int  ny = io_quality->ny;
   int  nz = io_quality->nz;
 
   // construct file name
@@ -99,7 +104,9 @@ quality_export(io_quality_t *io_quality, char *output_dir, char *var_name)
   handle_nc_err(ierr);
 
   // define dimension
-  ierr = nc_def_dim(ncid, "i", nx, &dimid[1]);
+  ierr = nc_def_dim(ncid, "i", nx, &dimid[2]);
+  handle_nc_err(ierr);
+  ierr = nc_def_dim(ncid, "j", ny, &dimid[1]);
   handle_nc_err(ierr);
   ierr = nc_def_dim(ncid, "k", nz, &dimid[0]);
   handle_nc_err(ierr);
@@ -108,7 +115,7 @@ quality_export(io_quality_t *io_quality, char *output_dir, char *var_name)
   ierr = nc_def_var(ncid, var_name, NC_FLOAT, CONST_NDIM, dimid, &varid);
   handle_nc_err(ierr);
 
-  int l_count[] = { nx, nz };
+  int l_count[] = { nx, ny, nz };
   nc_put_att_int(ncid,NC_GLOBAL,"number_of_points",
                    NC_INT,CONST_NDIM,l_count);
 

@@ -41,7 +41,7 @@ cat << ieof > ${PAR_FILE}
   "flag_strech_x" : 0,
   "strech_x_coef" : 0.0001,
   "flag_strech_y" : 0,
-  "strech_x_coef" : 0.0001,
+  "strech_y_coef" : 0.0001,
   "flag_strech_z" : 0,
   "strech_z_coef" : 0.0001,
 
@@ -57,35 +57,35 @@ cat << ieof > ${PAR_FILE}
 
   "grid_method" : {
       "#linear_TFI" : "",
-      "#hermite" : {
-          "coef" : 0.3,
-          "direction" : "z"
-      },
-      "elli_diri" : {
+      "#elli_diri" : {
           "coef" : -20,
           "iter_err" : 1E-2,
           "max_iter" : 5E3,
-          "direction" : "z"
+          "first_dire"  : "x",
+          "second_dire" : "z"
       },
       "#elli_higen" : {
           "coef" : -20,
           "iter_err" : 1E-2,
           "max_iter" : 5E3,
-          "distance" : [10.0,10.0,10,10],
-          "direction" : "z"
+          "distance" : [100,100,100,100,100,100],
+          "first_dire"  : "z",
+          "second_dire" : "y"
       },
-      "#parabolic" : {
-          "coef" : -50,
-          "direction" : "x",
+      "parabolic" : {
+          "coef" : -20,
+          "direction" : "y",
           "o2i" : 1
       },
       "#hyperbolic" : {
           "coef" : 20,
-          "bdry_type" : 1,
-          "epsilon" : 0,
+          "bdry_x_type" : 1,
+          "epsilon_x" : 0,
+          "bdry_y_type" : 1,
+          "epsilon_y" : 0,
           "direction" : "z",
           "o2i" : 0,
-          "step_input_file" : "${INPUTDIR}/step_file_2d.txt"
+          "step_input_file" : "${INPUTDIR}/step_file_3d.txt"
       }
   }
 }

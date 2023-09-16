@@ -8,15 +8,18 @@
 typedef struct {
 
   int nx;
+  int ny;
   int nz;
   int ncmp;
   
-  float *v3d; // pointer to var
-  float *x2d; 
-  float *z2d;
+  float *v4d; // pointer to var
+  float *x3d; 
+  float *y3d; 
+  float *z3d;
   
   float *step; // for hyperbolic
 
+  size_t siz_iy;
   size_t siz_iz;
   size_t siz_icmp;
 
@@ -30,7 +33,7 @@ typedef struct {
  *************************************************/
 
 int 
-init_gdcurv(gd_t *gdcurv, int nx, int nz);
+init_gdcurv(gd_t *gdcurv, int nx, int ny, int nz);
 
 int 
 grid_init_set(gd_t *gdcurv, char *input_file);
@@ -42,12 +45,16 @@ int
 grid_sample(gd_t *gdcurv_new, gd_t *gdcurv, float coef_x, float coef_z);
 
 int 
-check_bdry(float *x1, float *x2, float *z1, float *z2, int nx, int nz);
+check_bdry(float *x1, float *x2, float *y1, float *y2,float *z1, float *z2,
+           int nx, int ny, int nz);
 
 int
-flip_coord(float *coord, int nx, int nz);
+flip_coord_z(gd_t *gdcurv);
 
 int
-permute_coord(gd_t *gdcurv);
+permute_coord_x(gd_t *gdcurv);
+
+int
+permute_coord_y(gd_t *gdcurv);
 
 #endif

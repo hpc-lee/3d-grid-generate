@@ -9,165 +9,126 @@
 
 // linear tfi interpolation
 // U means x-direction
+// V means y-direction
 // W means z-direction
 int linear_tfi(gd_t *gdcurv)
 {
   int nx = gdcurv->nx; 
+  int ny = gdcurv->ny; 
   int nz = gdcurv->nz; 
-  float *x2d = gdcurv->x2d;
-  float *z2d = gdcurv->z2d;
-  float xi,zeta;
-  float a0,a1,c0,c1;
+  size_t siz_iy = gdcurv->siz_iy;
+  size_t siz_iz = gdcurv->siz_iz;
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
+  float xi,et,zt;
+  float a0,a1,b0,b1,c0,c1;
   size_t iptr,iptr1,iptr2,iptr3,iptr4;
   size_t iptr5,iptr6,iptr7,iptr8;
-  float U_x,W_x,UW_x;
-  float U_z,W_z,UW_z;
+  size_t iptr9,iptr10,iptr11,iptr12;
+  float U_x,V_x,W_x,UV_x,UW_x,VW_x,UVW_x;
+  float U_y,V_y,W_y,UV_y,UW_y,VW_y,UVW_y;
+  float U_z,V_z,W_z,UV_z,UW_z,VW_z,UVW_z;
   
   for (int k=1; k<nz-1; k++) {
-    for (int i=1; i<nx-1; i++)
-    {
-      xi   = (1.0*i)/(nx-1); // 1.0* equal int to float
-      zeta = (1.0*k)/(nz-1);
-      a0 = 1-xi;
-      a1 = xi;
-      c0 = 1-zeta;
-      c1 = zeta;
+    for (int j=1; j<ny-1; j++) {
+      for (int i=1; i<nx-1; i++)
+      {
+        xi = (1.0*i)/(nx-1); // 1.0* equal int to float
+        et = (1.0*j)/(ny-1);
+        zt = (1.0*k)/(nz-1);
+        a0 = 1-xi;
+        a1 = xi;
+        b0 = 1-et;
+        b1 = et;
+        c0 = 1-zt;
+        c1 = zt;
 
-      iptr = k*nx + i;  //(i,k) 
-      // 4 boudary points
-      iptr1 = k*nx;     //(0,k)
-      iptr2 = k*nx + nx-1; //(nx-1,k)
-      iptr3 = i;         //(i,0)
-      iptr4 = (nz-1)*nx + i; //(i,nz-1)
-      // 4 corner points
-      iptr5 = 0;   //(0,0)
-      iptr6 = (nz-1)*nx;   //(0,nz-1)
-      iptr7 = nx-1;   //(nx-1,0)
-      iptr8 = (nz-1)*nx + nx-1;   //(nx-1,nz-1)
+        iptr = k*siz_iz + j*siz_iy + i;  //(k,j,i)
+        // 6 face points
+        iptr1 = k*siz_iz + j*siz_iy;     //(k,j,0)
+        iptr2 = k*siz_iz + j*siz_iy + (nx-1); //(k,j,nx-1)
+        iptr3 = k*siz_iz + i;         //(k,0,i)
+        iptr4 = k*siz_iz + (ny-1)*siz_iy + i; //(k,ny-1,i)
+        iptr5 = j*siz_iy + i; //(0,j,i)
+        iptr6 = (nz-1)*siz_iz + j*siz_iy + i; //(nz-1,j,i)
+        U_x = a0*x3d[iptr1] + a1*x3d[iptr2];
+        V_x = b0*x3d[iptr3] + b1*x3d[iptr4];
+        W_x = c0*x3d[iptr5] + c1*x3d[iptr6];
 
-      U_x = a0*x2d[iptr1] + a1*x2d[iptr2];
-      W_x = c0*x2d[iptr3] + c1*x2d[iptr4];
-      UW_x = a0*c0*x2d[iptr5] + a0*c1*x2d[iptr6] \
-           + a1*c0*x2d[iptr7] + a1*c1*x2d[iptr8];
+        U_y = a0*y3d[iptr1] + a1*y3d[iptr2];
+        V_y = b0*y3d[iptr3] + b1*y3d[iptr4];
+        W_y = c0*y3d[iptr5] + c1*y3d[iptr6];
 
-      U_z = a0*z2d[iptr1] + a1*z2d[iptr2];
-      W_z = c0*z2d[iptr3] + c1*z2d[iptr4];
-      UW_z = a0*c0*z2d[iptr5] + a0*c1*z2d[iptr6] \
-           + a1*c0*z2d[iptr7] + a1*c1*z2d[iptr8];
+        U_z = a0*z3d[iptr1] + a1*z3d[iptr2];
+        V_z = b0*z3d[iptr3] + b1*z3d[iptr4];
+        W_z = c0*z3d[iptr5] + c1*z3d[iptr6];
+        // 12 edge points
+        iptr1 = k*siz_iz;   //(k,0,0)
+        iptr2 = k*siz_iz + (ny-1)*siz_iy;   //(k,ny-1,0)
+        iptr3 = k*siz_iz + nx-1;   //(k,0,nx-1)
+        iptr4 = k*siz_iz + (ny-1)*siz_iy + (nx-1);   //(k,ny-1,nx-1)
+        iptr5 = j*siz_iy;  //(0,j,0)
+        iptr6 = (nz-1)*siz_iz + j*siz_iy;  //(nz-1,j,0)
+        iptr7 = j*siz_iy + (nx-1);  //(0,j,nx-1)
+        iptr8 = (nz-1)*siz_iz + j*siz_iy + (nx-1);  //(nz-1,j,nx)
+        iptr9 = i; //(0,0,i)
+        iptr10 = (nz-1)*siz_iz + i; //(nz-1,0,i)
+        iptr11 = (ny-1)*siz_iy + i; //(0,ny-1,i)
+        iptr12 = (nz-1)*siz_iz + (ny-1)*siz_iy + i; //(nz-1,ny-1,i)
 
-      x2d[iptr] = U_x + W_x - UW_x;
-      z2d[iptr] = U_z + W_z - UW_z;
+        UV_x = a0*b0*x3d[iptr1]  + a0*b1*x3d[iptr2]
+             + a1*b0*x3d[iptr3]  + a1*b1*x3d[iptr4];
+        UW_x = a0*c0*x3d[iptr5]  + a0*c1*x3d[iptr6]
+             + a1*c0*x3d[iptr7]  + a1*c1*x3d[iptr8];
+        VW_x = b0*c0*x3d[iptr9]  + b0*c1*x3d[iptr10]
+             + b1*c0*x3d[iptr11] + b1*c1*x3d[iptr12];
+
+        UV_y = a0*b0*y3d[iptr1]  + a0*b1*y3d[iptr2]
+             + a1*b0*y3d[iptr3]  + a1*b1*y3d[iptr4];
+        UW_y = a0*c0*y3d[iptr5]  + a0*c1*y3d[iptr6]
+             + a1*c0*y3d[iptr7]  + a1*c1*y3d[iptr8];
+        VW_y = b0*c0*y3d[iptr9]  + b0*c1*y3d[iptr10]
+             + b1*c0*y3d[iptr11] + b1*c1*y3d[iptr12];
+
+        UV_z = a0*b0*z3d[iptr1]  + a0*b1*z3d[iptr2]
+             + a1*b0*z3d[iptr3]  + a1*b1*z3d[iptr4];
+        UW_z = a0*c0*z3d[iptr5]  + a0*c1*z3d[iptr6]
+             + a1*c0*z3d[iptr7]  + a1*c1*z3d[iptr8];
+        VW_z = b0*c0*z3d[iptr9]  + b0*c1*z3d[iptr10]
+             + b1*c0*z3d[iptr11] + b1*c1*z3d[iptr12];
+
+        // 8 corner point
+        iptr1 = 0; //(0,0,0)
+        iptr2 = nx-1; //(0,0,nx-1)
+        iptr3 = (ny-1)*siz_iy + (nx-1); //(0,ny-1,nx-1)
+        iptr4 = (ny-1)*siz_iy; //(0,ny-1,0)
+        iptr5 = (nz-1)*siz_iz; //(nz-1,0,0)
+        iptr6 = (nz-1)*siz_iz + (nx-1); //(nz-1,0,nx-1)
+        iptr7 = (nz-1)*siz_iz + (ny-1)*siz_iy + (nx-1); //(nz-1,ny-1,nx-1)
+        iptr8 = (nz-1)*siz_iz + (ny-1)*siz_iy; //(nz-1,ny-1,0)
+        UVW_x = a0*b0*c0*x3d[iptr1] + a1*b0*c0*x3d[iptr2]
+               +a1*b1*c0*x3d[iptr3] + a0*b1*c0*x3d[iptr4]
+               +a0*b0*c1*x3d[iptr5] + a1*b0*c1*x3d[iptr6]
+               +a1*b1*c1*x3d[iptr7] + a0*b1*c1*x3d[iptr8];
+
+        UVW_y = a0*b0*c0*y3d[iptr1] + a1*b0*c0*y3d[iptr2]
+               +a1*b1*c0*y3d[iptr3] + a0*b1*c0*y3d[iptr4]
+               +a0*b0*c1*y3d[iptr5] + a1*b0*c1*y3d[iptr6]
+               +a1*b1*c1*y3d[iptr7] + a0*b1*c1*y3d[iptr8];
+
+        UVW_z = a0*b0*c0*z3d[iptr1] + a1*b0*c0*z3d[iptr2]
+               +a1*b1*c0*z3d[iptr3] + a0*b1*c0*z3d[iptr4]
+               +a0*b0*c1*z3d[iptr5] + a1*b0*c1*z3d[iptr6]
+               +a1*b1*c1*z3d[iptr7] + a0*b1*c1*z3d[iptr8];
+
+        x3d[iptr] = U_x + V_x + W_x - UV_x - UW_x - VW_x + UVW_x;
+        y3d[iptr] = U_y + V_y + W_y - UV_y - UW_y - VW_y + UVW_y;
+        z3d[iptr] = U_z + V_z + W_z - UV_z - UW_z - VW_z + UVW_z;
+      }
     }
   }
   
-  return 0;
-}
-
-// hermite interpolation
-// four boundary x1(left), x2(right), z1(bottom) ,z2(top)
-int
-one_hermite(gd_t *gdcurv, float coef)
-{
-  int nx = gdcurv->nx;
-  int nz = gdcurv->nz;
-  float *x2d = gdcurv->x2d;
-  float *z2d = gdcurv->z2d;
-  float zeta,c0,c1,c10,c11;
-  float tan_z1_x,tan_z1_z,tan_z2_x,tan_z2_z;
-  float x_len,z_len;
-  float abs_z1, abs_z2;
-  size_t iptr,iptr1,iptr2,iptr3,iptr4;
-  float *dh_len;
-  float *nor_z1_x;
-  float *nor_z1_z;
-  float *nor_z2_x;
-  float *nor_z2_z;
-
-  dh_len = (float *)mem_calloc_1d_float(nx, 0.0, "init");
-  nor_z1_x = (float *)mem_calloc_1d_float(nx, 0.0, "init");
-  nor_z1_z = (float *)mem_calloc_1d_float(nx, 0.0, "init");
-  nor_z2_x = (float *)mem_calloc_1d_float(nx, 0.0, "init");
-  nor_z2_z = (float *)mem_calloc_1d_float(nx, 0.0, "init");
-
-  for (int i=0; i<nx; i++)
-  {
-    iptr1 = (nz-1)*nx + i; //(i,nz-1)
-    iptr2 = i;             //(i,1)
-    x_len = x2d[iptr1] - x2d[iptr2];
-    z_len = z2d[iptr1] - z2d[iptr2];
-    dh_len[i] = sqrt(pow(x_len,2) + pow(z_len,2));
-  }
-
-  for (int i=1; i<nx-1; i++) 
-  {
-    iptr1 = i+1;   //(i+1,1)
-    iptr2 = i-1;   //(i-1,1)
-    iptr3 = (nz-1)*nx + (i+1);   //(i+1,nz-1)
-    iptr4 = (nz-1)*nx + (i-1);   //(i-1,nz-1)
-    tan_z1_x = (x2d[iptr1] - x2d[iptr2])/2;
-    tan_z1_z = (z2d[iptr1] - z2d[iptr2])/2;
-    tan_z2_x = (x2d[iptr3] - x2d[iptr4])/2;
-    tan_z2_z = (z2d[iptr3] - z2d[iptr4])/2;
-    nor_z1_x[i] = -tan_z1_z;
-    nor_z1_z[i] = tan_z1_x;
-    nor_z2_x[i] = -tan_z2_z;
-    nor_z2_z[i] = tan_z2_x;
-  }
-  
-  // i=0 
-  iptr1 = 1;   //(1,1)
-  iptr2 = 0;   //(0,1)
-  iptr3 = (nz-1)*nx + 1;   //(1,nz-1)
-  iptr4 = (nz-1)*nx + 0;   //(0,nz-1)
-  nor_z1_x[0] = -(z2d[iptr1]-z2d[iptr2]);
-  nor_z1_z[0] = x2d[iptr1]-x2d[iptr2];
-  nor_z2_x[0] = -(z2d[iptr3]-z2d[iptr4]);
-  nor_z2_z[0] = x2d[iptr3]-x2d[iptr4];
-  // i=nx-1
-  iptr1 = nx-1;   //(nx-1,1)
-  iptr2 = nx-2;   //(nx-2,1)
-  iptr3 = (nz-1)*nx + nx-1;   //(nx-1,nz-1)
-  iptr4 = (nz-1)*nx + nx-2;   //(nx-2,nz-1)
-  nor_z1_x[nx-1] = -(z2d[iptr1]-z2d[iptr2]);
-  nor_z1_z[nx-1] = x2d[iptr1]-x2d[iptr2];
-  nor_z2_x[nx-1] = -(z2d[iptr3]-z2d[iptr4]);
-  nor_z2_z[nx-1] = x2d[iptr3]-x2d[iptr4];
-
-  // cal 1st order derivative coef, this effect 
-  // boundary orth length
-  for (int i=0; i<nx; i++) 
-  {
-    abs_z1 = sqrt(pow(nor_z1_x[i],2) + pow(nor_z1_z[i],2));
-    abs_z2 = sqrt(pow(nor_z2_x[i],2) + pow(nor_z2_z[i],2));
-    nor_z1_x[i] = coef*dh_len[i]*(nor_z1_x[i]/abs_z1);
-    nor_z1_z[i] = coef*dh_len[i]*(nor_z1_z[i]/abs_z1);
-    nor_z2_x[i] = coef*dh_len[i]*(nor_z2_x[i]/abs_z2);
-    nor_z2_z[i] = coef*dh_len[i]*(nor_z2_z[i]/abs_z2);
-  }
-
-  for (int i=0; i<nx; i++) {
-    for (int k=1; k<nz-1; k++)
-    {
-      zeta = (1.0*k)/(nz-1);
-      c0 =  2*pow(zeta,3) - 3*pow(zeta,2) + 1;
-      c1 = -2*pow(zeta,3) + 3*pow(zeta,2);
-      c10 = pow(zeta,3)-2*pow(zeta,2)+zeta;
-      c11 = pow(zeta,3)-pow(zeta,2);
-      
-      iptr = k*nx + i;
-      iptr1 = i;
-      iptr2 = (nz-1)*nx+i;
-      x2d[iptr] = c0*x2d[iptr1] + c1*x2d[iptr2] + c10*nor_z1_x[i] + c11*nor_z2_x[i];
-      z2d[iptr] = c0*z2d[iptr1] + c1*z2d[iptr2] + c10*nor_z1_z[i] + c11*nor_z2_z[i];
-    }
-  }
-
-  free(dh_len);
-  free(nor_z1_x); 
-  free(nor_z1_z);
-  free(nor_z2_x);
-  free(nor_z2_z);
-
   return 0;
 }
 
@@ -183,16 +144,16 @@ zt_arc_strech(gd_t *gdcurv, float coef)
   float x_len,z_len,dh_len;
   float r, ratio, zeta;
   int n;
-  float *x2d = gdcurv->x2d;
-  float *z2d = gdcurv->z2d;
-  float *x2d_temp; 
-  float *z2d_temp;
+  float *x3d = gdcurv->x3d;
+  float *z3d = gdcurv->z3d;
+  float *x3d_temp; 
+  float *z3d_temp;
   float *s;
   float *u;
 
-  x2d_temp = (float *)mem_calloc_1d_float(
+  x3d_temp = (float *)mem_calloc_1d_float(
               nz, 0.0, "init");
-  z2d_temp = (float *)mem_calloc_1d_float(
+  z3d_temp = (float *)mem_calloc_1d_float(
               nz, 0.0, "init");
   s = (float *)mem_calloc_1d_float(
               nz, 0.0, "init");
@@ -207,14 +168,14 @@ zt_arc_strech(gd_t *gdcurv, float coef)
     for(int k=0; k<nz; k++)
     {
       iptr1 = k*nx + i;     //(i,k)
-      x2d_temp[k] = x2d[iptr1];
-      z2d_temp[k] = z2d[iptr1];
+      x3d_temp[k] = x3d[iptr1];
+      z3d_temp[k] = z3d[iptr1];
     }
     // cal arc length
     for(int k=1; k<nz; k++)
     {
-      x_len = x2d_temp[k] - x2d_temp[k-1];
-      z_len = z2d_temp[k] - z2d_temp[k-1];
+      x_len = x3d_temp[k] - x3d_temp[k-1];
+      z_len = z3d_temp[k] - z3d_temp[k-1];
       dh_len = sqrt(pow(x_len,2) + pow(z_len,2));
       s[k] = s[k-1] + dh_len;
     }
@@ -237,16 +198,16 @@ zt_arc_strech(gd_t *gdcurv, float coef)
 
       // linear interp
       iptr = k*nx + i;
-      x_len = x2d_temp[n+1] - x2d_temp[n];
-      z_len = z2d_temp[n+1] - z2d_temp[n];
+      x_len = x3d_temp[n+1] - x3d_temp[n];
+      z_len = z3d_temp[n+1] - z3d_temp[n];
       ratio = (r - u[n])/(u[n+1]-u[n]);
-      x2d[iptr] = x2d_temp[n] + x_len*ratio;
-      z2d[iptr] = z2d_temp[n] + z_len*ratio;
+      x3d[iptr] = x3d_temp[n] + x_len*ratio;
+      z3d[iptr] = z3d_temp[n] + z_len*ratio;
     }
   }
 
-  free(x2d_temp);
-  free(z2d_temp);
+  free(x3d_temp);
+  free(z3d_temp);
   free(s);
   free(u);
 
@@ -265,16 +226,16 @@ xi_arc_strech(gd_t *gdcurv, float coef)
   float x_len,z_len,dh_len;
   float r, ratio, xi;
   int n;
-  float *x2d = gdcurv->x2d;
-  float *z2d = gdcurv->z2d;
-  float *x2d_temp; 
-  float *z2d_temp;
+  float *x3d = gdcurv->x3d;
+  float *z3d = gdcurv->z3d;
+  float *x3d_temp; 
+  float *z3d_temp;
   float *s;
   float *u;
 
-  x2d_temp = (float *)mem_calloc_1d_float(
+  x3d_temp = (float *)mem_calloc_1d_float(
               nx, 0.0, "init");
-  z2d_temp = (float *)mem_calloc_1d_float(
+  z3d_temp = (float *)mem_calloc_1d_float(
               nx, 0.0, "init");
   s = (float *)mem_calloc_1d_float(
               nx, 0.0, "init");
@@ -288,14 +249,14 @@ xi_arc_strech(gd_t *gdcurv, float coef)
     for(int i=0; i<nx; i++)
     {
       iptr1 = k*nx + i;     //(i,k)
-      x2d_temp[i] = x2d[iptr1];
-      z2d_temp[i] = z2d[iptr1];
+      x3d_temp[i] = x3d[iptr1];
+      z3d_temp[i] = z3d[iptr1];
     }
     // cal arc length
     for(int i=1; i<nx; i++)
     {
-      x_len = x2d_temp[i] - x2d_temp[i-1];
-      z_len = z2d_temp[i] - z2d_temp[i-1];
+      x_len = x3d_temp[i] - x3d_temp[i-1];
+      z_len = z3d_temp[i] - z3d_temp[i-1];
       dh_len = sqrt(pow(x_len,2) + pow(z_len,2));
       s[i] = s[i-1] + dh_len;
     }
@@ -318,16 +279,16 @@ xi_arc_strech(gd_t *gdcurv, float coef)
 
       // linear interp
       iptr = k*nx + i;
-      x_len = x2d_temp[n+1] - x2d_temp[n];
-      z_len = z2d_temp[n+1] - z2d_temp[n];
+      x_len = x3d_temp[n+1] - x3d_temp[n];
+      z_len = z3d_temp[n+1] - z3d_temp[n];
       ratio = (r - u[n])/(u[n+1]-u[n]);
-      x2d[iptr] = x2d_temp[n] + x_len*ratio;
-      z2d[iptr] = z2d_temp[n] + z_len*ratio;
+      x3d[iptr] = x3d_temp[n] + x_len*ratio;
+      z3d[iptr] = z3d_temp[n] + z_len*ratio;
     }
   }
 
-  free(x2d_temp);
-  free(z2d_temp);
+  free(x3d_temp);
+  free(z3d_temp);
   free(s);
   free(u);
 
@@ -343,13 +304,13 @@ sample_interp(gd_t *gdcurv_new, gd_t *gdcurv)
   int nx_new = gdcurv_new->nx;
   int nz_new = gdcurv_new->nz;
 
-  float *x2d = gdcurv->x2d;
-  float *z2d = gdcurv->z2d;
-  float *x2d_new = gdcurv_new->x2d;
-  float *z2d_new = gdcurv_new->z2d;
+  float *x3d = gdcurv->x3d;
+  float *z3d = gdcurv->z3d;
+  float *x3d_new = gdcurv_new->x3d;
+  float *z3d_new = gdcurv_new->z3d;
 
-  float *x2d_temp;
-  float *z2d_temp;
+  float *x3d_temp;
+  float *z3d_temp;
   float *u;
   float *v;
   size_t iptr,iptr1,iptr2;
@@ -357,9 +318,9 @@ sample_interp(gd_t *gdcurv_new, gd_t *gdcurv)
   float r, ratio;
   int n;
 
-  x2d_temp = (float *)mem_calloc_1d_float(
+  x3d_temp = (float *)mem_calloc_1d_float(
               nx, 0.0, "init");
-  z2d_temp = (float *)mem_calloc_1d_float(
+  z3d_temp = (float *)mem_calloc_1d_float(
               nx, 0.0, "init");
   u = (float *)mem_calloc_1d_float(
               nz, 0.0, "gd_curv_init");
@@ -391,11 +352,11 @@ sample_interp(gd_t *gdcurv_new, gd_t *gdcurv)
       iptr = k_new*nx_new + i;
       iptr1 = n*nx + i;
       iptr2 = (n+1)*nx + i;
-      x_len = x2d[iptr2] - x2d[iptr1];
-      z_len = z2d[iptr2] - z2d[iptr1];
+      x_len = x3d[iptr2] - x3d[iptr1];
+      z_len = z3d[iptr2] - z3d[iptr1];
       ratio = (r - u[n])/(u[n+1]-u[n]);
-      x2d_new[iptr] = x2d[iptr1] + x_len*ratio;
-      z2d_new[iptr] = z2d[iptr1] + z_len*ratio;
+      x3d_new[iptr] = x3d[iptr1] + x_len*ratio;
+      z3d_new[iptr] = z3d[iptr1] + z_len*ratio;
     }
   }
 
@@ -407,8 +368,8 @@ sample_interp(gd_t *gdcurv_new, gd_t *gdcurv)
     for(int i=0; i<nx; i++)
     {
       iptr1 = k_new*nx_new + i;     //(i,k)
-      x2d_temp[i] = x2d_new[iptr1];
-      z2d_temp[i] = z2d_new[iptr1];
+      x3d_temp[i] = x3d_new[iptr1];
+      z3d_temp[i] = z3d_new[iptr1];
     }
     // point number normalized [0,1]
     for(int i=0; i<nx; i++)
@@ -429,20 +390,20 @@ sample_interp(gd_t *gdcurv_new, gd_t *gdcurv)
 
       // linear interp
       iptr = k_new*nx_new + i_new;
-      x_len = x2d_temp[n+1] - x2d_temp[n];
-      z_len = z2d_temp[n+1] - z2d_temp[n];
+      x_len = x3d_temp[n+1] - x3d_temp[n];
+      z_len = z3d_temp[n+1] - z3d_temp[n];
       ratio = (r - v[n])/(v[n+1]-v[n]);
-      x2d_new[iptr] = x2d_temp[n] + x_len*ratio;
-      z2d_new[iptr] = z2d_temp[n] + z_len*ratio;
+      x3d_new[iptr] = x3d_temp[n] + x_len*ratio;
+      z3d_new[iptr] = z3d_temp[n] + z_len*ratio;
     }
   }
 
   free(u);
   free(v);
-  free(x2d_temp);
-  free(z2d_temp);
+  free(x3d_temp);
+  free(z3d_temp);
   // use sample grid gdcurv_new, so free gdcurv space 
-  free(gdcurv->v3d);
+  free(gdcurv->v4d);
 
   return 0;
 }
