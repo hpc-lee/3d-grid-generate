@@ -1,6 +1,7 @@
 #ifndef GD_CURV_H
 #define GD_CURV_H
 
+#include "par_t.h"
 /*************************************************
  * structure
  *************************************************/
@@ -39,7 +40,7 @@ int
 grid_init_set(gd_t *gdcurv, char *input_file);
 
 int
-grid_init_set_hyper(gd_t *gdcurv, char *geometry_file, char *step_file);
+grid_init_set_hyper(gd_t *gdcurv, par_t *par);
 
 int
 grid_sample(gd_t *gdcurv_new, gd_t *gdcurv, float coef_x, float coef_z);

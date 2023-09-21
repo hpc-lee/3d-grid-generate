@@ -5,8 +5,8 @@ close all;
 flag_printf = 1;
 flag_topo_y = 1;
 
-nx = 100;
-nz = 110;
+nx = 200;
+nz = 210;
 
 dx = 10;
 dz = 10;
@@ -31,8 +31,8 @@ end
 if  flag_topo_y
   point_x = origin_x + floor(nx/2)*dx; 
   point_z = origin_z + floor(nz/2)*dz; 
-  L = 20*dx;
-  H = 10*dx;
+  L = 90*dx;
+  H = 50*dx;
   for k = 1:nz
     for i = 1:nx
       r1 = sqrt((by(k,i,1)-point_x)^2 + (by(k,i,3)-point_z)^2);
@@ -58,28 +58,28 @@ end
 
 % trans direction y to z
 % need keep Right-Handed Coordinate System
-ny = nz;
-bz = zeros(ny,nx,3);
-bz(:,:,1) = by(:,:,1);
-bz(:,:,2) = by(:,:,3);
-bz(:,:,3) = by(:,:,2);
-if flag_printf
-    figure(2)   
-    plot3(permute(bz(:,:,1),[2,1,3]),permute(bz(:,:,2),[2,1,3]),permute(bz(:,:,3),[2,1,3]));
-    hold on;
-    plot3(bz(:,:,1),bz(:,:,2),bz(:,:,3));
-    axis equal;
-end
+%ny = nz;
+%bz = zeros(ny,nx,3);
+%bz(:,:,1) = by(:,:,1);
+%bz(:,:,2) = by(:,:,3);
+%bz(:,:,3) = by(:,:,2);
+%if flag_printf
+%    figure(2)   
+%    plot3(permute(bz(:,:,1),[2,1,3]),permute(bz(:,:,2),[2,1,3]),permute(bz(:,:,3),[2,1,3]));
+%    hold on;
+%    plot3(bz(:,:,1),bz(:,:,2),bz(:,:,3));
+%    axis equal;
+%end
 % creat data file
 file_name = '../data_file_3d.txt';
 fid=fopen(file_name,'w'); % Output file name 
 fprintf(fid,'# nx number\n'); 
 fprintf(fid,'%d\n',nx);
-fprintf(fid,'# ny number\n'); 
-fprintf(fid,'%d\n',ny);
-fprintf(fid,'# bz coords\n'); 
-for j=1:ny
+fprintf(fid,'# nz number\n'); 
+fprintf(fid,'%d\n',nz);
+fprintf(fid,'# by coords\n'); 
+for k=1:nz
   for i=1:nx
-    fprintf(fid,'%.9e %.9e %.9e\n',bz(j,i,1),bz(j,i,2),bz(j,i,3));
+    fprintf(fid,'%.9e %.9e %.9e\n',by(k,i,1),by(k,i,2),by(k,i,3));
   end
 end

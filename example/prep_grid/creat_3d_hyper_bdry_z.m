@@ -6,10 +6,10 @@ flag_printf = 1;
 flag_topo_z = 1;
 
 num_pml = 0;
-nx1 = 100;
+nx1 = 200;
 nx = nx1 + 2*num_pml; 
 
-ny1 = 110;
+ny1 = 210;
 ny = ny1 + 2*num_pml; 
 
 dx = 10;
@@ -35,8 +35,8 @@ end
 if  flag_topo_z
   point_x= origin_x + floor(nx1/2)*dx; 
   point_y= origin_y + floor(ny1/2)*dy; 
-  L = 40*dx;
-  H = 30*dx;
+  L = 90*dx;
+  H = 40*dx;
   for j = 1:ny1
     for i = 1:nx1
       r1 = sqrt((bz(j+num_pml,i+num_pml,1)-point_x)^2 + (bz(j+num_pml,i+num_pml,2)-point_y)^2);

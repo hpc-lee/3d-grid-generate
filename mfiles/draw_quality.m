@@ -20,11 +20,14 @@ ny = xyzc(2);
 nz = xyzc(3);
 
 % which grid profile to plot
-subs=[100,1,1];     % index 1:nx 1:ny 1:nz
-subc=[1,-1,-1];   % '-1' to plot all points in this dimension
+% subs=[15,1,1];     % index 1:nx 1:ny 1:nz
+% subc=[1,-1,-1];   % '-1' to plot all points in this dimension
+% subt=[1,1,1];
+subs=[1,100,1];     % index 1:nx 1:ny 1:nz
+subc=[-1,1,-1];   % '-1' to plot all points in this dimension
 subt=[1,1,1];
-% subs=[1,100,1];     % index 1:nx 1:ny 1:nz
-% subc=[-1,1,-1];   % '-1' to plot all points in this dimension
+% subs=[1,1,100];     % index 1:nx 1:ny 1:nz
+% subc=[-1,-1,1];   % '-1' to plot all points in this dimension
 % subt=[1,1,1];
 
 % figure control parameters
@@ -41,8 +44,8 @@ clrmp       = 'parula';
 % 'orth_etzt', 'jacobi',  
 % 'smooth_x', 'smooth_y','smooth_z',
 % 'step_x', 'step_y', 'step_z'
-% varnm = 'step_z';
-varnm = 'orth_etzt';
+% varnm = 'jacobi';
+varnm = 'orth_xizt';
 %-----------------------------------------------------------
 %-- load coord
 %-----------------------------------------------------------

@@ -1,31 +1,36 @@
 #ifndef FDLIB_MATH_H
 #define FDLIB_MATH_H
 
-void
-mat_invert2x2(double matrix[2][2]);
+int
+mat_invert3x3(double matrix[][3]);
 
-void
-mat_mul2x2(double A[][2], double B[][2], double C[][2]);
+int
+mat_mul3x3(double A[][3], double B[][3], double C[][3]);
 
-void
-mat_mul2x1(double A[][2], double B[2], double C[2]);
+int
+cross_product(double *A, double *B, double *C);
 
-void
-mat_add2x2(double A[][2], double B[][2], double C[][2]);
+double
+dot_product(double *A, double *B);
 
-void
-vec_add2x1(double A[2], double B[2], double C[2]);
+int 
+mat_mul3x1(double A[][3], double *B, double *C);
 
-void
-mat_sub2x2(double A[][2], double B[][2], double C[][2]);
+int
+mat_add3x3(double A[][3], double B[][3], double C[][3]);
 
-void
-vec_sub2x1(double A[2], double B[2], double C[2]);
+int
+vec_add3x1(double *A, double *B, double *C);
 
-void
-mat_copy2x2(double A[][2], double B[][2]);
+int
+vec_sub3x1(double *A, double *B, double *C);
 
-void
-mat_iden2x2(double A[][2]);
+int
+mat_sub3x3(double A[][3], double B[][3], double C[][3]);
 
+int
+mat_copy3x3(double A[][3], double B[][3]);
+
+int
+mat_iden3x3(double A[][3]);
 #endif

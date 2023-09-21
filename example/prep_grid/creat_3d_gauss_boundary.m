@@ -107,6 +107,7 @@ if flag_topo_x
       end
       
       bx2(k,j+num_pml,1) = bx2(k,j+num_pml,1) + topo;
+      bx1(k,j+num_pml,1) = bx1(k,j+num_pml,1) - topo;
     end
   end
 end
@@ -124,17 +125,18 @@ if flag_topo_y
           topo = 0.5*H * (1+cos(pi*r1/L));
       end
       
-      by2(k,i+num_pml,2) = by2(k,i+num_pml,2) + topo;
+%       by2(k,i+num_pml,2) = by2(k,i+num_pml,2) + topo;
+      by1(k,i+num_pml,2) = by1(k,i+num_pml,2) - topo;
     end
   end
 end
 A = 0.000001;
- [bx1] = arc_strech(A,bx1);
- [bx2] = arc_strech(A,bx2);
- [by1] = arc_strech(A,by1);
- [by2] = arc_strech(A,by2);
- [bz1] = arc_strech(A,bz1);
- [bz2] = arc_strech(A,bz2);
+% [bx1] = arc_strech(A,bx1);
+% [bx2] = arc_strech(A,bx2);
+% [by1] = arc_strech(A,by1);
+% [by2] = arc_strech(A,by2);
+% [bz1] = arc_strech(A,bz1);
+% [bz2] = arc_strech(A,bz2);
 
 if flag_printf
 

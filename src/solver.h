@@ -15,6 +15,6 @@ update_SOR(float *x3d, float *y3d, float *z3d, float *x3d_tmp,
 
 int
 thomas_block(int n, double *a, double *b, double *c, double *d,
-             double *xz, double *D, double *y);
+             double *x, double *D, double *y);
 
 #endif

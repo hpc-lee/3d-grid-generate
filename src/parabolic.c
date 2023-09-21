@@ -9,11 +9,14 @@
 #include "lib_mem.h"
 
 int 
-para_gene(gd_t *gdcurv, float coef, int o2i)
+para_gene(gd_t *gdcurv, par_t *par)
 {
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
+
+  float coef = par->coef;
+  int o2i = par->o2i;
 
   float *x3d = gdcurv->x3d;
   float *y3d = gdcurv->y3d;
@@ -88,7 +91,6 @@ predict_point(float *x3d, float *y3d, float *z3d, int nx, int ny,
   float xi,et,zt,cs;
   size_t iptr1,iptr2,iptr3,iptr4;
   float vn_x,vn_y,vn_z,vn_len;
-  float vn_x0,vn_y0,vn_z0;
   float R_x,R_y,R_z,R;
   float R_x1, r_x1, r_x11;
   float R_x2, r_x2, r_x22;
@@ -132,9 +134,9 @@ predict_point(float *x3d, float *y3d, float *z3d, int nx, int ny,
         vn_z = -vn_z;
       } 
       vn_len = sqrt(pow(vn_x,2)+pow(vn_y,2)+pow(vn_z,2));
-      vn_x0 = vn_x/vn_len;
-      vn_y0 = vn_y/vn_len;
-      vn_z0 = vn_z/vn_len;
+      vn_x = vn_x/vn_len;
+      vn_y = vn_y/vn_len;
+      vn_z = vn_z/vn_len;
       
       // inner point i
       iptr1 = (k-1)*siz_iz + j*siz_iy + i; // (i,j,k-1)
@@ -207,9 +209,9 @@ predict_point(float *x3d, float *y3d, float *z3d, int nx, int ny,
 
       iptr1 = (k-1)*siz_iz + j*siz_iy + i; //(i,j,k-1)
       // x0,y0,z0 normal point
-      x0 = x3d[iptr1] + vn_x0*c*R;
-      y0 = y3d[iptr1] + vn_y0*c*R;
-      z0 = z3d[iptr1] + vn_z0*c*R;
+      x0 = x3d[iptr1] + vn_x*c*R;
+      y0 = y3d[iptr1] + vn_y*c*R;
+      z0 = z3d[iptr1] + vn_z*c*R;
       
       // xs,ys,zs linear distance point
       iptr2 = (nz-1)*siz_iz + j*siz_iy + i;   //(i,j,nz-1)
@@ -229,7 +231,7 @@ predict_point(float *x3d, float *y3d, float *z3d, int nx, int ny,
     }
   }
 
-  //bdry_effct(x3d,y3d,z3d,nx,ny,nz,k);
+  bdry_effct(x3d,y3d,z3d,nx,ny,nz,k);
 
   return 0;
 }
@@ -379,85 +381,439 @@ update_point(float *x3d, float *y3d, float *z3d, float *var_th, int nx, int ny, 
 
   return 0;
 }
-/*
+
 int
 bdry_effct(float *x3d, float *y3d, float *z3d, int nx, int ny, int nz, int k)
 {
   // add bdry point effct
   // due to bdry maybe nonlinear,
   // bdry undulate
-  float b1_x1_k, b1_z1_k, b1_x1_k1, b1_z1_k1;
-  float b1_x2_k, b1_z2_k, b1_x2_k1, b1_z2_k1;
-  float b2_x1_k, b2_z1_k, b2_x1_k1, b2_z1_k1;
-  float b2_x2_k, b2_z2_k, b2_x2_k1, b2_z2_k1;
-  float dif_b1_x_k, dif_b1_z_k, dif_b1_x_k1, dif_b1_z_k1;
-  float dif_b2_x_k, dif_b2_z_k, dif_b2_x_k1, dif_b2_z_k1;
   size_t iptr1,iptr2,iptr3;
-  // x1 bdry
-  iptr1 = (k-1)*nx + 0; //(0,k-1)
-  iptr2 =  k*nx + 0;    //(0,k)
-  iptr3 = (k+1)*nx + 0; //(0,k+1)
-  b1_x1_k  = x3d[iptr2]-x3d[iptr1];
-  b1_z1_k  = z3d[iptr2]-z3d[iptr1];
-  b1_x1_k1 = x3d[iptr3]-x3d[iptr2];
-  b1_z1_k1 = z3d[iptr3]-z3d[iptr2];
+  size_t siz_iy = nx;
+  size_t siz_iz = nx*ny;
 
-  iptr1 = (k-1)*nx + 1; //(1,k-1)
-  iptr2 =  k*nx + 1;    //(1,k)
-  iptr3 = (k+1)*nx + 1; //(1,k+1)
-  b1_x2_k  = x3d[iptr2]-x3d[iptr1];
-  b1_z2_k  = z3d[iptr2]-z3d[iptr1];
-  b1_x2_k1 = x3d[iptr3]-x3d[iptr2];
-  b1_z2_k1 = z3d[iptr3]-z3d[iptr2];
+  // x1 bdry1
+  float *b1_x1_k = NULL;
+  float *b1_y1_k = NULL;
+  float *b1_z1_k = NULL;
+  float *b1_x1_k1 = NULL;
+  float *b1_y1_k1 = NULL;
+  float *b1_z1_k1 = NULL;
+  b1_x1_k  = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b1_y1_k  = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b1_z1_k  = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b1_x1_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b1_y1_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b1_z1_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
 
-  dif_b1_x_k  = b1_x1_k -b1_x2_k;
-  dif_b1_z_k  = b1_z1_k -b1_z2_k;
-  dif_b1_x_k1 = b1_x1_k1-b1_x2_k1;
-  dif_b1_z_k1 = b1_z1_k1-b1_z2_k1;
+  float *b1_x2_k = NULL;
+  float *b1_y2_k = NULL;
+  float *b1_z2_k = NULL;
+  float *b1_x2_k1 = NULL;
+  float *b1_y2_k1 = NULL;
+  float *b1_z2_k1 = NULL;
+  b1_x2_k  = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b1_y2_k  = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b1_z2_k  = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b1_x2_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b1_y2_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b1_z2_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
 
-  // x2 bdry
-  iptr1 = (k-1)*nx + (nx-1); //(nx-1,k-1)
-  iptr2 =  k*nx + (nx-1);    //(nx-1,k)
-  iptr3 = (k+1)*nx + (nx-1); //(nx-1,k+1)
-  b2_x1_k  = x3d[iptr2]-x3d[iptr1];
-  b2_z1_k  = z3d[iptr2]-z3d[iptr1];
-  b2_x1_k1 = x3d[iptr3]-x3d[iptr2];
-  b2_z1_k1 = z3d[iptr3]-z3d[iptr2];
+  float *dif_b1_x_k = NULL;
+  float *dif_b1_y_k = NULL;
+  float *dif_b1_z_k = NULL;
+  float *dif_b1_x_k1 = NULL;
+  float *dif_b1_y_k1 = NULL;
+  float *dif_b1_z_k1 = NULL;
+  dif_b1_x_k  = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  dif_b1_y_k  = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  dif_b1_z_k  = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  dif_b1_x_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  dif_b1_y_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  dif_b1_z_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
 
-  iptr1 = (k-1)*nx + (nx-2); //(nx-2,k-1)
-  iptr2 =  k*nx + (nx-2);    //(nx-2,k)
-  iptr3 = (k+1)*nx + (nx-2); //(nx-2,k+1)
-  b2_x2_k  = x3d[iptr2]-x3d[iptr1];
-  b2_z2_k  = z3d[iptr2]-z3d[iptr1];
-  b2_x2_k1 = x3d[iptr3]-x3d[iptr2];
-  b2_z2_k1 = z3d[iptr3]-z3d[iptr2];
-  
-  dif_b2_x_k  = b2_x1_k -b2_x2_k;
-  dif_b2_z_k  = b2_z1_k -b2_z2_k;
-  dif_b2_x_k1 = b2_x1_k1-b2_x2_k1;
-  dif_b2_z_k1 = b2_z1_k1-b2_z2_k1;
+  for(int j=1; j<ny-1; j++)
+  {
+    iptr1 = k*siz_iz + j*siz_iy + 0; //(0,j,k)
+    iptr2 = (k-1)*siz_iz + j*siz_iy + 0; //(0,j,k-1)
+    iptr3 = (k+1)*siz_iz + j*siz_iy + 0; //(0,j,k+1)
 
-  float xi, bdry_x_k, bdry_z_k;
-  float bdry_x_k1, bdry_z_k1;
+    b1_x1_k[j]  = x3d[iptr1]-x3d[iptr2];
+    b1_y1_k[j]  = y3d[iptr1]-y3d[iptr2];
+    b1_z1_k[j]  = z3d[iptr1]-z3d[iptr2];
+
+    b1_x1_k1[j] = x3d[iptr3]-x3d[iptr1];
+    b1_y1_k1[j] = y3d[iptr3]-y3d[iptr1];
+    b1_z1_k1[j] = z3d[iptr3]-z3d[iptr1];
+
+    iptr1 = k*siz_iz + j*siz_iy + 1; //(1,j,k)
+    iptr2 = (k-1)*siz_iz + j*siz_iy + 1; //(1,j,k-1)
+    iptr3 = (k+1)*siz_iz + j*siz_iy + 1; //(1,j,k+1)
+
+    b1_x2_k[j]  = x3d[iptr1]-x3d[iptr2];
+    b1_y2_k[j]  = y3d[iptr1]-y3d[iptr2];
+    b1_z2_k[j]  = z3d[iptr1]-z3d[iptr2];
+
+    b1_x2_k1[j] = x3d[iptr3]-x3d[iptr1];
+    b1_y2_k1[j] = y3d[iptr3]-y3d[iptr1];
+    b1_z2_k1[j] = z3d[iptr3]-z3d[iptr1];
+
+    dif_b1_x_k[j]  = b1_x1_k[j] -b1_x2_k[j];
+    dif_b1_y_k[j]  = b1_y1_k[j] -b1_y2_k[j];
+    dif_b1_z_k[j]  = b1_z1_k[j] -b1_z2_k[j];
+    dif_b1_x_k1[j] = b1_x1_k1[j]-b1_x2_k1[j];
+    dif_b1_y_k1[j] = b1_y1_k1[j]-b1_y2_k1[j];
+    dif_b1_z_k1[j] = b1_z1_k1[j]-b1_z2_k1[j];
+  }
+
+  // x2 bdry2
+  float *b2_x1_k = NULL;
+  float *b2_y1_k = NULL;
+  float *b2_z1_k = NULL;
+  float *b2_x1_k1 = NULL;
+  float *b2_y1_k1 = NULL;
+  float *b2_z1_k1 = NULL;
+  b2_x1_k = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b2_y1_k = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b2_z1_k = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b2_x1_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b2_y1_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b2_z1_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+
+  float *b2_x2_k = NULL;
+  float *b2_y2_k = NULL;
+  float *b2_z2_k = NULL;
+  float *b2_x2_k1 = NULL;
+  float *b2_y2_k1 = NULL;
+  float *b2_z2_k1 = NULL;
+  b2_x2_k = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b2_y2_k = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b2_z2_k = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b2_x2_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b2_y2_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  b2_z2_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+
+  float *dif_b2_x_k = NULL;
+  float *dif_b2_y_k = NULL;
+  float *dif_b2_z_k = NULL;
+  float *dif_b2_x_k1 = NULL;
+  float *dif_b2_y_k1 = NULL;
+  float *dif_b2_z_k1 = NULL;
+  dif_b2_x_k = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  dif_b2_y_k = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  dif_b2_z_k = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  dif_b2_x_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  dif_b2_y_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+  dif_b2_z_k1 = (float *)mem_calloc_1d_float(ny, 0.0, "init");
+
+  for(int j=1; j<ny-1; j++)
+  {
+    iptr1 = k*siz_iz + j*siz_iy + nx-1; //(nx-1,j,k)
+    iptr2 = (k-1)*siz_iz + j*siz_iy + nx-1; //(nx-1,j,k-1)
+    iptr3 = (k+1)*siz_iz + j*siz_iy + nx-1; //(nx-1,j,k+1)
+
+    b2_x1_k[j]  = x3d[iptr1]-x3d[iptr2];
+    b2_y1_k[j]  = y3d[iptr1]-y3d[iptr2];
+    b2_z1_k[j]  = z3d[iptr1]-z3d[iptr2];
+
+    b2_x1_k1[j] = x3d[iptr3]-x3d[iptr1];
+    b2_y1_k1[j] = y3d[iptr3]-y3d[iptr1];
+    b2_z1_k1[j] = z3d[iptr3]-z3d[iptr1];
+
+    iptr1 = k*siz_iz + j*siz_iy + nx-2; //(nx-2,j,k)
+    iptr2 = (k-1)*siz_iz + j*siz_iy + nx-2; //(nx-2,j,k-1)
+    iptr3 = (k+1)*siz_iz + j*siz_iy + nx-2; //(nx-2,j,k+1)
+
+    b2_x2_k[j]  = x3d[iptr1]-x3d[iptr2];
+    b2_y2_k[j]  = y3d[iptr1]-y3d[iptr2];
+    b2_z2_k[j]  = z3d[iptr1]-z3d[iptr2];
+
+    b2_x2_k1[j] = x3d[iptr3]-x3d[iptr1];
+    b2_y2_k1[j] = y3d[iptr3]-y3d[iptr1];
+    b2_z2_k1[j] = z3d[iptr3]-z3d[iptr1];
+
+    dif_b2_x_k[j]  = b2_x1_k[j] -b2_x2_k[j];
+    dif_b2_y_k[j]  = b2_y1_k[j] -b2_y2_k[j];
+    dif_b2_z_k[j]  = b2_z1_k[j] -b2_z2_k[j];
+    dif_b2_x_k1[j] = b2_x1_k1[j]-b2_x2_k1[j];
+    dif_b2_y_k1[j] = b2_y1_k1[j]-b2_y2_k1[j];
+    dif_b2_z_k1[j] = b2_z1_k1[j]-b2_z2_k1[j];
+  }
+
+  // y1 bdry3
+  float *b3_x1_k = NULL;
+  float *b3_y1_k = NULL;
+  float *b3_z1_k = NULL;
+  float *b3_x1_k1 = NULL;
+  float *b3_y1_k1 = NULL;
+  float *b3_z1_k1 = NULL;
+  b3_x1_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b3_y1_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b3_z1_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b3_x1_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b3_y1_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b3_z1_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+
+  float *b3_x2_k = NULL;
+  float *b3_y2_k = NULL;
+  float *b3_z2_k = NULL;
+  float *b3_x2_k1 = NULL;
+  float *b3_y2_k1 = NULL;
+  float *b3_z2_k1 = NULL;
+  b3_x2_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b3_y2_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b3_z2_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b3_x2_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b3_y2_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b3_z2_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+
+  float *dif_b3_x_k = NULL;
+  float *dif_b3_y_k = NULL;
+  float *dif_b3_z_k = NULL;
+  float *dif_b3_x_k1 = NULL;
+  float *dif_b3_y_k1 = NULL;
+  float *dif_b3_z_k1 = NULL;
+  dif_b3_x_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  dif_b3_y_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  dif_b3_z_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  dif_b3_x_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  dif_b3_y_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  dif_b3_z_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+
   for(int i=1; i<nx-1; i++)
   {
-    xi = (1.0*i)/(nx-1);
-    bdry_x_k = (1-xi)*dif_b1_x_k + xi*dif_b2_x_k;
-    bdry_z_k = (1-xi)*dif_b1_z_k + xi*dif_b2_z_k;
-    iptr1 = k*nx + i; 
-    x3d[iptr1] = x3d[iptr1] + 2.05*bdry_x_k;
-    z3d[iptr1] = z3d[iptr1] + 2.05*bdry_z_k;
+    iptr1 = k*siz_iz + 0*siz_iy + i; //(i,0,k)
+    iptr2 = (k-1)*siz_iz + 0*siz_iy + i; //(i,0,k-1)
+    iptr3 = (k+1)*siz_iz + 0*siz_iy + i; //(i,0,k+1)
 
-    bdry_x_k1 = (1-xi)*dif_b1_x_k1 + xi*dif_b2_x_k1;
-    bdry_z_k1 = (1-xi)*dif_b1_z_k1 + xi*dif_b2_z_k1;
-    iptr2 = (k+1)*nx + i; 
-    x3d[iptr2] = x3d[iptr2] + 2.05*bdry_x_k1;
-    z3d[iptr2] = z3d[iptr2] + 2.05*bdry_z_k1;
+    b3_x1_k[i]  = x3d[iptr1]-x3d[iptr2];
+    b3_y1_k[i]  = y3d[iptr1]-y3d[iptr2];
+    b3_z1_k[i]  = z3d[iptr1]-z3d[iptr2];
+
+    b3_x1_k1[i] = x3d[iptr3]-x3d[iptr1];
+    b3_y1_k1[i] = y3d[iptr3]-y3d[iptr1];
+    b3_z1_k1[i] = z3d[iptr3]-z3d[iptr1];
+
+    iptr1 = k*siz_iz + 1*siz_iy + i; //(i,1,k)
+    iptr2 = (k-1)*siz_iz + 1*siz_iy + i; //(i,1,k-1)
+    iptr3 = (k+1)*siz_iz + 1*siz_iy + i; //(i,1,k+1)
+
+    b3_x2_k[i]  = x3d[iptr1]-x3d[iptr2];
+    b3_y2_k[i]  = y3d[iptr1]-y3d[iptr2];
+    b3_z2_k[i]  = z3d[iptr1]-z3d[iptr2];
+
+    b3_x2_k1[i] = x3d[iptr3]-x3d[iptr1];
+    b3_y2_k1[i] = y3d[iptr3]-y3d[iptr1];
+    b3_z2_k1[i] = z3d[iptr3]-z3d[iptr1];
+
+    dif_b3_x_k[i]  = b3_x1_k[i] -b3_x2_k[i];
+    dif_b3_y_k[i]  = b3_y1_k[i] -b3_y2_k[i];
+    dif_b3_z_k[i]  = b3_z1_k[i] -b3_z2_k[i];
+    dif_b3_x_k1[i] = b3_x1_k1[i]-b3_x2_k1[i];
+    dif_b3_y_k1[i] = b3_y1_k1[i]-b3_y2_k1[i];
+    dif_b3_z_k1[i] = b3_z1_k1[i]-b3_z2_k1[i];
   }
+
+  // y2 bdry4
+  float *b4_x1_k = NULL;
+  float *b4_y1_k = NULL;
+  float *b4_z1_k = NULL;
+  float *b4_x1_k1 = NULL;
+  float *b4_y1_k1 = NULL;
+  float *b4_z1_k1 = NULL;
+  b4_x1_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b4_y1_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b4_z1_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b4_x1_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b4_y1_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b4_z1_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+
+  float *b4_x2_k = NULL;
+  float *b4_y2_k = NULL;
+  float *b4_z2_k = NULL;
+  float *b4_x2_k1 = NULL;
+  float *b4_y2_k1 = NULL;
+  float *b4_z2_k1 = NULL;
+  b4_x2_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b4_y2_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b4_z2_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b4_x2_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b4_y2_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  b4_z2_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+
+  float *dif_b4_x_k = NULL;
+  float *dif_b4_y_k = NULL;
+  float *dif_b4_z_k = NULL;
+  float *dif_b4_x_k1 = NULL;
+  float *dif_b4_y_k1 = NULL;
+  float *dif_b4_z_k1 = NULL;
+  dif_b4_x_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  dif_b4_y_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  dif_b4_z_k = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  dif_b4_x_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  dif_b4_y_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+  dif_b4_z_k1 = (float *)mem_calloc_1d_float(nx, 0.0, "init");
+
+  for(int i=1; i<nx-1; i++)
+  {
+    iptr1 = k*siz_iz + (ny-1)*siz_iy + i; //(i,ny-1,k)
+    iptr2 = (k-1)*siz_iz + (ny-1)*siz_iy + i; //(i,ny-1,k-1)
+    iptr3 = (k+1)*siz_iz + (ny-1)*siz_iy + i; //(i,ny-1,k+1)
+
+    b4_x1_k[i]  = x3d[iptr1]-x3d[iptr2];
+    b4_y1_k[i]  = y3d[iptr1]-y3d[iptr2];
+    b4_z1_k[i]  = z3d[iptr1]-z3d[iptr2];
+
+    b4_x1_k1[i] = x3d[iptr3]-x3d[iptr1];
+    b4_y1_k1[i] = y3d[iptr3]-y3d[iptr1];
+    b4_z1_k1[i] = z3d[iptr3]-z3d[iptr1];
+
+    iptr1 = k*siz_iz + (ny-2)*siz_iy + i; //(i,ny-2,k)
+    iptr2 = (k-1)*siz_iz + (ny-2)*siz_iy + i; //(i,ny-2,k-1)
+    iptr3 = (k+1)*siz_iz + (ny-2)*siz_iy + i; //(i,ny-2,k+1)
+
+    b4_x2_k[i]  = x3d[iptr1]-x3d[iptr2];
+    b4_y2_k[i]  = y3d[iptr1]-y3d[iptr2];
+    b4_z2_k[i]  = z3d[iptr1]-z3d[iptr2];
+
+    b4_x2_k1[i] = x3d[iptr3]-x3d[iptr1];
+    b4_y2_k1[i] = y3d[iptr3]-y3d[iptr1];
+    b4_z2_k1[i] = z3d[iptr3]-z3d[iptr1];
+
+    dif_b4_x_k[i]  = b4_x1_k[i] -b4_x2_k[i];
+    dif_b4_y_k[i]  = b4_y1_k[i] -b4_y2_k[i];
+    dif_b4_z_k[i]  = b4_z1_k[i] -b4_z2_k[i];
+    dif_b4_x_k1[i] = b4_x1_k1[i]-b4_x2_k1[i];
+    dif_b4_y_k1[i] = b4_y1_k1[i]-b4_y2_k1[i];
+    dif_b4_z_k1[i] = b4_z1_k1[i]-b4_z2_k1[i];
+  }
+
+  float xi, et;
+  float bdry_x_k, bdry_y_k, bdry_z_k;
+  float bdry_x_k1, bdry_y_k1, bdry_z_k1;
+  for(int j=1; j<ny-1; j++) {
+    for(int i=1; i<nx-1; i++)
+    {
+      xi = (1.0*i)/(nx-1);
+      bdry_x_k = (1-xi)*dif_b1_x_k[j] + xi*dif_b2_x_k[j];
+      bdry_y_k = (1-xi)*dif_b1_y_k[j] + xi*dif_b2_y_k[j];
+      bdry_z_k = (1-xi)*dif_b1_z_k[j] + xi*dif_b2_z_k[j];
+      iptr1 = k*siz_iz + j*siz_iy + i; 
+      x3d[iptr1] = x3d[iptr1] + 1.6*bdry_x_k;
+      y3d[iptr1] = y3d[iptr1] + 1.6*bdry_y_k;
+      z3d[iptr1] = z3d[iptr1] + 1.6*bdry_z_k;
+
+      bdry_x_k1 = (1-xi)*dif_b1_x_k1[j] + xi*dif_b2_x_k1[j];
+      bdry_y_k1 = (1-xi)*dif_b1_y_k1[j] + xi*dif_b2_y_k1[j];
+      bdry_z_k1 = (1-xi)*dif_b1_z_k1[j] + xi*dif_b2_z_k1[j];
+      iptr2 = (k+1)*siz_iz + j*siz_iy + i; 
+      x3d[iptr2] = x3d[iptr2] + 1.6*bdry_x_k1;
+      y3d[iptr2] = y3d[iptr2] + 1.6*bdry_y_k1;
+      z3d[iptr2] = z3d[iptr2] + 1.6*bdry_z_k1;
+    }
+  }
+
+  for(int j=1; j<ny-1; j++) {
+    for(int i=1; i<nx-1; i++)
+    {
+      et = (1.0*j)/(ny-1);
+      bdry_x_k = 0.9*(1-et)*dif_b3_x_k[i] + et*dif_b4_x_k[i];
+      bdry_y_k = 0.9*(1-et)*dif_b3_y_k[i] + et*dif_b4_y_k[i];
+      bdry_z_k = 0.9*(1-et)*dif_b3_z_k[i] + et*dif_b4_z_k[i];
+      iptr1 = k*siz_iz + j*siz_iy + i; 
+      x3d[iptr1] = x3d[iptr1] + 1.4*bdry_x_k;
+      y3d[iptr1] = y3d[iptr1] + 1.4*bdry_y_k;
+      z3d[iptr1] = z3d[iptr1] + 1.4*bdry_z_k;
+
+      bdry_x_k1 = (1-et)*dif_b3_x_k1[i] + et*dif_b4_x_k1[i];
+      bdry_y_k1 = (1-et)*dif_b3_y_k1[i] + et*dif_b4_y_k1[i];
+      bdry_z_k1 = (1-et)*dif_b3_z_k1[i] + et*dif_b4_z_k1[i];
+      iptr2 = (k+1)*siz_iz + j*siz_iy + i; 
+      x3d[iptr2] = x3d[iptr2] + 1.8*bdry_x_k1;
+      y3d[iptr2] = y3d[iptr2] + 1.8*bdry_y_k1;
+      z3d[iptr2] = z3d[iptr2] + 1.8*bdry_z_k1;
+    }
+  }
+  // free x1
+  free(b1_x1_k); 
+  free(b1_y1_k); 
+  free(b1_z1_k); 
+  free(b1_x1_k1);
+  free(b1_y1_k1);
+  free(b1_z1_k1);
+  free(b1_x2_k); 
+  free(b1_y2_k); 
+  free(b1_z2_k); 
+  free(b1_x2_k1);
+  free(b1_y2_k1);
+  free(b1_z2_k1);
+  free(dif_b1_x_k);  
+  free(dif_b1_y_k);  
+  free(dif_b1_z_k);  
+  free(dif_b1_x_k1); 
+  free(dif_b1_y_k1); 
+  free(dif_b1_z_k1); 
+  // free x2
+  free(b2_x1_k); 
+  free(b2_y1_k); 
+  free(b2_z1_k); 
+  free(b2_x1_k1);
+  free(b2_y1_k1);
+  free(b2_z1_k1);
+  free(b2_x2_k); 
+  free(b2_y2_k); 
+  free(b2_z2_k); 
+  free(b2_x2_k1);
+  free(b2_y2_k1);
+  free(b2_z2_k1);
+  free(dif_b2_x_k);  
+  free(dif_b2_y_k);  
+  free(dif_b2_z_k);  
+  free(dif_b2_x_k1); 
+  free(dif_b2_y_k1); 
+  free(dif_b2_z_k1); 
+  // free y1
+  free(b3_x1_k); 
+  free(b3_y1_k); 
+  free(b3_z1_k); 
+  free(b3_x1_k1);
+  free(b3_y1_k1);
+  free(b3_z1_k1);
+  free(b3_x2_k); 
+  free(b3_y2_k); 
+  free(b3_z2_k); 
+  free(b3_x2_k1);
+  free(b3_y2_k1);
+  free(b3_z2_k1);
+  free(dif_b3_x_k);  
+  free(dif_b3_y_k);  
+  free(dif_b3_z_k);  
+  free(dif_b3_x_k1); 
+  free(dif_b3_y_k1); 
+  free(dif_b3_z_k1); 
+  // free y2
+  free(b4_x1_k); 
+  free(b4_y1_k); 
+  free(b4_z1_k); 
+  free(b4_x1_k1);
+  free(b4_y1_k1);
+  free(b4_z1_k1);
+  free(b4_x2_k); 
+  free(b4_y2_k); 
+  free(b4_z2_k); 
+  free(b4_x2_k1);
+  free(b4_y2_k1);
+  free(b4_z2_k1);
+  free(dif_b4_x_k);  
+  free(dif_b4_y_k);  
+  free(dif_b4_z_k);  
+  free(dif_b4_x_k1); 
+  free(dif_b4_y_k1); 
+  free(dif_b4_z_k1); 
 
   return 0;
 }
-*/
+
 
 int
 cal_bdry_arc_length(float *x3d, float *y3d, float *z3d, int nx,

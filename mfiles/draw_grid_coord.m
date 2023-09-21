@@ -20,9 +20,12 @@ ny = xyzc(2);
 nz = xyzc(3);
 
 % which grid profile to plot
-subs=[1,100,1];     % index 1:nx 1:ny 1:nz
-subc=[-1,1,-1];   % '-1' to plot all points in this dimension
+subs=[1,1,1];     % index 1:nx 1:ny 1:nz
+subc=[-1,-1,1];   % '-1' to plot all points in this dimension
 subt=[1,1,1];
+% subs=[1,15,1];     % index 1:nx 1:ny 1:nz
+% subc=[-1,1,-1];   % '-1' to plot all points in this dimension
+% subt=[1,1,1];
 
 % figure control parameters
 flag_km     = 1;

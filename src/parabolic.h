@@ -7,7 +7,7 @@
  *************************************************/
 
 int 
-para_gene(gd_t *gdcurv,float coef, int o2i);
+para_gene(gd_t *gdcurv, par_t *par);
 
 int 
 predict_point(float *x3d, float *y3d, float *z3d, int nx, int ny, int nz, int k, int o2i, 

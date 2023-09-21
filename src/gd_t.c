@@ -286,12 +286,15 @@ grid_init_set(gd_t *gdcurv, char *geometry_file)
 }
 
 int
-grid_init_set_hyper(gd_t *gdcurv, char *geometry_file, char *step_file)
+grid_init_set_hyper(gd_t *gdcurv, par_t *par)
 {
   FILE *fp = NULL;
   char str[500];
-  
+  char *geometry_file = par->geometry_input_file;
+  char *step_file = par->step_input_file;
+  int dire_itype = par->dire_itype;
   int nx;
+  int ny;
   int nz;
   int num_step;
 
@@ -304,7 +307,10 @@ grid_init_set_hyper(gd_t *gdcurv, char *geometry_file, char *step_file)
   if (!io_get_nextline(fp,str,500)) {
     sscanf(str,"%d",&num_step);
   }
-  nz = num_step+1; 
+
+  if(dire_itype == Z_DIRE) nz = num_step+1;
+  if(dire_itype == Y_DIRE) ny = num_step+1;
+  if(dire_itype == X_DIRE) nx = num_step+1;
   gdcurv->step = (float *)mem_calloc_1d_float(
                           num_step, 0.0, "step length");
 
@@ -322,22 +328,92 @@ grid_init_set_hyper(gd_t *gdcurv, char *geometry_file, char *step_file)
      fprintf(stderr,"ERROR: fail to open geometry file=%s\n", geometry_file);
      fflush(stdout); exit(1);
   }
-  // nx number
-  if (!io_get_nextline(fp,str,500)) {
-    sscanf(str,"%d",&nx);
-  }
-
-  //init_gdcurv(gdcurv,nx,ny,nz);
- 
-  size_t iptr;
-  float *x3d = gdcurv->x3d;
-  float *z3d = gdcurv->z3d;
-  for (int i=0; i<nx; i++)
+  if(dire_itype == Z_DIRE)
   {
-    iptr = i;  // (i,0)
+    // nx number
     if (!io_get_nextline(fp,str,500)) {
-      sscanf(str,"%f %f",x3d+iptr,z3d+iptr);
+      sscanf(str,"%d",&nx);
     }
+    // ny number
+    if (!io_get_nextline(fp,str,500)) {
+      sscanf(str,"%d",&ny);
+    }
+
+    init_gdcurv(gdcurv,nx,ny,nz);
+ 
+    size_t iptr;
+    float *x3d = gdcurv->x3d;
+    float *y3d = gdcurv->y3d;
+    float *z3d = gdcurv->z3d;
+    size_t siz_iy = gdcurv->siz_iy;
+    for (int j=0; j<ny; j++) {
+      for (int i=0; i<nx; i++)
+      {
+        iptr = j*siz_iy + i;  // (i,j,0)
+        if (!io_get_nextline(fp,str,500)) {
+          sscanf(str,"%f %f %f",x3d+iptr,y3d+iptr,z3d+iptr);
+        }
+      }
+    }
+  }
+  if(dire_itype == Y_DIRE)
+  {
+    // nx number
+    if (!io_get_nextline(fp,str,500)) {
+      sscanf(str,"%d",&nx);
+    }
+    // ny number
+    if (!io_get_nextline(fp,str,500)) {
+      sscanf(str,"%d",&nz);
+    }
+
+    init_gdcurv(gdcurv,nx,ny,nz);
+ 
+    size_t iptr;
+    float *x3d = gdcurv->x3d;
+    float *y3d = gdcurv->y3d;
+    float *z3d = gdcurv->z3d;
+    size_t siz_iz = gdcurv->siz_iz;
+    for (int k=0; k<nz; k++) {
+      for (int i=0; i<nx; i++)
+      {
+        iptr = k*siz_iz + i;  // (i,0,k)
+        if (!io_get_nextline(fp,str,500)) {
+          sscanf(str,"%f %f %f",x3d+iptr,y3d+iptr,z3d+iptr);
+        }
+      }
+    }
+    permute_coord_y(gdcurv);
+  }
+  if(dire_itype == X_DIRE)
+  {
+    // nx number
+    if (!io_get_nextline(fp,str,500)) {
+      sscanf(str,"%d",&ny);
+    }
+    // ny number
+    if (!io_get_nextline(fp,str,500)) {
+      sscanf(str,"%d",&nz);
+    }
+
+    init_gdcurv(gdcurv,nx,ny,nz);
+ 
+    size_t iptr;
+    float *x3d = gdcurv->x3d;
+    float *y3d = gdcurv->y3d;
+    float *z3d = gdcurv->z3d;
+    size_t siz_iy = gdcurv->siz_iy;
+    size_t siz_iz = gdcurv->siz_iz;
+    for (int k=0; k<nz; k++) {
+      for (int j=0; j<ny; j++)
+      {
+        iptr = k*siz_iz + j*siz_iy;  // (0,j,k)
+        if (!io_get_nextline(fp,str,500)) {
+          sscanf(str,"%f %f %f",x3d+iptr,y3d+iptr,z3d+iptr);
+        }
+      }
+    }
+    permute_coord_x(gdcurv);
   }
   // close  geometry file and free local pointer
   fclose(fp);
