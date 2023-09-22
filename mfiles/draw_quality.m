@@ -20,12 +20,12 @@ ny = xyzc(2);
 nz = xyzc(3);
 
 % which grid profile to plot
-% subs=[15,1,1];     % index 1:nx 1:ny 1:nz
-% subc=[1,-1,-1];   % '-1' to plot all points in this dimension
-% subt=[1,1,1];
-subs=[1,100,1];     % index 1:nx 1:ny 1:nz
-subc=[-1,1,-1];   % '-1' to plot all points in this dimension
+subs=[200,1,1];     % index 1:nx 1:ny 1:nz
+subc=[1,-1,-1];   % '-1' to plot all points in this dimension
 subt=[1,1,1];
+% subs=[1,100,1];     % index 1:nx 1:ny 1:nz
+% subc=[-1,1,-1];   % '-1' to plot all points in this dimension
+% subt=[1,1,1];
 % subs=[1,1,100];     % index 1:nx 1:ny 1:nz
 % subc=[-1,-1,1];   % '-1' to plot all points in this dimension
 % subt=[1,1,1];
@@ -42,10 +42,10 @@ clrmp       = 'parula';
 % varable to plot 
 % 'orth_xiet', 'orth_xizt',
 % 'orth_etzt', 'jacobi',  
-% 'smooth_x', 'smooth_y','smooth_z',
-% 'step_x', 'step_y', 'step_z'
-% varnm = 'jacobi';
-varnm = 'orth_xizt';
+% 'smooth_xi', 'smooth_et','smooth_zt',
+% 'step_xi', 'step_et', 'step_zt'
+% varnm = 'step_zt';
+varnm = 'orth_etzt';
 %-----------------------------------------------------------
 %-- load coord
 %-----------------------------------------------------------

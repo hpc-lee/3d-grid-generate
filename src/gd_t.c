@@ -422,22 +422,22 @@ grid_init_set_hyper(gd_t *gdcurv, par_t *par)
 }
 
 int
-grid_sample(gd_t *gdcurv_new, gd_t *gdcurv, float coef_x, float coef_z)
+grid_sample(gd_t *gdcurv_new, gd_t *gdcurv, float coef_x, float coef_y, float coef_z)
 {
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
   int nx_new = (int) (nx*coef_x);
-  //int ny_new = (int) (ny*coef_y);
+  int ny_new = (int) (ny*coef_y);
   int nz_new = (int) (nz*coef_z);
-  if(nx_new < nx || nz_new < nz)
+  if(nx_new < nx || ny_new < ny || nz_new < nz)
   {
     fprintf(stdout,"only support up sample, \
-                    nx_new(nz_new) must >= nx(nz)\n");
+                    nx_new(ny_new,nz_new) must >= nx(ny,nz)\n");
     exit(1);
   }
 
-  //init_gdcurv(gdcurv_new, nx_new, nz_new);
+  init_gdcurv(gdcurv_new, nx_new, ny_new, nz_new);
     
   sample_interp(gdcurv_new, gdcurv); 
 

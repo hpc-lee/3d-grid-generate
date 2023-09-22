@@ -17,6 +17,9 @@ int
 zt_arc_strech(gd_t *gdcurv, float coef);
 
 int 
+et_arc_strech(gd_t *gdcurv, float coef);
+
+int 
 xi_arc_strech(gd_t *gdcurv, float coef);
 
 int 

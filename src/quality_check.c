@@ -28,40 +28,40 @@ grid_quality_check(io_quality_t *io_quality, gd_t *gdcurv, par_t *par)
     cal_jacobi(io_quality, gdcurv);
     quality_export(io_quality,par->grid_export_dir,quality_name);
   }
-  if(par->check_step_x == 1)
+  if(par->check_step_xi == 1)
   {
-    char quality_name[100] = "step_x";
-    cal_step_x(io_quality, gdcurv);
+    char quality_name[100] = "step_xi";
+    cal_step_xi(io_quality, gdcurv);
     quality_export(io_quality,par->grid_export_dir,quality_name);
   }
-  if(par->check_step_y == 1)
+  if(par->check_step_et == 1)
   {
-    char quality_name[100] = "step_y";
-    cal_step_y(io_quality, gdcurv);
+    char quality_name[100] = "step_et";
+    cal_step_et(io_quality, gdcurv);
     quality_export(io_quality,par->grid_export_dir,quality_name);
   }
-  if(par->check_step_z == 1)
+  if(par->check_step_zt == 1)
   {
-    char quality_name[100] = "step_z";
-    cal_step_z(io_quality, gdcurv);
+    char quality_name[100] = "step_zt";
+    cal_step_zt(io_quality, gdcurv);
     quality_export(io_quality,par->grid_export_dir,quality_name);
   }
-  if(par->check_smooth_x == 1)
+  if(par->check_smooth_xi == 1)
   {
-    char quality_name[100] = "smooth_x";
-    cal_smooth_x(io_quality, gdcurv);
+    char quality_name[100] = "smooth_xi";
+    cal_smooth_xi(io_quality, gdcurv);
     quality_export(io_quality,par->grid_export_dir,quality_name);
   }
-  if(par->check_smooth_y == 1)
+  if(par->check_smooth_et == 1)
   {
-    char quality_name[100] = "smooth_y";
-    cal_smooth_y(io_quality, gdcurv);
+    char quality_name[100] = "smooth_et";
+    cal_smooth_et(io_quality, gdcurv);
     quality_export(io_quality,par->grid_export_dir,quality_name);
   }
-  if(par->check_smooth_z == 1)
+  if(par->check_smooth_zt == 1)
   {
-    char quality_name[100] = "smooth_z";
-    cal_smooth_z(io_quality, gdcurv);
+    char quality_name[100] = "smooth_zt";
+    cal_smooth_zt(io_quality, gdcurv);
     quality_export(io_quality,par->grid_export_dir,quality_name);
   }
 
@@ -278,7 +278,7 @@ cal_jacobi(io_quality_t *io_quality, gd_t *gdcurv)
 }
 
 int 
-cal_step_x(io_quality_t *io_quality, gd_t *gdcurv)
+cal_step_xi(io_quality_t *io_quality, gd_t *gdcurv)
 {
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
@@ -326,7 +326,7 @@ cal_step_x(io_quality_t *io_quality, gd_t *gdcurv)
 }
 
 int 
-cal_step_y(io_quality_t *io_quality, gd_t *gdcurv)
+cal_step_et(io_quality_t *io_quality, gd_t *gdcurv)
 {
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
@@ -374,7 +374,7 @@ cal_step_y(io_quality_t *io_quality, gd_t *gdcurv)
 }
 
 int 
-cal_step_z(io_quality_t *io_quality, gd_t *gdcurv)
+cal_step_zt(io_quality_t *io_quality, gd_t *gdcurv)
 {
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
@@ -422,7 +422,7 @@ cal_step_z(io_quality_t *io_quality, gd_t *gdcurv)
 }
 
 int 
-cal_smooth_x(io_quality_t *io_quality, gd_t *gdcurv)
+cal_smooth_xi(io_quality_t *io_quality, gd_t *gdcurv)
 {
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
@@ -490,7 +490,7 @@ cal_smooth_x(io_quality_t *io_quality, gd_t *gdcurv)
 }
 
 int 
-cal_smooth_y(io_quality_t *io_quality, gd_t *gdcurv)
+cal_smooth_et(io_quality_t *io_quality, gd_t *gdcurv)
 {
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
@@ -558,7 +558,7 @@ cal_smooth_y(io_quality_t *io_quality, gd_t *gdcurv)
 }
 
 int 
-cal_smooth_z(io_quality_t *io_quality, gd_t *gdcurv)
+cal_smooth_zt(io_quality_t *io_quality, gd_t *gdcurv)
 {
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;

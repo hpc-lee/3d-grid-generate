@@ -43,7 +43,7 @@ int
 grid_init_set_hyper(gd_t *gdcurv, par_t *par);
 
 int
-grid_sample(gd_t *gdcurv_new, gd_t *gdcurv, float coef_x, float coef_z);
+grid_sample(gd_t *gdcurv_new, gd_t *gdcurv, float coef_x, float coef_y, float coef_z);
 
 int 
 check_bdry(float *x1, float *x2, float *y1, float *y2,float *z1, float *z2,

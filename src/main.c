@@ -125,23 +125,27 @@ int main(int argc, char** argv)
       break;
     }
   }
- /* 
-  // strech x-direction grid
-  if(par->flag_strech_x == 1)
+  // strech xi-direction grid
+  if(par->flag_strech_xi == 1)
   {
-    xi_arc_strech(gdcurv,par->strech_x_coef);
+    xi_arc_strech(gdcurv,par->strech_xi_coef);
   }
 
-  // strech z-direction grid
-  if(par->flag_strech_z == 1)
+  // strech et-direction grid
+  if(par->flag_strech_et == 1)
   {
-    zt_arc_strech(gdcurv,par->strech_z_coef);
+    et_arc_strech(gdcurv,par->strech_et_coef);
   }
-  */
 
-  if(par->flag_sample_x == 1 || par->flag_sample_z == 1)
+  // strech zt-direction grid
+  if(par->flag_strech_zt == 1)
   {
-    grid_sample(gdcurv_new,gdcurv,par->sample_factor_x,par->sample_factor_z);
+    zt_arc_strech(gdcurv,par->strech_zt_coef);
+  }
+
+  if(par->flag_sample_xi == 1 || par->flag_sample_et == 1 || par->flag_sample_zt == 1)
+  {
+    grid_sample(gdcurv_new,gdcurv,par->sample_factor_xi,par->sample_factor_et,par->sample_factor_zt);
     fprintf(stdout,"******** sample grid ******* \n");
     fprintf(stdout,"export coord to file ... \n");
     gd_curv_coord_export(gdcurv_new,par->grid_export_dir);
@@ -158,7 +162,7 @@ int main(int argc, char** argv)
     fprintf(stdout,"****************************************************** \n");
     fprintf(stdout,"***** grid quality check and export quality data ***** \n");
     fprintf(stdout,"****************************************************** \n");
-    if(par->flag_sample_x == 1 || par->flag_sample_z == 1)
+    if(par->flag_sample_xi == 1 || par->flag_sample_et == 1 || par->flag_sample_zt == 1)
     {
       init_io_quality(io_quality,gdcurv_new);
       grid_quality_check(io_quality,gdcurv_new,par);

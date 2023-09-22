@@ -31,26 +31,26 @@ cat << ieof > ${PAR_FILE}
 
   "check_orth" : 1,
   "check_jac" : 1,
-  "check_step_x" : 1,
-  "check_step_y" : 1,
-  "check_step_z" : 1,
-  "check_smooth_x" : 1,
-  "check_smooth_y" : 1,
-  "check_smooth_z" : 1,
+  "check_step_xi" : 1,
+  "check_step_et" : 1,
+  "check_step_zt" : 1,
+  "check_smooth_xi" : 1,
+  "check_smooth_et" : 1,
+  "check_smooth_zt" : 1,
 
-  "flag_strech_x" : 0,
-  "strech_x_coef" : 0.0001,
-  "flag_strech_y" : 0,
-  "strech_y_coef" : 0.0001,
-  "flag_strech_z" : 0,
-  "strech_z_coef" : 0.0001,
+  "flag_strech_xi" : 0,
+  "strech_xi_coef" : 0.0001,
+  "flag_strech_et" : 0,
+  "strech_et_coef" : 0.0001,
+  "flag_strech_zt" : 0,
+  "strech_zt_coef" : 0.0001,
 
-  "flag_sample_x" : 0,
-  "sample_factor_x" : 2.0,
-  "flag_sample_y" : 0,
-  "sample_factor_y" : 2.0,
-  "flag_sample_z" : 0,
-  "sample_factor_z" : 1.0,
+  "flag_sample_xi" : 0,
+  "sample_factor_xi" : 2.0,
+  "flag_sample_et" : 0,
+  "sample_factor_et" : 2.0,
+  "flag_sample_zt" : 0,
+  "sample_factor_zt" : 2.0,
 
   "geometry_input_file" : "${INPUTDIR}/data_file_3d.txt",
   "grid_export_dir" : "${OUTPUT_DIR}",
@@ -72,12 +72,12 @@ cat << ieof > ${PAR_FILE}
           "first_dire"  : "z",
           "second_dire" : "y"
       },
-      "#parabolic" : {
+      "parabolic" : {
           "coef" : -50,
           "direction" : "z",
           "o2i" : 1
       },
-      "hyperbolic" : {
+      "#hyperbolic" : {
           "coef" : 20,
           "bdry_x_type" : 2,
           "epsilon_x" : 0,
