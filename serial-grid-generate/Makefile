@@ -35,7 +35,7 @@ LDFLAGS := -L$(NETCDF)/lib -lnetcdf -lm $(LDFLAGS)
 main_grid_3d: cJSON.o sacLib.o	lib_mem.o \
 				lib_math.o par_t.o par_t.o gd_t.o \
 				io_funcs.o algebra.o quality_check.o \
-				parabolic.o elliptic.o hyperbolic.o \
+				parabolic.o hyperbolic.o \
 				solver.o main.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
@@ -60,8 +60,6 @@ quality_check.o: src/quality_check.c
 parabolic.o: src/parabolic.c
 	${CC} -c -o $@ $(CFLAGS) $<
 hyperbolic.o: src/hyperbolic.c
-	${CC} -c -o $@ $(CFLAGS) $<
-elliptic.o: src/elliptic.c
 	${CC} -c -o $@ $(CFLAGS) $<
 solver.o: src/solver.c
 	${CC} -c -o $@ $(CFLAGS) $<

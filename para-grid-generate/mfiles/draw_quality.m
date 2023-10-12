@@ -27,8 +27,8 @@ clrmp       = 'parula';
 % 'orth_etzt', 'jacobi',  
 % 'smooth_xi', 'smooth_et','smooth_zt',
 % 'step_xi', 'step_et', 'step_zt'
-% varnm = 'orth_xizt';
-varnm = 'jacobi';
+varnm = 'orth_xizt';
+% varnm = 'jacobi';
 %-----------------------------------------------------------
 %-- load coord
 %-----------------------------------------------------------

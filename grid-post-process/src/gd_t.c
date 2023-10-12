@@ -47,9 +47,9 @@ grid_sample(gd_t *gdcurv_new, gd_t *gdcurv, int coef_x, int coef_y, int coef_z)
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
-  int nx_new =  nx*coef_x;
-  int ny_new =  ny*coef_y;
-  int nz_new =  nz*coef_z;
+  int nx_new =  (nx-1)*coef_x + 1;
+  int ny_new =  (ny-1)*coef_y + 1;
+  int nz_new =  (nz-1)*coef_z + 1;
   if(nx_new < nx || ny_new < ny || nz_new < nz)
   {
     fprintf(stdout,"only support up sample, \

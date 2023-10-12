@@ -1,13 +1,13 @@
 function [v] = gather_quality(output_dir,varnm,subs,subc,subt)
 
 % load
-fnm_quality=[output_dir,'/',varnm,'.nc'];
+fnm_quality=[output_dir,'/',varnm,'_px0_py0_pz0.nc'];
     
 if ~ exist(fnm_quality,'file')
    error([mfilename ': file ' fnm_quality 'does not exist']);
 end
 
-xyzc = nc_attget(fnm_quality,nc_global,'number_of_points');
+xyzc = nc_attget(fnm_quality,nc_global,'count_of_physical_points');
 xyzc = double(xyzc);
 
 if(subt(1)<0)

@@ -8,20 +8,20 @@ addmypath
 output_dir='../project/output';
 
 % get nx and nz
-fnm_coord=[output_dir,'/','coord.nc'];
+fnm_coord=[output_dir,'/','coord_px0_py0_pz0.nc'];
 if ~ exist(fnm_coord,'file')
    error([mfilename ': file ' fnm_coord 'does not exist']);
 end
 
-xyzc = nc_attget(fnm_coord,nc_global,'number_of_points');
+xyzc = nc_attget(fnm_coord,nc_global,'count_of_physical_points');
 xyzc = double(xyzc);
 nx = xyzc(1);
 ny = xyzc(2);
 nz = xyzc(3);
 
 % which grid profile to plot
-subs=[1,1,1];     % index 1:nx 1:ny 1:nz
-subc=[-1,-1,1];   % '-1' to plot all points in this dimension
+subs=[1,100,1];     % index 1:nx 1:ny 1:nz
+subc=[-1,1,-1];   % '-1' to plot all points in this dimension
 subt=[1,1,1];
 % subs=[1,15,1];     % index 1:nx 1:ny 1:nz
 % subc=[-1,1,-1];   % '-1' to plot all points in this dimension

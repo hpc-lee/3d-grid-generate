@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,7 +42,6 @@ read_import_coord(gd_t *gdcurv, par_t *par)
   size_t count[3];
   char att_global[CONST_MAX_STRLEN] = "global_index_of_first_physical_points";
   char att_count[CONST_MAX_STRLEN] = "count_of_physical_points";
-
 
   int gni1, gnj1, gnk1;
   int gni, gnj, gnk;

@@ -1,13 +1,13 @@
 function [x,y,z] = gather_coord(output_dir,subs,subc,subt)
 
 % load
-fnm_coord=[output_dir,'/','coord.nc'];
+fnm_coord=[output_dir,'/','coord_px0_py0_pz0.nc'];
     
 if ~ exist(fnm_coord,'file')
    error([mfilename ': file ' fnm_coord 'does not exist']);
 end
 
-xyzc = nc_attget(fnm_coord,nc_global,'number_of_points');
+xyzc = nc_attget(fnm_coord,nc_global,'count_of_physical_points');
 xyzc = double(xyzc);
 
 if(subt(1)<0)

@@ -88,10 +88,19 @@ int main(int argc, char** argv)
     fprintf(stdout,"new number of pml layers y2 is %d\n",par->number_of_pml_y2*par->sample_factor_et);
     fprintf(stdout,"new number of pml layers z1 is %d\n",par->number_of_pml_z1*par->sample_factor_zt);
     fprintf(stdout,"new number of pml layers z2 is %d\n",par->number_of_pml_z2*par->sample_factor_zt);
-    fprintf(stdout,"currently sampling, please wait");
+    fprintf(stdout,"currently sampling, please wait\n");
     fflush(stdout);
 
     grid_sample(gdcurv_new,gdcurv,par->sample_factor_xi,par->sample_factor_et,par->sample_factor_zt);
+    fprintf(stdout,"***********************************\n");
+    fprintf(stdout,"***********************************\n");
+    fprintf(stdout,"***********************************\n");
+    fprintf(stdout,"old number of grid points x is %d\n",gdcurv->nx);
+    fprintf(stdout,"old number of grid points y is %d\n",gdcurv->ny);
+    fprintf(stdout,"old number of grid points z is %d\n",gdcurv->nz);
+    fprintf(stdout,"new number of grid points x is %d\n",gdcurv_new->nx);
+    fprintf(stdout,"new number of grid points y is %d\n",gdcurv_new->ny);
+    fprintf(stdout,"new number of grid points z is %d\n",gdcurv_new->nz);
     gd_curv_coord_export(gdcurv_new,par);
   } else {
     fprintf(stdout,"******* not sample grid ******* \n");

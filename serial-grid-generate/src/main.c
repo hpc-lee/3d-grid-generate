@@ -12,7 +12,6 @@
 #include "io_funcs.h"
 #include "quality_check.h"
 #include "parabolic.h"
-#include "elliptic.h"
 #include "hyperbolic.h"
 
 int main(int argc, char** argv)
@@ -61,25 +60,6 @@ int main(int argc, char** argv)
 
       break;
     }
-
-    case ELLI_DIRI : {
-
-      grid_init_set(gdcurv,par->geometry_input_file);
-      // linear tfi generate init iter grid
-      linear_tfi(gdcurv);
-      diri_gene(gdcurv,par);
-
-      break;
-    }
-    case ELLI_HIGEN : {
-
-      grid_init_set(gdcurv,par->geometry_input_file);
-      // linear tfi generate init iter grid
-      linear_tfi(gdcurv);
-      higen_gene(gdcurv,par);
-
-      break;
-    }
     case PARABOLIC : {
 
       grid_init_set(gdcurv,par->geometry_input_file);
@@ -125,35 +105,9 @@ int main(int argc, char** argv)
       break;
     }
   }
-  // strech xi-direction grid
-  if(par->flag_strech_xi == 1)
-  {
-    xi_arc_strech(gdcurv,par->strech_xi_coef);
-  }
 
-  // strech et-direction grid
-  if(par->flag_strech_et == 1)
-  {
-    et_arc_strech(gdcurv,par->strech_et_coef);
-  }
-
-  // strech zt-direction grid
-  if(par->flag_strech_zt == 1)
-  {
-    zt_arc_strech(gdcurv,par->strech_zt_coef);
-  }
-
-  if(par->flag_sample_xi == 1 || par->flag_sample_et == 1 || par->flag_sample_zt == 1)
-  {
-    grid_sample(gdcurv_new,gdcurv,par->sample_factor_xi,par->sample_factor_et,par->sample_factor_zt);
-    fprintf(stdout,"******** sample grid ******* \n");
-    fprintf(stdout,"export coord to file ... \n");
-    gd_curv_coord_export(gdcurv_new,par->grid_export_dir);
-  } else {
-    fprintf(stdout,"******* not sample grid ******* \n");
-    fprintf(stdout,"export coord to file ... \n");
-    gd_curv_coord_export(gdcurv,par->grid_export_dir);
-  }
+  fprintf(stdout,"export coord to file ... \n");
+  gd_curv_coord_export(gdcurv,par->grid_export_dir);
 
   // grid quality check and export quality data
   io_quality_t *io_quality = (io_quality_t *) malloc(sizeof(io_quality_t));
@@ -162,14 +116,8 @@ int main(int argc, char** argv)
     fprintf(stdout,"****************************************************** \n");
     fprintf(stdout,"***** grid quality check and export quality data ***** \n");
     fprintf(stdout,"****************************************************** \n");
-    if(par->flag_sample_xi == 1 || par->flag_sample_et == 1 || par->flag_sample_zt == 1)
-    {
-      init_io_quality(io_quality,gdcurv_new);
-      grid_quality_check(io_quality,gdcurv_new,par);
-    } else {
-      init_io_quality(io_quality,gdcurv);
-      grid_quality_check(io_quality,gdcurv,par);
-    }
+    init_io_quality(io_quality,gdcurv);
+    grid_quality_check(io_quality,gdcurv,par);
   }
   return 0;
 }

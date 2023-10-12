@@ -10,7 +10,8 @@ EXEC_GRID=`pwd`/../grid_post_proc_3d
 echo "EXEC_GRID=${EXEC_GRID}"
 
 #-- input dir
-INPUTDIR=/data3/lihl/code-lihl/mpi-3d-grid-generation/project/output
+#INPUTDIR=/data3/lihl/code-lihl/3d-grid-generate/para-grid-generate/project/output
+INPUTDIR=/data3/lihl/code-lihl/3d-grid-generate/serial-grid-generate/project/output
 
 #-- output and conf
 PROJDIR=`pwd`/../project
@@ -25,11 +26,11 @@ mkdir -p ${OUTPUT_DIR}
 
 # grid generate procs
 #-- total x mpi procs
-NPROCS_X_IN=3
+NPROCS_X_IN=1
 #-- total y mpi procs
-NPROCS_Y_IN=2
+NPROCS_Y_IN=1
 #-- total z mpi procs
-NPROCS_Z_IN=3
+NPROCS_Z_IN=1
 
 # after post procs
 #-- total x mpi procs
@@ -45,8 +46,8 @@ NPROCS_Z_OUT=1
 cat << ieof > ${PAR_FILE}
 {
   "number_of_grid_points_x" : 200,
-  "number_of_grid_points_y" : 200,
-  "number_of_grid_points_z" : 100,
+  "number_of_grid_points_y" : 210,
+  "number_of_grid_points_z" : 51,
 
   "number_of_mpiprocs_x_in" : $NPROCS_X_IN,
   "number_of_mpiprocs_y_in" : $NPROCS_Y_IN,

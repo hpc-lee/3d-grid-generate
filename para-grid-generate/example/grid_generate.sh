@@ -27,11 +27,11 @@ mkdir -p ${PROJDIR}
 mkdir -p ${OUTPUT_DIR}
 
 #-- total x mpi procs
-NPROCS_X=3
+NPROCS_X=2
 #-- total y mpi procs
 NPROCS_Y=2
 #-- total z mpi procs
-NPROCS_Z=3
+NPROCS_Z=2
 #----------------------------------------------------------------------
 #-- create main conf
 #----------------------------------------------------------------------
@@ -46,12 +46,12 @@ cat << ieof > ${PAR_FILE}
   "number_of_mpiprocs_z" : $NPROCS_Z,
 
   "#pml_layers" : {
-         "number_of_pml_x1" : 20,
-         "number_of_pml_x2" : 20,
-         "number_of_pml_y1" : 20,
-         "number_of_pml_y2" : 20,
-         "number_of_pml_z1" : 20,
-         "number_of_pml_z2" : 20
+         "number_of_pml_x1" : 10,
+         "number_of_pml_x2" : 10,
+         "number_of_pml_y1" : 10,
+         "number_of_pml_y2" : 10,
+         "number_of_pml_z1" : 10,
+         "number_of_pml_z2" : 10
   },
 
   "check_orth" : 1,
@@ -68,7 +68,7 @@ cat << ieof > ${PAR_FILE}
 
   "grid_method" : {
       "elli_diri" : {
-          "coef" : -10,
+          "coef" : -20,
           "iter_err" : 1E-2,
           "max_iter" : 5E3
       },

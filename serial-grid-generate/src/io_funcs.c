@@ -30,20 +30,23 @@ init_io_quality(io_quality_t *io_quality, gd_t *gdcurv)
 int
 gd_curv_coord_export(gd_t *gdcurv, char *output_dir)
 {
-  size_t *restrict c3d_pos   = gdcurv->cmp_pos;
-  char  **restrict c3d_name  = gdcurv->cmp_name;
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
 
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
+
   // construct file name
+  char fname_coords[CONST_MAX_STRLEN] = "px0_py0_pz0";
   char ou_file[CONST_MAX_STRLEN];
-  sprintf(ou_file, "%s/coord.nc", output_dir);
+  sprintf(ou_file, "%s/coord_%s.nc", output_dir,fname_coords);
   
   // read in nc
   int ncid;
-  int varid[gdcurv->ncmp];
-  int dimid[CONST_NDIM];
+  int xid, yid, zid;
+  int dimid[3];
 
   int ierr = nc_create(ou_file, NC_CLOBBER, &ncid);
   handle_nc_err(ierr);
@@ -57,25 +60,32 @@ gd_curv_coord_export(gd_t *gdcurv, char *output_dir)
   handle_nc_err(ierr);
 
   // define vars
-  for (int ivar=0; ivar<gdcurv->ncmp; ivar++) {
-    ierr = nc_def_var(ncid, gdcurv->cmp_name[ivar], NC_FLOAT, CONST_NDIM, dimid, &varid[ivar]);
-    handle_nc_err(ierr);
-  }
+  ierr = nc_def_var(ncid, "x", NC_FLOAT, 3, dimid, &xid);
+  handle_nc_err(ierr);
+  ierr = nc_def_var(ncid, "y", NC_FLOAT, 3, dimid, &yid);
+  handle_nc_err(ierr);
+  ierr = nc_def_var(ncid, "z", NC_FLOAT, 3, dimid, &zid);
+  handle_nc_err(ierr);
+
+  int g_start[] = { 0, 0, 0 };
+  nc_put_att_int(ncid,NC_GLOBAL,"global_index_of_first_physical_points",
+                   NC_INT,3,g_start);
 
   int l_count[] = { nx, ny, nz };
-  nc_put_att_int(ncid,NC_GLOBAL,"number_of_points",
-                   NC_INT,CONST_NDIM,l_count);
+  nc_put_att_int(ncid,NC_GLOBAL,"count_of_physical_points",
+                   NC_INT,3,l_count);
 
   // end def
   ierr = nc_enddef(ncid);
   handle_nc_err(ierr);
 
   // add vars
-  for (int ivar=0; ivar<gdcurv->ncmp; ivar++) {
-    float *ptr = gdcurv->v4d + gdcurv->cmp_pos[ivar];
-    ierr = nc_put_var_float(ncid, varid[ivar],ptr);
-    handle_nc_err(ierr);
-  }
+  ierr = nc_put_var_float(ncid, xid, x3d);
+  handle_nc_err(ierr);
+  ierr = nc_put_var_float(ncid, yid, y3d);
+  handle_nc_err(ierr);
+  ierr = nc_put_var_float(ncid, zid, z3d);
+  handle_nc_err(ierr);
   
   // close file
   ierr = nc_close(ncid);
@@ -92,13 +102,14 @@ quality_export(io_quality_t *io_quality, char *output_dir, char *var_name)
   int  nz = io_quality->nz;
 
   // construct file name
+  char fname_coords[CONST_MAX_STRLEN] = "px0_py0_pz0";
   char ou_file[CONST_MAX_STRLEN];
-  sprintf(ou_file, "%s/%s.nc", output_dir,var_name);
+  sprintf(ou_file, "%s/%s_%s.nc", output_dir,var_name,fname_coords);
   
   // read in nc
   int ncid;
   int varid;
-  int dimid[CONST_NDIM];
+  int dimid[3];
 
   int ierr = nc_create(ou_file, NC_CLOBBER, &ncid);
   handle_nc_err(ierr);
@@ -112,12 +123,16 @@ quality_export(io_quality_t *io_quality, char *output_dir, char *var_name)
   handle_nc_err(ierr);
 
   // define vars
-  ierr = nc_def_var(ncid, var_name, NC_FLOAT, CONST_NDIM, dimid, &varid);
+  ierr = nc_def_var(ncid, var_name, NC_FLOAT, 3, dimid, &varid);
   handle_nc_err(ierr);
 
+  int g_start[] = { 0, 0, 0 };
+  nc_put_att_int(ncid,NC_GLOBAL,"global_index_of_first_physical_points",
+                   NC_INT,3,g_start);
+
   int l_count[] = { nx, ny, nz };
-  nc_put_att_int(ncid,NC_GLOBAL,"number_of_points",
-                   NC_INT,CONST_NDIM,l_count);
+  nc_put_att_int(ncid,NC_GLOBAL,"count_of_physical_points",
+                   NC_INT,3,l_count);
 
   // end def
   ierr = nc_enddef(ncid);

@@ -28,35 +28,15 @@ init_gdcurv(gd_t *gdcurv, int nx, int ny, int nz)
       fflush(stderr);
   }
 
-  // position of each v3d
-  size_t *cmp_pos = (size_t *) mem_calloc_1d_sizet(gdcurv->ncmp,
-                                                         0,
-                                                         "gd_curv_init");
-  
-  // name of each v3d
-  char **cmp_name = (char **) mem_malloc_2l_char(gdcurv->ncmp,
-                                                       CONST_MAX_STRLEN,
-                                                       "gd_curv_init");
-  
   // set value
   int icmp = 0;
-  cmp_pos[icmp] = icmp * gdcurv->siz_icmp;
-  sprintf(cmp_name[icmp],"%s","x");
-  gdcurv->x3d = gdcurv->v4d + cmp_pos[icmp];
+  gdcurv->x3d = gdcurv->v4d + icmp * gdcurv->siz_icmp;
 
   icmp += 1;
-  cmp_pos[icmp] = icmp * gdcurv->siz_icmp;
-  sprintf(cmp_name[icmp],"%s","y");
-  gdcurv->y3d = gdcurv->v4d + cmp_pos[icmp];
+  gdcurv->y3d = gdcurv->v4d + icmp * gdcurv->siz_icmp;
   
   icmp += 1;
-  cmp_pos[icmp] = icmp * gdcurv->siz_icmp;
-  sprintf(cmp_name[icmp],"%s","z");
-  gdcurv->z3d = gdcurv->v4d + cmp_pos[icmp];
-
-  // set pointer
-  gdcurv->cmp_pos  = cmp_pos;
-  gdcurv->cmp_name = cmp_name;
+  gdcurv->z3d = gdcurv->v4d + icmp * gdcurv->siz_icmp;
 
   return 0;
 }
@@ -417,29 +397,6 @@ grid_init_set_hyper(gd_t *gdcurv, par_t *par)
   }
   // close  geometry file and free local pointer
   fclose(fp);
-
-  return 0;
-}
-
-int
-grid_sample(gd_t *gdcurv_new, gd_t *gdcurv, float coef_x, float coef_y, float coef_z)
-{
-  int nx = gdcurv->nx;
-  int ny = gdcurv->ny;
-  int nz = gdcurv->nz;
-  int nx_new = (int) (nx*coef_x);
-  int ny_new = (int) (ny*coef_y);
-  int nz_new = (int) (nz*coef_z);
-  if(nx_new < nx || ny_new < ny || nz_new < nz)
-  {
-    fprintf(stdout,"only support up sample, \
-                    nx_new(ny_new,nz_new) must >= nx(ny,nz)\n");
-    exit(1);
-  }
-
-  init_gdcurv(gdcurv_new, nx_new, ny_new, nz_new);
-    
-  sample_interp(gdcurv_new, gdcurv); 
 
   return 0;
 }
