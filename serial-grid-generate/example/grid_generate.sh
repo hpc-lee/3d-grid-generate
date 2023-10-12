@@ -28,7 +28,6 @@ mkdir -p ${OUTPUT_DIR}
 #----------------------------------------------------------------------
 cat << ieof > ${PAR_FILE}
 {
-
   "check_orth" : 1,
   "check_jac" : 1,
   "check_step_xi" : 1,

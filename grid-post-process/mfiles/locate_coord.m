@@ -14,7 +14,6 @@ if(par.flag_sample == 1)
   ngijk(1) = ngijk(1)*par.sample_factor_xi;
   ngijk(2) = ngijk(2)*par.sample_factor_et;
   ngijk(3) = ngijk(3)*par.sample_factor_zt;
-
 end
 
 gsubs = subs;
