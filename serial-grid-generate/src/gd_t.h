@@ -23,10 +23,6 @@ typedef struct {
   size_t siz_iy;
   size_t siz_iz;
   size_t siz_icmp;
-
-  size_t *cmp_pos;
-  char  **cmp_name;
-
 } gd_t;
 
 /*************************************************
@@ -54,5 +50,9 @@ permute_coord_x(gd_t *gdcurv);
 
 int
 permute_coord_y(gd_t *gdcurv);
+
+int
+gd_info_set(par_t *par, int iprocx, int iprocy, int iprocz,
+           int *global_index, int *count);
 
 #endif

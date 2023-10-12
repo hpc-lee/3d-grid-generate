@@ -5,33 +5,16 @@ addmypath
 
 % -------------------------- parameters input -------------------------- %
 % file and path name
+parfnm='../project/test.json';
 output_dir='../project/output';
 
-% get nx ny and nz
-fnm_coord=[output_dir,'/','coord_px0_py0_pz0.nc'];
-if ~ exist(fnm_coord,'file')
-   error([mfilename ': file ' fnm_coord 'does not exist']);
-end
-
-xyzc = nc_attget(fnm_coord,nc_global,'count_of_physical_points');
-xyzc = double(xyzc);
-nx = xyzc(1);
-ny = xyzc(2);
-nz = xyzc(3);
-
 % which grid profile to plot
-subs=[100,1,1];     % index 1:nx 1:ny 1:nz
-subc=[1,-1,-1];   % '-1' to plot all points in this dimension
-subt=[1,1,1];
-% subs=[1,100,1];     % index 1:nx 1:ny 1:nz
-% subc=[-1,1,-1];   % '-1' to plot all points in this dimension
-% subt=[1,1,1];
-% subs=[1,1,100];     % index 1:nx 1:ny 1:nz
-% subc=[-1,-1,1];   % '-1' to plot all points in this dimension
-% subt=[1,1,1];
+subs=[1,600,1];    
+subc=[-1,1,-1];   % '-1' to plot all points in this dimension
+subt=[3,1,3];
 
 % figure control parameters
-flag_km     = 1;
+flag_km     = 0;
 flag_emlast = 1;
 flag_print  = 0;
 flag_clb    = 1;
@@ -44,23 +27,18 @@ clrmp       = 'parula';
 % 'orth_etzt', 'jacobi',  
 % 'smooth_xi', 'smooth_et','smooth_zt',
 % 'step_xi', 'step_et', 'step_zt'
-% varnm = 'step_zt';
-varnm = 'orth_etzt';
+varnm = 'orth_xizt';
+% varnm = 'jacobi';
 %-----------------------------------------------------------
 %-- load coord
 %-----------------------------------------------------------
 
-[x,y,z]=gather_coord(output_dir,subs,subc,subt);
+qualityinfo=locate_quality(parfnm,output_dir,subs,subc,subt);
+[x,y,z]=gather_coord(qualityinfo,output_dir);
 
-v=gather_quality(output_dir,varnm,subs,subc,subt);
-
-x = squeeze(x);
-y = squeeze(y);
-z = squeeze(z);
-v = squeeze(v);
+v=gather_quality(qualityinfo,output_dir,varnm);
 
 %- set coord unit
-flag_km = 0;
 if flag_km
    x=x/1e3;
    y=y/1e3;
@@ -73,41 +51,45 @@ end
 %-----------------------------------------------------------
 %-- set figure
 %-----------------------------------------------------------
+
 % figure plot
 hid=figure;
 set(hid,'BackingStore','on');
 
 if subc(1) == 1
-   pcolor(y,z,v);
-   xlabel(['Y axis (' str_unit ')']);
-   ylabel(['Z axis (' str_unit ')']);
-   
+    pcolor(y,z,v);
+    xlabel(['Y axis (' str_unit ')']);
+    ylabel(['Z axis (' str_unit ')']);
+     
 elseif subc(2) == 1
-   pcolor(x,z,v);
-   xlabel(['X axis (' str_unit ')']);
-   ylabel(['Z axis (' str_unit ')']);
-   
+    pcolor(x,z,v);
+    xlabel(['X axis (' str_unit ')']);
+    ylabel(['Z axis (' str_unit ')']);
+     
 elseif subc(3) == 1
-   pcolor(x,y,v);
-   xlabel(['X axis (' str_unit ')']);
-   ylabel(['Y axis (' str_unit ')']);
+    pcolor(x,y,v);
+    xlabel(['X axis (' str_unit ')']);
+    ylabel(['Y axis (' str_unit ')']);
 end
+
+xlabel(['X axis (' str_unit ')']);
+ylabel(['Z axis (' str_unit ')']);
 
 set(gca,'layer','top');
 set(gcf,'color','white','renderer','painters');
 
 % shading
 % shading interp;
-%shading flat;
+% shading flat;
 % colorbar range/scale
-if exist('scl_caxis')
+if exist('scl_caxis','var')
     caxis(scl_caxis);
 end
 % axis daspect
 if exist('scl_daspect')
     daspect(scl_daspect);
 end
-axis tight
+axis equal
 % colormap and colorbar
 if exist('clrmp')
     colormap(clrmp);
@@ -115,7 +97,6 @@ end
 if flag_clb
     cid=colorbar;
 end
-
 % title
 if flag_title
     title(varnm,'interpreter','none');

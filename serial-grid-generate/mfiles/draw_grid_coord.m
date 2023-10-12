@@ -5,27 +5,13 @@ addmypath
 
 % -------------------------- parameters input -------------------------- %
 % file and path name
+parfnm='../project/test.json';
 output_dir='../project/output';
 
-% get nx and nz
-fnm_coord=[output_dir,'/','coord_px0_py0_pz0.nc'];
-if ~ exist(fnm_coord,'file')
-   error([mfilename ': file ' fnm_coord 'does not exist']);
-end
-
-xyzc = nc_attget(fnm_coord,nc_global,'count_of_physical_points');
-xyzc = double(xyzc);
-nx = xyzc(1);
-ny = xyzc(2);
-nz = xyzc(3);
-
 % which grid profile to plot
-subs=[1,100,1];     % index 1:nx 1:ny 1:nz
+subs=[1,600,1];    
 subc=[-1,1,-1];   % '-1' to plot all points in this dimension
 subt=[1,1,1];
-% subs=[1,15,1];     % index 1:nx 1:ny 1:nz
-% subc=[-1,1,-1];   % '-1' to plot all points in this dimension
-% subt=[1,1,1];
 
 % figure control parameters
 flag_km     = 1;
@@ -33,14 +19,14 @@ flag_emlast = 1;
 flag_print  = 0;
 flag_title  = 1;
 scl_daspect = [1 1 1];
+
 %-----------------------------------------------------------
 %-- load coord
 %-----------------------------------------------------------
-
-[x,y,z]=gather_coord(output_dir,subs,subc,subt);
+coordinfo=locate_coord(parfnm,output_dir,subs,subc,subt);
+[x,y,z]=gather_coord(coordinfo,output_dir);
 
 %- set coord unit
-flag_km     = 0;
 if flag_km
    x=x/1e3;
    y=y/1e3;
@@ -50,11 +36,11 @@ else
    str_unit='m';
 end
 
-% plot
-x=squeeze(x);
-y=squeeze(y);
-z=squeeze(z);
-figure(1);
+%-----------------------------------------------------------
+%-- set figure
+%-----------------------------------------------------------
+hid = figure;
+set(hid,'BackingStore','on');
 if subc(1) == 1
     plot(permute(y,[2,1]),permute(z,[2,1]),'k-');
     hold on;
@@ -76,7 +62,7 @@ elseif subc(3) == 1
     xlabel(['X axis (' str_unit ')']);
     ylabel(['Y axis (' str_unit ')']);
 end
-
+  
 set(gca,'layer','top');
 set(gcf,'color','white','renderer','painters');
 
@@ -84,27 +70,27 @@ set(gcf,'color','white','renderer','painters');
 if exist('scl_daspect')
     daspect(scl_daspect);
 end
-axis tight;
+axis equal;
 
 % title
 if flag_title
-    if subc(1) == 1
-        gridtitle='YOZ-Grid';
-    elseif subc(2) == 1
-        gridtitle='XOZ-Grid';
-    elseif subc(3) == 1
-        gridtitle='XOY-Grid';
-    end
-    title(gridtitle);
+  if (subc(1) == 1)
+    gridtitle='YOZ-Grid';
+  elseif (subc(2) == 1)
+    gridtitle='XOZ-Grid';
+  elseif (subc(3) == 1)
+    gridtitle='XOY-Grid';
+  end
+  title(gridtitle);
 end
 
 % save and print figure
 if flag_print
-    width= 500;
-    height=500;
-    set(gcf,'paperpositionmode','manual');
-    set(gcf,'paperunits','points');
-    set(gcf,'papersize',[width,height]);
-    set(gcf,'paperposition',[0,0,width,height]);
-    print(gcf,[gridtitle '.png'],'-dpng');
+  width= 500;
+  height=500;
+  set(gcf,'paperpositionmode','manual');
+  set(gcf,'paperunits','points');
+  set(gcf,'papersize',[width,height]);
+  set(gcf,'paperposition',[0,0,width,height]);
+  print(gcf,[gridtitle '.png'],'-dpng');
 end

@@ -52,6 +52,59 @@ par_read_from_str(const char *str, par_t *par)
   cJSON *item;
   cJSON *subitem, *thirditem;
 
+  if (item = cJSON_GetObjectItem(root, "number_of_grid_points_x")) {
+    par->number_of_grid_points_x = item->valueint;
+  }
+  if (item = cJSON_GetObjectItem(root, "number_of_grid_points_y")) {
+    par->number_of_grid_points_y = item->valueint;
+  }
+  if (item = cJSON_GetObjectItem(root, "number_of_grid_points_z")) {
+    par->number_of_grid_points_z = item->valueint;
+  }
+
+  // default mpi threads
+  par->number_of_mpiprocs_x_out = 1;
+  par->number_of_mpiprocs_y_out = 1;
+  par->number_of_mpiprocs_z_out = 1;
+
+  if (item = cJSON_GetObjectItem(root, "number_of_mpiprocs_x_out")) {
+    par->number_of_mpiprocs_x_out = item->valueint;
+  }
+  if (item = cJSON_GetObjectItem(root, "number_of_mpiprocs_y_out")) {
+    par->number_of_mpiprocs_y_out = item->valueint;
+  }
+  if (item = cJSON_GetObjectItem(root, "number_of_mpiprocs_z_out")) {
+    par->number_of_mpiprocs_z_out = item->valueint;
+  }
+
+  // default pml layers
+  par->number_of_pml_x1 = 0;
+  par->number_of_pml_x2 = 0;
+  par->number_of_pml_y1 = 0;
+  par->number_of_pml_y2 = 0;
+  par->number_of_pml_z1 = 0;
+  par->number_of_pml_z2 = 0;
+  if (item = cJSON_GetObjectItem(root, "pml_layers")) {
+    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_x1")) {
+      par->number_of_pml_x1 = subitem->valueint;
+    }
+    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_x2")) {
+      par->number_of_pml_x2 = subitem->valueint;
+    }
+    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_y1")) {
+      par->number_of_pml_y1 = subitem->valueint;
+    }
+    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_y2")) {
+      par->number_of_pml_y2 = subitem->valueint;
+    }
+    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_z1")) {
+      par->number_of_pml_z1 = subitem->valueint;
+    }
+    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_z2")) {
+      par->number_of_pml_z2 = subitem->valueint;
+    }
+  }
+
   // default not check
   par->grid_check = 0;
   par->check_orth  = 0;
@@ -180,6 +233,21 @@ par_print(par_t *par)
 {    
   int ierr = 0;
 
+  fprintf(stdout,"number of total gird points x is %d\n",par->number_of_grid_points_x);
+  fprintf(stdout,"number of total gird points y is %d\n",par->number_of_grid_points_y);
+  fprintf(stdout,"number of total gird points z is %d\n",par->number_of_grid_points_z);
+
+  fprintf(stdout,"number of mpi procs x export is %d\n",par->number_of_mpiprocs_x_out);
+  fprintf(stdout,"number of mpi procs y export is %d\n",par->number_of_mpiprocs_y_out);
+  fprintf(stdout,"number of mpi procs z export is %d\n",par->number_of_mpiprocs_z_out);
+
+  fprintf(stdout,"number of pml layers x1 is %d\n",par->number_of_pml_x1);
+  fprintf(stdout,"number of pml layers x2 is %d\n",par->number_of_pml_x2);
+  fprintf(stdout,"number of pml layers y1 is %d\n",par->number_of_pml_y1);
+  fprintf(stdout,"number of pml layers y2 is %d\n",par->number_of_pml_y2);
+  fprintf(stdout,"number of pml layers z1 is %d\n",par->number_of_pml_z1);
+  fprintf(stdout,"number of pml layers z2 is %d\n",par->number_of_pml_z2);
+
   fprintf(stdout,"input geometry file is \n %s\n",par->geometry_input_file);
   fprintf(stdout,"export grid dir is \n %s\n",par->grid_export_dir);
   fprintf(stdout, "-------------------------------------------------------\n");
@@ -268,6 +336,8 @@ par_print(par_t *par)
     }
     fprintf(stdout, "step file is  %s\n",par->step_input_file);
   }
+  
+  fflush(stdout);
 
   return ierr;
 }

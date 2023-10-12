@@ -19,7 +19,10 @@ init_gdcurv(gd_t *gdcurv, int nx, int ny, int nz)
   gdcurv->ncmp = CONST_NDIM; 
   gdcurv->siz_iy   = nx;
   gdcurv->siz_iz   = nx*ny;
-  gdcurv->siz_icmp = nx*ny*nz;
+  // NOTE: must use gdcurv->siz_iz
+  // because nx*ny*nz is int type
+  // when nx,ny,nz is big, nx*ny*nz > int range
+  gdcurv->siz_icmp = gdcurv->siz_iz*nz; 
   // malloc grid space 
   gdcurv->v4d = (float *)mem_calloc_1d_float(
                   gdcurv->siz_icmp*gdcurv->ncmp, 0.0, "gd_curv_init");
@@ -67,11 +70,6 @@ grid_init_set(gd_t *gdcurv, char *geometry_file)
   if (!io_get_nextline(fp,str,500)) {
     sscanf(str,"%d",&nz);
   }
-  
-  init_gdcurv(gdcurv,nx,ny,nz);
-
-  size_t siz_iy = gdcurv->siz_iy;
-  size_t siz_iz = gdcurv->siz_iz;
 
   // malloc 6 bdry space, read bdry coods
   float *x1;
@@ -93,74 +91,74 @@ grid_init_set(gd_t *gdcurv, char *geometry_file)
   z2 = (float *)mem_calloc_1d_float(
             ny*nx*gdcurv->ncmp, 0.0, "bdry_coords");
 
-  size_t iptr,size;
+  size_t iptr, iptr1, size;
   // x1 
+  size = ny*nz;
   for (int k=0; k<nz; k++) 
   {
     for (int j=0; j<ny; j++)
     {
       iptr = k*ny+j;
-      size = ny*nz;
       if (!io_get_nextline(fp,str,500)) {
         sscanf(str,"%f %f %f",x1+iptr,(x1+1*size)+iptr,(x1+2*size)+iptr);
       }
     }
   }
   // x2 
+  size = ny*nz;
   for (int k=0; k<nz; k++) 
   {
     for (int j=0; j<ny; j++)
     {
       iptr = k*ny+j;
-      size = ny*nz;
       if (!io_get_nextline(fp,str,500)) {
         sscanf(str,"%f %f %f",x2+iptr,(x2+1*size)+iptr,(x2+2*size)+iptr);
       }
     }
   }
   // y1 
+  size = nx*nz;
   for (int k=0; k<nz; k++) 
   {
     for (int i=0; i<nx; i++)
     {
       iptr = k*nx+i;
-      size = nx*nz;
       if (!io_get_nextline(fp,str,500)) {
         sscanf(str,"%f %f %f",y1+iptr,(y1+1*size)+iptr,(y1+2*size)+iptr);
       }
     }
   }
   // y2 
+  size = nx*nz;
   for (int k=0; k<nz; k++) 
   {
     for (int i=0; i<nx; i++)
     {
       iptr = k*nx+i;
-      size = nx*nz;
       if (!io_get_nextline(fp,str,500)) {
         sscanf(str,"%f %f %f",y2+iptr,(y2+1*size)+iptr,(y2+2*size)+iptr);
       }
     }
   }
   // z1 
+  size = nx*ny;
   for (int j=0; j<ny; j++) 
   {
     for (int i=0; i<nx; i++)
     {
       iptr = j*nx+i;
-      size = nx*ny;
       if (!io_get_nextline(fp,str,500)) {
         sscanf(str,"%f %f %f",z1+iptr,(z1+1*size)+iptr,(z1+2*size)+iptr);
       }
     }
   }
   // z2 
+  size = nx*ny;
   for (int j=0; j<ny; j++) 
   {
     for (int i=0; i<nx; i++)
     {
       iptr = j*nx+i;
-      size = nx*ny;
       if (!io_get_nextline(fp,str,500)) {
         sscanf(str,"%f %f %f",z2+iptr,(z2+1*size)+iptr,(z2+2*size)+iptr);
       }
@@ -175,80 +173,81 @@ grid_init_set(gd_t *gdcurv, char *geometry_file)
   float *x3d = gdcurv->x3d;
   float *y3d = gdcurv->y3d;
   float *z3d = gdcurv->z3d;
-  size_t iptr1;
+  size_t siz_iy = gdcurv->siz_iy;
+  size_t siz_iz = gdcurv->siz_iz;
   // x1 i=0
+  size = ny*nz;
   for (int k=0; k<nz; k++)
   {
     for (int j=0; j<ny; j++)
     {
       iptr = k*siz_iz + j*siz_iy + 0;
       iptr1 = k*ny + j;
-      size = ny*nz;
       x3d[iptr] = x1[iptr1];
       y3d[iptr] = x1[iptr1+1*size];
       z3d[iptr] = x1[iptr1+2*size];
     }
   }
   // x2 i=nx-1
+  size = ny*nz;
   for (int k=0; k<nz; k++)
   {
     for (int j=0; j<ny; j++)
     {
       iptr = k*siz_iz + j*siz_iy + (nx-1);
       iptr1 = k*ny + j;
-      size = ny*nz;
       x3d[iptr] = x2[iptr1];
       y3d[iptr] = x2[iptr1+1*size];
       z3d[iptr] = x2[iptr1+2*size];
     }
   }
   // y1 j=0
+  size = nx*nz;
   for (int k=0; k<nz; k++)
   {
     for (int i=0; i<nx; i++)
     {
       iptr = k*siz_iz + 0*siz_iy + i;
       iptr1 = k*nx + i;
-      size = nx*nz;
       x3d[iptr] = y1[iptr1];
       y3d[iptr] = y1[iptr1+1*size];
       z3d[iptr] = y1[iptr1+2*size];
     }
   }
   // y2 j=ny-1
+  size = nx*nz;
   for (int k=0; k<nz; k++)
   {
     for (int i=0; i<nx; i++)
     {
       iptr = k*siz_iz + (ny-1)*siz_iy + i;
       iptr1 = k*nx + i;
-      size = nx*nz;
       x3d[iptr] = y2[iptr1];
       y3d[iptr] = y2[iptr1+1*size];
       z3d[iptr] = y2[iptr1+2*size];
     }
   }
   // z1 k=0
+  size = nx*ny;
   for (int j=0; j<ny; j++)
   {
     for (int i=0; i<nx; i++)
     {
       iptr = 0*siz_iz + j*siz_iy + i;
       iptr1 = j*nx + i;
-      size = nx*ny;
       x3d[iptr] = z1[iptr1];
       y3d[iptr] = z1[iptr1+1*size];
       z3d[iptr] = z1[iptr1+2*size];
     }
   }
   // z2 k=nz-1
+  size = nx*ny;
   for (int j=0; j<ny; j++)
   {
     for (int i=0; i<nx; i++)
     {
       iptr = (nz-1)*siz_iz + j*siz_iy + i;
       iptr1 = j*nx + i;
-      size = nx*ny;
       x3d[iptr] = z2[iptr1];
       y3d[iptr] = z2[iptr1+1*size];
       z3d[iptr] = z2[iptr1+2*size];
@@ -823,4 +822,161 @@ permute_coord_y(gd_t *gdcurv)
   free(tmp_coord_z); 
 
   return 0;
+}
+
+int
+gd_info_set(par_t *par, int iprocx, int iprocy, int iprocz,
+           int *global_index, int *count)
+{
+  int ierr = 0;
+
+  int total_nx = par->number_of_grid_points_x;
+  int total_ny = par->number_of_grid_points_y;
+  int total_nz = par->number_of_grid_points_z;
+
+  int nprocx_out = par->number_of_mpiprocs_x_out;
+  int nprocy_out = par->number_of_mpiprocs_y_out;
+  int nprocz_out = par->number_of_mpiprocs_z_out;
+
+  int number_of_pml_x1 = par->number_of_pml_x1;
+  int number_of_pml_x2 = par->number_of_pml_x2;
+  int number_of_pml_y1 = par->number_of_pml_y1;
+  int number_of_pml_y2 = par->number_of_pml_y2;
+  int number_of_pml_z1 = par->number_of_pml_z1;
+  int number_of_pml_z2 = par->number_of_pml_z2;
+
+  int gni1, gnj1, gnk1;
+  // determine ni
+  int nx_et = total_nx;
+
+  // double cfspml layer, load balance
+  nx_et += number_of_pml_x1 + number_of_pml_x2;
+
+  // partition into average plus left at last
+  int nx_avg  = nx_et / nprocx_out;
+  int nx_left = nx_et % nprocx_out;
+
+  // nx_avg must > pml layers
+  if(nx_avg<=number_of_pml_x1 || nx_avg<=number_of_pml_x2)
+  {
+    fprintf(stdout,"nx must large pml_layers\n");
+    fflush(stdout);
+    exit(1);
+  }
+
+  // default set to average value
+  int ni = nx_avg;
+  // subtract nlay for pml node
+  if (iprocx == 0) {
+    ni -= number_of_pml_x1;
+  }
+  if (iprocx == nprocx_out-1) {
+    ni -= number_of_pml_x2;
+  }
+
+  // first nx_left node add one more point
+  if (iprocx < nx_left) {
+    ni++;
+  }
+  // global index
+  if (iprocx==0) {
+    gni1 = 0;
+  } else {
+    gni1 = iprocx * nx_avg - number_of_pml_x1;
+  }
+  if (nx_left != 0) {
+    gni1 += (iprocx < nx_left) ? iprocx : nx_left;
+  }
+
+  // determine nj
+  int ny_et = total_ny;
+
+  // double cfspml layer, load balance
+  ny_et += number_of_pml_y1 + number_of_pml_y2;
+
+  int ny_avg  = ny_et / nprocy_out;
+  int ny_left = ny_et % nprocy_out;
+
+  // ny_avg must > pml layers
+  if(ny_avg<=number_of_pml_y1 || ny_avg<=number_of_pml_y2)
+  {
+    fprintf(stdout,"ny must large pml_layers\n");
+    fflush(stdout);
+    exit(1);
+  }
+
+  // default set to average value
+  int nj = ny_avg;
+  // subtract nlay for pml node
+  if (iprocy == 0) {
+    nj -= number_of_pml_y1;
+  }
+  if (iprocy == nprocy_out-1) {
+    nj -= number_of_pml_y2;
+  }
+
+  // first ny_left node add one more point
+  if (iprocy < ny_left) {
+    nj++;
+  }
+  // global index
+  if (iprocy==0) {
+    gnj1 = 0;
+  } else {
+    gnj1 = iprocy * ny_avg - number_of_pml_y1;
+  }
+  if (ny_left != 0) {
+    gnj1 += (iprocy < ny_left) ? iprocy : ny_left;
+  }
+
+  // determine nk
+  int nz_et = total_nz;
+
+  // double cfspml layer, load balance
+  nz_et += number_of_pml_z1 + number_of_pml_z2;
+
+  int nz_avg  = nz_et / nprocz_out;
+  int nz_left = nz_et % nprocz_out;
+
+  // ny_avg must > pml layers
+  if(nz_avg<=number_of_pml_z1 || nz_avg<=number_of_pml_z2)
+  {
+    fprintf(stdout,"nz must large pml_layers\n");
+    fflush(stdout);
+    exit(1);
+  }
+
+  // default set to average value
+  int nk = nz_avg;
+  // subtract nlay for pml node
+  if (iprocz == 0) {
+    nk -= number_of_pml_z1;
+  }
+  if (iprocz == nprocz_out-1) {
+    nk -= number_of_pml_z2;
+  }
+
+  // first nz_left node add one more point
+  if (iprocz < nz_left) {
+    nk++;
+  }
+  // global index
+  if (iprocz==0) {
+    gnk1 = 0;
+  } else {
+    gnk1 = iprocz * nz_avg - number_of_pml_z1;
+  }
+  if (nz_left != 0) {
+    gnk1 += (iprocz < nz_left) ? iprocz : nz_left;
+  }
+
+  global_index[0] = gni1;
+  global_index[1] = gnj1;
+  global_index[2] = gnk1;
+
+  count[0] = ni;
+  count[1] = nj;
+  count[2] = nk;
+
+  return ierr;
 }

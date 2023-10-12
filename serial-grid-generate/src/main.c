@@ -50,6 +50,13 @@ int main(int argc, char** argv)
   gd_t *gdcurv = (gd_t *) malloc(sizeof(gd_t));
   // for grid sample space
   gd_t *gdcurv_new = (gd_t *) malloc(sizeof(gd_t));
+
+  init_gdcurv(gdcurv,par->number_of_grid_points_x,
+                     par->number_of_grid_points_y,
+                     par->number_of_grid_points_z);
+
+
+  time_t t_start = time(NULL);
   switch(par->method_itype)
   {
     case TFI : {
@@ -106,8 +113,14 @@ int main(int argc, char** argv)
     }
   }
 
+  time_t t_end = time(NULL);
+
+  fprintf(stdout,"\n************************************\n");
+  fprintf(stdout,"grid generate running time is :%f s \n", difftime(t_end,t_start));
+  fprintf(stdout,"************************************\n \n");
+
   fprintf(stdout,"export coord to file ... \n");
-  gd_curv_coord_export(gdcurv,par->grid_export_dir);
+  gd_curv_coord_export(gdcurv,par);
 
   // grid quality check and export quality data
   io_quality_t *io_quality = (io_quality_t *) malloc(sizeof(io_quality_t));

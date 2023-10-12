@@ -14,55 +14,55 @@ grid_quality_check(io_quality_t *io_quality, gd_t *gdcurv, par_t *par)
   {
     char quality_name1[100] = "orth_xiet";
     cal_xiet(io_quality, gdcurv);
-    quality_export(io_quality,par->grid_export_dir,quality_name1);
+    quality_export(io_quality,par,quality_name1);
     char quality_name2[100] = "orth_xizt";
     cal_xizt(io_quality, gdcurv);
-    quality_export(io_quality,par->grid_export_dir,quality_name2);
+    quality_export(io_quality,par,quality_name2);
     char quality_name3[100] = "orth_etzt";
     cal_etzt(io_quality, gdcurv);
-    quality_export(io_quality,par->grid_export_dir,quality_name3);
+    quality_export(io_quality,par,quality_name3);
   }
   if(par->check_jac == 1)
   {
     char quality_name[100] = "jacobi";
     cal_jacobi(io_quality, gdcurv);
-    quality_export(io_quality,par->grid_export_dir,quality_name);
+    quality_export(io_quality,par,quality_name);
   }
   if(par->check_step_xi == 1)
   {
     char quality_name[100] = "step_xi";
     cal_step_xi(io_quality, gdcurv);
-    quality_export(io_quality,par->grid_export_dir,quality_name);
+    quality_export(io_quality,par,quality_name);
   }
   if(par->check_step_et == 1)
   {
     char quality_name[100] = "step_et";
     cal_step_et(io_quality, gdcurv);
-    quality_export(io_quality,par->grid_export_dir,quality_name);
+    quality_export(io_quality,par,quality_name);
   }
   if(par->check_step_zt == 1)
   {
     char quality_name[100] = "step_zt";
     cal_step_zt(io_quality, gdcurv);
-    quality_export(io_quality,par->grid_export_dir,quality_name);
+    quality_export(io_quality,par,quality_name);
   }
   if(par->check_smooth_xi == 1)
   {
     char quality_name[100] = "smooth_xi";
     cal_smooth_xi(io_quality, gdcurv);
-    quality_export(io_quality,par->grid_export_dir,quality_name);
+    quality_export(io_quality,par,quality_name);
   }
   if(par->check_smooth_et == 1)
   {
     char quality_name[100] = "smooth_et";
     cal_smooth_et(io_quality, gdcurv);
-    quality_export(io_quality,par->grid_export_dir,quality_name);
+    quality_export(io_quality,par,quality_name);
   }
   if(par->check_smooth_zt == 1)
   {
     char quality_name[100] = "smooth_zt";
     cal_smooth_zt(io_quality, gdcurv);
-    quality_export(io_quality,par->grid_export_dir,quality_name);
+    quality_export(io_quality,par,quality_name);
   }
 
   return 0;
