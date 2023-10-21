@@ -39,7 +39,7 @@ cal_smooth_et(io_quality_t *io_quality, gd_t *gdcurv);
 int 
 cal_smooth_zt(io_quality_t *io_quality, gd_t *gdcurv);
 
-int extend_var(double *var, int nx, int ny, int nz,
+int extend_var(float *var, int nx, int ny, int nz,
                size_t siz_iy, size_t siz_iz);
 
 #endif

@@ -17,7 +17,7 @@ init_io_quality(io_quality_t *io_quality, gd_t *gdcurv)
   io_quality->nz = gdcurv->nz;
   
   // malloc quality space 
-  io_quality->var = (double *)mem_calloc_1d_double(
+  io_quality->var = (float *)mem_calloc_1d_float(
                   gdcurv->siz_icmp, 0.0, "quality_init");
   if (io_quality->var == NULL) {
       fprintf(stderr,"Error: failed to alloc quality vars\n");
@@ -90,12 +90,12 @@ gd_curv_coord_export(gd_t *gdcurv, mympi_t *mympi)
     gnk1 = gnk1 + 1; 
   }
 
-  double *x3d = gdcurv->x3d;
-  double *y3d = gdcurv->y3d;
-  double *z3d = gdcurv->z3d;
-  double *coord_x = (double *) malloc(sizeof(double)*ni*nj*nk);
-  double *coord_y = (double *) malloc(sizeof(double)*ni*nj*nk);
-  double *coord_z = (double *) malloc(sizeof(double)*ni*nj*nk);
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
+  float *coord_x = (float *) malloc(sizeof(float)*ni*nj*nk);
+  float *coord_y = (float *) malloc(sizeof(float)*ni*nj*nk);
+  float *coord_z = (float *) malloc(sizeof(float)*ni*nj*nk);
 
   for(int k=nk1; k<=nk2; k++) {
     for(int j=nj1; j<=nj2; j++) {
@@ -133,11 +133,11 @@ gd_curv_coord_export(gd_t *gdcurv, mympi_t *mympi)
   handle_nc_err(ierr);
 
   // define vars
-  ierr = nc_def_var(ncid, "x", NC_DOUBLE, 3, dimid, &xid);
+  ierr = nc_def_var(ncid, "x", NC_FLOAT, 3, dimid, &xid);
   handle_nc_err(ierr);
-  ierr = nc_def_var(ncid, "y", NC_DOUBLE, 3, dimid, &yid);
+  ierr = nc_def_var(ncid, "y", NC_FLOAT, 3, dimid, &yid);
   handle_nc_err(ierr);
-  ierr = nc_def_var(ncid, "z", NC_DOUBLE, 3, dimid, &zid);
+  ierr = nc_def_var(ncid, "z", NC_FLOAT, 3, dimid, &zid);
   handle_nc_err(ierr);
 
   // attribute: index in output snapshot, index w ghost in thread
@@ -154,9 +154,9 @@ gd_curv_coord_export(gd_t *gdcurv, mympi_t *mympi)
   handle_nc_err(ierr);
 
   // add vars
-  ierr = nc_put_var_double(ncid, xid, coord_x);  handle_nc_err(ierr);
-  ierr = nc_put_var_double(ncid, yid, coord_y);  handle_nc_err(ierr);
-  ierr = nc_put_var_double(ncid, zid, coord_z);  handle_nc_err(ierr);
+  ierr = nc_put_var_float(ncid, xid, coord_x);  handle_nc_err(ierr);
+  ierr = nc_put_var_float(ncid, yid, coord_y);  handle_nc_err(ierr);
+  ierr = nc_put_var_float(ncid, zid, coord_z);  handle_nc_err(ierr);
   
   // close file
   ierr = nc_close(ncid);
@@ -232,8 +232,8 @@ quality_export(io_quality_t *io_quality, gd_t *gdcurv, mympi_t *mympi, char *var
     gnk1 = gnk1 + 1; 
   }
 
-  double *var =  io_quality->var;
-  double *var_out = (double *) malloc(sizeof(double)*ni*nj*nk);
+  float *var =  io_quality->var;
+  float *var_out = (float *) malloc(sizeof(float)*ni*nj*nk);
 
   for(int k=nk1; k<=nk2; k++) {
     for(int j=nj1; j<=nj2; j++) {
@@ -269,7 +269,7 @@ quality_export(io_quality_t *io_quality, gd_t *gdcurv, mympi_t *mympi, char *var
   handle_nc_err(ierr);
 
   // define vars
-  ierr = nc_def_var(ncid, var_name, NC_DOUBLE, 3, dimid, &varid);
+  ierr = nc_def_var(ncid, var_name, NC_FLOAT, 3, dimid, &varid);
   handle_nc_err(ierr);
 
   // attribute: index in output snapshot, index w ghost in thread
@@ -286,7 +286,7 @@ quality_export(io_quality_t *io_quality, gd_t *gdcurv, mympi_t *mympi, char *var
   handle_nc_err(ierr);
 
   // add vars
-  ierr = nc_put_var_double(ncid, varid, var_out);  handle_nc_err(ierr);
+  ierr = nc_put_var_float(ncid, varid, var_out);  handle_nc_err(ierr);
   
   // close file
   ierr = nc_close(ncid);

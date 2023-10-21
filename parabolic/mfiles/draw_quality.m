@@ -12,6 +12,9 @@ output_dir='../project1/output';
 subs=[200,1,1];    
 subc=[1,-1,-1];   % '-1' to plot all points in this dimension
 subt=[1,1,1];
+% subs=[1,1,100];    
+% subc=[-1,-1,1];   % '-1' to plot all points in this dimension
+% subt=[1,1,1];
 % subs=[1,150,1];    
 % subc=[-1,1,-1];   % '-1' to plot all points in this dimension
 % subt=[1,1,1];
@@ -31,9 +34,9 @@ clrmp       = 'parula';
 % 'smooth_xi', 'smooth_et','smooth_zt',
 % 'step_xi', 'step_et', 'step_zt'
 % varnm = 'orth_etzt';
-varnm = 'jacobi';
+% varnm = 'jacobi';
 % varnm = 'step_zt';
-% varnm = 'smooth_et';
+varnm = 'smooth_et';
 %-----------------------------------------------------------
 %-- load coord
 %-----------------------------------------------------------

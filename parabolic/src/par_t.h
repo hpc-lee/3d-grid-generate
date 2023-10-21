@@ -40,7 +40,7 @@ typedef struct{
   int dire_itype;
   char direction[PAR_MAX_STRLEN];
 
-  double coef;
+  float coef;
   int o2i;  // outer to inner
 
 } par_t;

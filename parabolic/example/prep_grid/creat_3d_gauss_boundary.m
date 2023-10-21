@@ -48,7 +48,7 @@ if flag_topo_z
   point_x= origin_x + floor(nx1/2)*dx; 
   point_y= origin_y + floor(ny1/2)*dy; 
   L = 0.2*nx*dx;
-  H = 0.3*nz*dz;
+  H = 0.2*nz*dz;
   for j = 1:ny1
     for i = 1:nx1
       r1 = sqrt((bz2(j+num_pml,i+num_pml,1)-point_x)^2 + (bz2(j+num_pml,i+num_pml,2)-point_y)^2);
@@ -58,6 +58,7 @@ if flag_topo_z
       end
       
       bz2(j+num_pml,i+num_pml,3) = bz2(j+num_pml,i+num_pml,3) + topo;
+%       bz1(j+num_pml,i+num_pml,3) = bz1(j+num_pml,i+num_pml,3) - topo;
     end
   end
 end

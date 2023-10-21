@@ -20,10 +20,10 @@ para_gene(gd_t *gdcurv, mympi_t *mympi, bdry_t *bdry, par_t *par)
   int total_ny = gdcurv->total_ny;
   int total_nz = gdcurv->total_nz;
 
-  double *x1 = bdry->x1;
-  double *x2 = bdry->x2;
-  double *y1 = bdry->y1;
-  double *y2 = bdry->y2;
+  float *x1 = bdry->x1;
+  float *x2 = bdry->x2;
+  float *y1 = bdry->y1;
+  float *y2 = bdry->y2;
 
   MPI_Comm topocomm = mympi->topocomm;
   int myid = mympi->myid;
@@ -32,7 +32,7 @@ para_gene(gd_t *gdcurv, mympi_t *mympi, bdry_t *bdry, par_t *par)
   int num_of_s_reqs = 2;
   int num_of_r_reqs = 2;
 
-  double coef = par->coef;
+  float coef = par->coef;
   int o2i = par->o2i;
 
   bdry_effct_t *bdry_effct = (bdry_effct_t *) malloc(sizeof(bdry_effct_t)); 
@@ -51,16 +51,16 @@ para_gene(gd_t *gdcurv, mympi_t *mympi, bdry_t *bdry, par_t *par)
   }
   // malloc space for thomas method 
   // a,b,c,d_x,d_y,d_z,u_x,u_y,u_z. 9 vars space
-  double *var_th = (double *)mem_calloc_1d_double((total_nx-2)*9, 0.0, "init");
+  float *var_th = (float *)mem_calloc_1d_float((total_nx-2)*9, 0.0, "init");
 
   // for update
-  double *coord = (double *) malloc(sizeof(double)*nx*ny*3);
+  float *coord = (float *) malloc(sizeof(float)*nx*ny*3);
 
   // calculate x1 x2 y1 y2 bdry arc length
-  double *x1_len = (double *)mem_calloc_1d_double(total_nz*total_ny, 0.0, "init");
-  double *x2_len = (double *)mem_calloc_1d_double(total_nz*total_ny, 0.0, "init");
-  double *y1_len = (double *)mem_calloc_1d_double(total_nz*total_nx, 0.0, "init");
-  double *y2_len = (double *)mem_calloc_1d_double(total_nz*total_nx, 0.0, "init");
+  float *x1_len = (float *)mem_calloc_1d_float(total_nz*total_ny, 0.0, "init");
+  float *x2_len = (float *)mem_calloc_1d_float(total_nz*total_ny, 0.0, "init");
+  float *y1_len = (float *)mem_calloc_1d_float(total_nz*total_nx, 0.0, "init");
+  float *y2_len = (float *)mem_calloc_1d_float(total_nz*total_nx, 0.0, "init");
 
   cal_bdry_arc_length(x1,x2,y1,y2,total_nx,total_ny,total_nz,x1_len,x2_len,y1_len,y2_len);
 
@@ -98,8 +98,8 @@ para_gene(gd_t *gdcurv, mympi_t *mympi, bdry_t *bdry, par_t *par)
 
 int 
 predict_point(gd_t *gdcurv, bdry_effct_t *bdry_effct, mympi_t *mympi,
-              int k, int o2i, double coef, double *x1_len,
-              double *x2_len, double *y1_len, double *y2_len)
+              int k, int o2i, float coef, float *x1_len,
+              float *x2_len, float *y1_len, float *y2_len)
 {
   // k-1 layer points is know
   // predict points k+1 and k layer
@@ -112,24 +112,24 @@ predict_point(gd_t *gdcurv, bdry_effct_t *bdry_effct, mympi_t *mympi,
   // cal k-1 layer point unit normal vector
   // vn -> vector normal
   
-  double xi,et,zt,cs;
+  float xi,et,zt,cs;
   size_t iptr1,iptr2,iptr3,iptr4;
-  double vn_x,vn_y,vn_z,vn_len;
-  double R_x,R_y,R_z,R;
-  double R_x1, r_x1, r_x11;
-  double R_x2, r_x2, r_x22;
-  double R_y1, r_y1, r_y11;
-  double R_y2, r_y2, r_y22;
-  double c,cc,c_x,cc_x,c_y,cc_y;
-  double c_x1,c_x11,c_x2,c_x22;
-  double c_y1,c_y11,c_y2,c_y22;
-  double x0,y0,z0,xs,ys,zs;
-  double x_xi, y_xi, z_xi;
-  double x_et, y_et, z_et;
+  float vn_x,vn_y,vn_z,vn_len;
+  float R_x,R_y,R_z,R;
+  float R_x1, r_x1, r_x11;
+  float R_x2, r_x2, r_x22;
+  float R_y1, r_y1, r_y11;
+  float R_y2, r_y2, r_y22;
+  float c,cc,c_x,cc_x,c_y,cc_y;
+  float c_x1,c_x11,c_x2,c_x22;
+  float c_y1,c_y11,c_y2,c_y22;
+  float x0,y0,z0,xs,ys,zs;
+  float x_xi, y_xi, z_xi;
+  float x_et, y_et, z_et;
 
-  double *x3d = gdcurv->x3d;
-  double *y3d = gdcurv->y3d;
-  double *z3d = gdcurv->z3d;
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
   int nx = gdcurv->nx;
@@ -269,42 +269,42 @@ predict_point(gd_t *gdcurv, bdry_effct_t *bdry_effct, mympi_t *mympi,
 }
 
 int
-update_point(gd_t *gdcurv, double *var_th, int k, double *coord) 
+update_point(gd_t *gdcurv, float *var_th, int k, float *coord) 
 {
-  double *x3d = gdcurv->x3d;
-  double *y3d = gdcurv->y3d;
-  double *z3d = gdcurv->z3d;
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
   int siz_vec = nx-2;  // ni
-  double *a = var_th;
-  double *b = var_th + 1*siz_vec;
-  double *c = var_th + 2*siz_vec;
-  double *d_x = var_th + 3*siz_vec;
-  double *d_y = var_th + 4*siz_vec;
-  double *d_z = var_th + 5*siz_vec;
-  double *u_x = var_th + 6*siz_vec;
-  double *u_y = var_th + 7*siz_vec;
-  double *u_z = var_th + 8*siz_vec;
+  float *a = var_th;
+  float *b = var_th + 1*siz_vec;
+  float *c = var_th + 2*siz_vec;
+  float *d_x = var_th + 3*siz_vec;
+  float *d_y = var_th + 4*siz_vec;
+  float *d_z = var_th + 5*siz_vec;
+  float *u_x = var_th + 6*siz_vec;
+  float *u_y = var_th + 7*siz_vec;
+  float *u_z = var_th + 8*siz_vec;
 
-  double *coord_x = coord;
-  double *coord_y = coord + 1*nx*ny;
-  double *coord_z = coord + 2*nx*ny;
+  float *coord_x = coord;
+  float *coord_y = coord + 1*nx*ny;
+  float *coord_z = coord + 2*nx*ny;
 
   size_t iptr,iptr1,iptr2,iptr3,iptr4;
   size_t iptr5,iptr6;
-  double x_xi,y_xi,z_xi;
-  double x_et,y_et,z_et;
-  double x_zt,y_zt,z_zt;
-  double x_xiet,y_xiet,z_xiet;
-  double x_xizt,y_xizt,z_xizt;
-  double x_etzt,y_etzt,z_etzt;
-  double g11,g22,g33,g12,g13,g23;
-  double alpha1,alpha2,alpha3;
-  double beta12,beta23,beta13;
+  float x_xi,y_xi,z_xi;
+  float x_et,y_et,z_et;
+  float x_zt,y_zt,z_zt;
+  float x_xiet,y_xiet,z_xiet;
+  float x_xizt,y_xizt,z_xizt;
+  float x_etzt,y_etzt,z_etzt;
+  float g11,g22,g33,g12,g13,g23;
+  float alpha1,alpha2,alpha3;
+  float beta12,beta23,beta13;
 
   for(int j=1; j<ny-1; j++) {
     for(int i=1; i<nx-1; i++)
@@ -428,9 +428,9 @@ update_point(gd_t *gdcurv, double *var_th, int k, double *coord)
 int
 bdry_modify(gd_t *gdcurv, bdry_effct_t *bdry_effct, mympi_t *mympi, int k)
 {
-  double *x3d = gdcurv->x3d;
-  double *y3d = gdcurv->y3d;
-  double *z3d = gdcurv->z3d;
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
@@ -450,23 +450,23 @@ bdry_modify(gd_t *gdcurv, bdry_effct_t *bdry_effct, mympi_t *mympi, int k)
   // bdry undulate
   size_t iptr1,iptr2,iptr3;
 
-  double *dif_b1_x_k_loc  = bdry_effct->dif_b1_x_k_loc; 
-  double *dif_b1_y_k_loc  = bdry_effct->dif_b1_y_k_loc; 
-  double *dif_b1_z_k_loc  = bdry_effct->dif_b1_z_k_loc; 
-  double *dif_b1_x_k1_loc = bdry_effct->dif_b1_x_k1_loc;
-  double *dif_b1_y_k1_loc = bdry_effct->dif_b1_y_k1_loc;
-  double *dif_b1_z_k1_loc = bdry_effct->dif_b1_z_k1_loc;
+  float *dif_b1_x_k_loc  = bdry_effct->dif_b1_x_k_loc; 
+  float *dif_b1_y_k_loc  = bdry_effct->dif_b1_y_k_loc; 
+  float *dif_b1_z_k_loc  = bdry_effct->dif_b1_z_k_loc; 
+  float *dif_b1_x_k1_loc = bdry_effct->dif_b1_x_k1_loc;
+  float *dif_b1_y_k1_loc = bdry_effct->dif_b1_y_k1_loc;
+  float *dif_b1_z_k1_loc = bdry_effct->dif_b1_z_k1_loc;
 
-  double *dif_b1_x_k  = bdry_effct->dif_b1_x_k; 
-  double *dif_b1_y_k  = bdry_effct->dif_b1_y_k; 
-  double *dif_b1_z_k  = bdry_effct->dif_b1_z_k; 
-  double *dif_b1_x_k1 = bdry_effct->dif_b1_x_k1;
-  double *dif_b1_y_k1 = bdry_effct->dif_b1_y_k1;
-  double *dif_b1_z_k1 = bdry_effct->dif_b1_z_k1;
-  double b1_x1_k,  b1_y1_k,  b1_z1_k;
-  double b1_x1_k1, b1_y1_k1, b1_z1_k1;
-  double b1_x2_k,  b1_y2_k,  b1_z2_k;
-  double b1_x2_k1, b1_y2_k1, b1_z2_k1;
+  float *dif_b1_x_k  = bdry_effct->dif_b1_x_k; 
+  float *dif_b1_y_k  = bdry_effct->dif_b1_y_k; 
+  float *dif_b1_z_k  = bdry_effct->dif_b1_z_k; 
+  float *dif_b1_x_k1 = bdry_effct->dif_b1_x_k1;
+  float *dif_b1_y_k1 = bdry_effct->dif_b1_y_k1;
+  float *dif_b1_z_k1 = bdry_effct->dif_b1_z_k1;
+  float b1_x1_k,  b1_y1_k,  b1_z1_k;
+  float b1_x1_k1, b1_y1_k1, b1_z1_k1;
+  float b1_x2_k,  b1_y2_k,  b1_z2_k;
+  float b1_x2_k1, b1_y2_k1, b1_z2_k1;
 
   if(neighid[0] == MPI_PROC_NULL)
   {
@@ -506,23 +506,23 @@ bdry_modify(gd_t *gdcurv, bdry_effct_t *bdry_effct, mympi_t *mympi, int k)
     }
   }
 
-  double *dif_b2_x_k_loc  = bdry_effct->dif_b2_x_k_loc; 
-  double *dif_b2_y_k_loc  = bdry_effct->dif_b2_y_k_loc; 
-  double *dif_b2_z_k_loc  = bdry_effct->dif_b2_z_k_loc; 
-  double *dif_b2_x_k1_loc = bdry_effct->dif_b2_x_k1_loc;
-  double *dif_b2_y_k1_loc = bdry_effct->dif_b2_y_k1_loc;
-  double *dif_b2_z_k1_loc = bdry_effct->dif_b2_z_k1_loc;
+  float *dif_b2_x_k_loc  = bdry_effct->dif_b2_x_k_loc; 
+  float *dif_b2_y_k_loc  = bdry_effct->dif_b2_y_k_loc; 
+  float *dif_b2_z_k_loc  = bdry_effct->dif_b2_z_k_loc; 
+  float *dif_b2_x_k1_loc = bdry_effct->dif_b2_x_k1_loc;
+  float *dif_b2_y_k1_loc = bdry_effct->dif_b2_y_k1_loc;
+  float *dif_b2_z_k1_loc = bdry_effct->dif_b2_z_k1_loc;
 
-  double *dif_b2_x_k  = bdry_effct->dif_b2_x_k; 
-  double *dif_b2_y_k  = bdry_effct->dif_b2_y_k; 
-  double *dif_b2_z_k  = bdry_effct->dif_b2_z_k; 
-  double *dif_b2_x_k1 = bdry_effct->dif_b2_x_k1;
-  double *dif_b2_y_k1 = bdry_effct->dif_b2_y_k1;
-  double *dif_b2_z_k1 = bdry_effct->dif_b2_z_k1;
-  double b2_x1_k,  b2_y1_k,  b2_z1_k;
-  double b2_x1_k1, b2_y1_k1, b2_z1_k1;
-  double b2_x2_k,  b2_y2_k,  b2_z2_k;
-  double b2_x2_k1, b2_y2_k1, b2_z2_k1;
+  float *dif_b2_x_k  = bdry_effct->dif_b2_x_k; 
+  float *dif_b2_y_k  = bdry_effct->dif_b2_y_k; 
+  float *dif_b2_z_k  = bdry_effct->dif_b2_z_k; 
+  float *dif_b2_x_k1 = bdry_effct->dif_b2_x_k1;
+  float *dif_b2_y_k1 = bdry_effct->dif_b2_y_k1;
+  float *dif_b2_z_k1 = bdry_effct->dif_b2_z_k1;
+  float b2_x1_k,  b2_y1_k,  b2_z1_k;
+  float b2_x1_k1, b2_y1_k1, b2_z1_k1;
+  float b2_x2_k,  b2_y2_k,  b2_z2_k;
+  float b2_x2_k1, b2_y2_k1, b2_z2_k1;
 
   if(neighid[1] == MPI_PROC_NULL)
   {
@@ -562,23 +562,23 @@ bdry_modify(gd_t *gdcurv, bdry_effct_t *bdry_effct, mympi_t *mympi, int k)
     }
   }
 
-  double *dif_b3_x_k_loc  = bdry_effct->dif_b3_x_k_loc; 
-  double *dif_b3_y_k_loc  = bdry_effct->dif_b3_y_k_loc; 
-  double *dif_b3_z_k_loc  = bdry_effct->dif_b3_z_k_loc; 
-  double *dif_b3_x_k1_loc = bdry_effct->dif_b3_x_k1_loc;
-  double *dif_b3_y_k1_loc = bdry_effct->dif_b3_y_k1_loc;
-  double *dif_b3_z_k1_loc = bdry_effct->dif_b3_z_k1_loc;
+  float *dif_b3_x_k_loc  = bdry_effct->dif_b3_x_k_loc; 
+  float *dif_b3_y_k_loc  = bdry_effct->dif_b3_y_k_loc; 
+  float *dif_b3_z_k_loc  = bdry_effct->dif_b3_z_k_loc; 
+  float *dif_b3_x_k1_loc = bdry_effct->dif_b3_x_k1_loc;
+  float *dif_b3_y_k1_loc = bdry_effct->dif_b3_y_k1_loc;
+  float *dif_b3_z_k1_loc = bdry_effct->dif_b3_z_k1_loc;
 
-  double *dif_b3_x_k  = bdry_effct->dif_b3_x_k; 
-  double *dif_b3_y_k  = bdry_effct->dif_b3_y_k; 
-  double *dif_b3_z_k  = bdry_effct->dif_b3_z_k; 
-  double *dif_b3_x_k1 = bdry_effct->dif_b3_x_k1;
-  double *dif_b3_y_k1 = bdry_effct->dif_b3_y_k1;
-  double *dif_b3_z_k1 = bdry_effct->dif_b3_z_k1;
-  double b3_x1_k,  b3_y1_k,  b3_z1_k;
-  double b3_x1_k1, b3_y1_k1, b3_z1_k1;
-  double b3_x2_k,  b3_y2_k,  b3_z2_k;
-  double b3_x2_k1, b3_y2_k1, b3_z2_k1;
+  float *dif_b3_x_k  = bdry_effct->dif_b3_x_k; 
+  float *dif_b3_y_k  = bdry_effct->dif_b3_y_k; 
+  float *dif_b3_z_k  = bdry_effct->dif_b3_z_k; 
+  float *dif_b3_x_k1 = bdry_effct->dif_b3_x_k1;
+  float *dif_b3_y_k1 = bdry_effct->dif_b3_y_k1;
+  float *dif_b3_z_k1 = bdry_effct->dif_b3_z_k1;
+  float b3_x1_k,  b3_y1_k,  b3_z1_k;
+  float b3_x1_k1, b3_y1_k1, b3_z1_k1;
+  float b3_x2_k,  b3_y2_k,  b3_z2_k;
+  float b3_x2_k1, b3_y2_k1, b3_z2_k1;
 
   if(neighid[2] == MPI_PROC_NULL)
   {
@@ -618,23 +618,23 @@ bdry_modify(gd_t *gdcurv, bdry_effct_t *bdry_effct, mympi_t *mympi, int k)
     }
   }
 
-  double *dif_b4_x_k_loc  = bdry_effct->dif_b4_x_k_loc; 
-  double *dif_b4_y_k_loc  = bdry_effct->dif_b4_y_k_loc; 
-  double *dif_b4_z_k_loc  = bdry_effct->dif_b4_z_k_loc; 
-  double *dif_b4_x_k1_loc = bdry_effct->dif_b4_x_k1_loc;
-  double *dif_b4_y_k1_loc = bdry_effct->dif_b4_y_k1_loc;
-  double *dif_b4_z_k1_loc = bdry_effct->dif_b4_z_k1_loc;
+  float *dif_b4_x_k_loc  = bdry_effct->dif_b4_x_k_loc; 
+  float *dif_b4_y_k_loc  = bdry_effct->dif_b4_y_k_loc; 
+  float *dif_b4_z_k_loc  = bdry_effct->dif_b4_z_k_loc; 
+  float *dif_b4_x_k1_loc = bdry_effct->dif_b4_x_k1_loc;
+  float *dif_b4_y_k1_loc = bdry_effct->dif_b4_y_k1_loc;
+  float *dif_b4_z_k1_loc = bdry_effct->dif_b4_z_k1_loc;
 
-  double *dif_b4_x_k  = bdry_effct->dif_b4_x_k; 
-  double *dif_b4_y_k  = bdry_effct->dif_b4_y_k; 
-  double *dif_b4_z_k  = bdry_effct->dif_b4_z_k; 
-  double *dif_b4_x_k1 = bdry_effct->dif_b4_x_k1;
-  double *dif_b4_y_k1 = bdry_effct->dif_b4_y_k1;
-  double *dif_b4_z_k1 = bdry_effct->dif_b4_z_k1;
-  double b4_x1_k,  b4_y1_k,  b4_z1_k;
-  double b4_x1_k1, b4_y1_k1, b4_z1_k1;
-  double b4_x2_k,  b4_y2_k,  b4_z2_k;
-  double b4_x2_k1, b4_y2_k1, b4_z2_k1;
+  float *dif_b4_x_k  = bdry_effct->dif_b4_x_k; 
+  float *dif_b4_y_k  = bdry_effct->dif_b4_y_k; 
+  float *dif_b4_z_k  = bdry_effct->dif_b4_z_k; 
+  float *dif_b4_x_k1 = bdry_effct->dif_b4_x_k1;
+  float *dif_b4_y_k1 = bdry_effct->dif_b4_y_k1;
+  float *dif_b4_z_k1 = bdry_effct->dif_b4_z_k1;
+  float b4_x1_k,  b4_y1_k,  b4_z1_k;
+  float b4_x1_k1, b4_y1_k1, b4_z1_k1;
+  float b4_x2_k,  b4_y2_k,  b4_z2_k;
+  float b4_x2_k1, b4_y2_k1, b4_z2_k1;
 
   if(neighid[3] == MPI_PROC_NULL)
   {
@@ -676,37 +676,37 @@ bdry_modify(gd_t *gdcurv, bdry_effct_t *bdry_effct, mympi_t *mympi, int k)
 
   MPI_Barrier(topocomm);
 
-  MPI_Allreduce(dif_b1_x_k_loc,  dif_b1_x_k,  total_ny, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b1_y_k_loc,  dif_b1_y_k,  total_ny, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b1_z_k_loc,  dif_b1_z_k,  total_ny, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b1_x_k1_loc, dif_b1_x_k1, total_ny, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b1_y_k1_loc, dif_b1_y_k1, total_ny, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b1_z_k1_loc, dif_b1_z_k1, total_ny, MPI_DOUBLE, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b1_x_k_loc,  dif_b1_x_k,  total_ny, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b1_y_k_loc,  dif_b1_y_k,  total_ny, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b1_z_k_loc,  dif_b1_z_k,  total_ny, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b1_x_k1_loc, dif_b1_x_k1, total_ny, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b1_y_k1_loc, dif_b1_y_k1, total_ny, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b1_z_k1_loc, dif_b1_z_k1, total_ny, MPI_FLOAT, MPI_SUM, topocomm);
 
-  MPI_Allreduce(dif_b2_x_k_loc,  dif_b2_x_k,  total_ny, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b2_y_k_loc,  dif_b2_y_k,  total_ny, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b2_z_k_loc,  dif_b2_z_k,  total_ny, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b2_x_k1_loc, dif_b2_x_k1, total_ny, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b2_y_k1_loc, dif_b2_y_k1, total_ny, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b2_z_k1_loc, dif_b2_z_k1, total_ny, MPI_DOUBLE, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b2_x_k_loc,  dif_b2_x_k,  total_ny, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b2_y_k_loc,  dif_b2_y_k,  total_ny, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b2_z_k_loc,  dif_b2_z_k,  total_ny, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b2_x_k1_loc, dif_b2_x_k1, total_ny, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b2_y_k1_loc, dif_b2_y_k1, total_ny, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b2_z_k1_loc, dif_b2_z_k1, total_ny, MPI_FLOAT, MPI_SUM, topocomm);
 
-  MPI_Allreduce(dif_b3_x_k_loc,  dif_b3_x_k,  total_nx, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b3_y_k_loc,  dif_b3_y_k,  total_nx, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b3_z_k_loc,  dif_b3_z_k,  total_nx, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b3_x_k1_loc, dif_b3_x_k1, total_nx, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b3_y_k1_loc, dif_b3_y_k1, total_nx, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b3_z_k1_loc, dif_b3_z_k1, total_nx, MPI_DOUBLE, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b3_x_k_loc,  dif_b3_x_k,  total_nx, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b3_y_k_loc,  dif_b3_y_k,  total_nx, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b3_z_k_loc,  dif_b3_z_k,  total_nx, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b3_x_k1_loc, dif_b3_x_k1, total_nx, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b3_y_k1_loc, dif_b3_y_k1, total_nx, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b3_z_k1_loc, dif_b3_z_k1, total_nx, MPI_FLOAT, MPI_SUM, topocomm);
 
-  MPI_Allreduce(dif_b4_x_k_loc,  dif_b4_x_k,  total_nx, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b4_y_k_loc,  dif_b4_y_k,  total_nx, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b4_z_k_loc,  dif_b4_z_k,  total_nx, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b4_x_k1_loc, dif_b4_x_k1, total_nx, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b4_y_k1_loc, dif_b4_y_k1, total_nx, MPI_DOUBLE, MPI_SUM, topocomm);
-  MPI_Allreduce(dif_b4_z_k1_loc, dif_b4_z_k1, total_nx, MPI_DOUBLE, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b4_x_k_loc,  dif_b4_x_k,  total_nx, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b4_y_k_loc,  dif_b4_y_k,  total_nx, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b4_z_k_loc,  dif_b4_z_k,  total_nx, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b4_x_k1_loc, dif_b4_x_k1, total_nx, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b4_y_k1_loc, dif_b4_y_k1, total_nx, MPI_FLOAT, MPI_SUM, topocomm);
+  MPI_Allreduce(dif_b4_z_k1_loc, dif_b4_z_k1, total_nx, MPI_FLOAT, MPI_SUM, topocomm);
 
-  double xi, et;
-  double bdry_x_k, bdry_y_k, bdry_z_k;
-  double bdry_x_k1, bdry_y_k1, bdry_z_k1;
+  float xi, et;
+  float bdry_x_k, bdry_y_k, bdry_z_k;
+  float bdry_x_k1, bdry_y_k1, bdry_z_k1;
   for(int j=1; j<ny-1; j++) {
     for(int i=1; i<nx-1; i++)
     {
@@ -749,9 +749,9 @@ bdry_modify(gd_t *gdcurv, bdry_effct_t *bdry_effct, mympi_t *mympi, int k)
       bdry_y_k1 = (1-et)*dif_b3_y_k1[gni] + et*dif_b4_y_k1[gni];
       bdry_z_k1 = (1-et)*dif_b3_z_k1[gni] + et*dif_b4_z_k1[gni];
       iptr2 = (k+1)*siz_iz + j*siz_iy + i;
-      x3d[iptr2] = x3d[iptr2] + 1.52*bdry_x_k1;
-      y3d[iptr2] = y3d[iptr2] + 1.52*bdry_y_k1;
-      z3d[iptr2] = z3d[iptr2] + 1.52*bdry_z_k1;
+      x3d[iptr2] = x3d[iptr2] + 1.57*bdry_x_k1;
+      y3d[iptr2] = y3d[iptr2] + 1.57*bdry_y_k1;
+      z3d[iptr2] = z3d[iptr2] + 1.57*bdry_z_k1;
     }
   }
 
@@ -765,76 +765,76 @@ init_bdry_effct(bdry_effct_t *bdry_effct, gd_t *gdcurv)
   int total_ny = gdcurv->total_ny;
 
   // x1 bdry1
-  bdry_effct->dif_b1_x_k_loc  = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b1_y_k_loc  = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b1_z_k_loc  = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b1_x_k1_loc = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b1_y_k1_loc = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b1_z_k1_loc = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
+  bdry_effct->dif_b1_x_k_loc  = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b1_y_k_loc  = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b1_z_k_loc  = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b1_x_k1_loc = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b1_y_k1_loc = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b1_z_k1_loc = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
 
-  bdry_effct->dif_b1_x_k  = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b1_y_k  = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b1_z_k  = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b1_x_k1 = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b1_y_k1 = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b1_z_k1 = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
+  bdry_effct->dif_b1_x_k  = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b1_y_k  = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b1_z_k  = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b1_x_k1 = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b1_y_k1 = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b1_z_k1 = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
 
   // x2 bdry2
-  bdry_effct->dif_b2_x_k_loc  = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b2_y_k_loc  = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b2_z_k_loc  = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b2_x_k1_loc = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b2_y_k1_loc = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b2_z_k1_loc = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
+  bdry_effct->dif_b2_x_k_loc  = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b2_y_k_loc  = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b2_z_k_loc  = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b2_x_k1_loc = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b2_y_k1_loc = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b2_z_k1_loc = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
 
-  bdry_effct->dif_b2_x_k  = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b2_y_k  = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b2_z_k  = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b2_x_k1 = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b2_y_k1 = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
-  bdry_effct->dif_b2_z_k1 = (double *)mem_calloc_1d_double(total_ny, 0.0, "init");
+  bdry_effct->dif_b2_x_k  = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b2_y_k  = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b2_z_k  = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b2_x_k1 = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b2_y_k1 = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
+  bdry_effct->dif_b2_z_k1 = (float *)mem_calloc_1d_float(total_ny, 0.0, "init");
 
   // y1 bdry3
-  bdry_effct->dif_b3_x_k_loc  = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b3_y_k_loc  = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b3_z_k_loc  = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b3_x_k1_loc = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b3_y_k1_loc = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b3_z_k1_loc = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
+  bdry_effct->dif_b3_x_k_loc  = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b3_y_k_loc  = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b3_z_k_loc  = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b3_x_k1_loc = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b3_y_k1_loc = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b3_z_k1_loc = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
 
-  bdry_effct->dif_b3_x_k  = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b3_y_k  = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b3_z_k  = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b3_x_k1 = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b3_y_k1 = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b3_z_k1 = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
+  bdry_effct->dif_b3_x_k  = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b3_y_k  = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b3_z_k  = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b3_x_k1 = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b3_y_k1 = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b3_z_k1 = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
 
   // y2 bdry4
-  bdry_effct->dif_b4_x_k_loc  = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b4_y_k_loc  = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b4_z_k_loc  = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b4_x_k1_loc = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b4_y_k1_loc = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b4_z_k1_loc = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
+  bdry_effct->dif_b4_x_k_loc  = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b4_y_k_loc  = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b4_z_k_loc  = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b4_x_k1_loc = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b4_y_k1_loc = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b4_z_k1_loc = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
 
-  bdry_effct->dif_b4_x_k  = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b4_y_k  = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b4_z_k  = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b4_x_k1 = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b4_y_k1 = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
-  bdry_effct->dif_b4_z_k1 = (double *)mem_calloc_1d_double(total_nx, 0.0, "init");
+  bdry_effct->dif_b4_x_k  = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b4_y_k  = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b4_z_k  = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b4_x_k1 = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b4_y_k1 = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
+  bdry_effct->dif_b4_z_k1 = (float *)mem_calloc_1d_float(total_nx, 0.0, "init");
 
   return 0;
 }
 
 int
-flip_bdry_z(double *x1, double *x2, double *y1, double *y2,
+flip_bdry_z(float *x1, float *x2, float *y1, float *y2,
             int total_nx, int total_ny, int total_nz)
 {
   int size_bx = total_ny*total_nz;
   int size_by = total_nx*total_nz;
-  double *tmp_x = (double *) malloc(3*size_bx*sizeof(double));
-  double *tmp_y = (double *) malloc(3*size_by*sizeof(double));
+  float *tmp_x = (float *) malloc(3*size_bx*sizeof(float));
+  float *tmp_y = (float *) malloc(3*size_by*sizeof(float));
   size_t iptr, iptr1;
   
   // x1
@@ -936,12 +936,12 @@ flip_bdry_z(double *x1, double *x2, double *y1, double *y2,
 }
 
 int
-cal_bdry_arc_length(double *x1, double *x2, double *y1, double *y2, 
+cal_bdry_arc_length(float *x1, float *x2, float *y1, float *y2, 
                     int total_nx, int total_ny, int total_nz, 
-                    double *x1_len, double *x2_len, double *y1_len, double *y2_len)
+                    float *x1_len, float *x2_len, float *y1_len, float *y2_len)
 {
   size_t iptr1, iptr2, iptr3, iptr4;
-  double x_len, y_len, z_len, dh_len;
+  float x_len, y_len, z_len, dh_len;
 
   size_t size_bx = total_ny*total_nz;
   size_t size_by = total_nx*total_nz;

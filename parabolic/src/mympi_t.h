@@ -34,8 +34,8 @@ typedef struct {
   int siz_sbuff;
   int siz_rbuff;
 
-  double *sbuff;
-  double *rbuff;
+  float *sbuff;
+  float *rbuff;
 
 } mympi_t;
 

@@ -11,7 +11,7 @@ typedef struct
   int nx;
   int ny;
   int nz;
-  double *var; // pointer to var
+  float *var; // pointer to var
 } io_quality_t;
 
 

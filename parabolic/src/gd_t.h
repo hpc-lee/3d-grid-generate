@@ -24,10 +24,10 @@ typedef struct {
 
   int ncmp;
   
-  double *v4d; // pointer to var
-  double *x3d; 
-  double *y3d; 
-  double *z3d;
+  float *v4d; // pointer to var
+  float *x3d; 
+  float *y3d; 
+  float *z3d;
 
   size_t siz_iy;
   size_t siz_iz;
@@ -40,13 +40,13 @@ typedef struct {
 
 typedef struct {
 
-  double *var;
-  double *x1;
-  double *x2;
-  double *y1;
-  double *y2;
-  double *z1;
-  double *z2;
+  float *var;
+  float *x1;
+  float *x2;
+  float *y1;
+  float *y2;
+  float *z1;
+  float *z2;
   int total_nx;
   int total_ny;
   int total_nz;
@@ -81,7 +81,7 @@ set_output_dir(gd_t *gdcurv, mympi_t *mympi,
                par_t *par, int verbose);
 
 int 
-check_bdry(double *x1, double *x2, double *y1, double *y2,double *z1, double *z2,
+check_bdry(float *x1, float *x2, float *y1, float *y2,float *z1, float *z2,
            int nx, int ny, int nz);
 
 int
