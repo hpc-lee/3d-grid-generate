@@ -75,16 +75,16 @@ cal_xiet(io_quality_t *io_quality, gd_t *gdcurv)
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
   size_t iptr,iptr1,iptr2;
-  float *x3d = gdcurv->x3d;
-  float *y3d = gdcurv->y3d;
-  float *z3d = gdcurv->z3d;
+  double *x3d = gdcurv->x3d;
+  double *y3d = gdcurv->y3d;
+  double *z3d = gdcurv->z3d;
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
-  float *var = io_quality->var;
+  double *var = io_quality->var;
 
-  float trans = 180/PI;   // arc to angle
-  float dot, len_xi, len_et, cos_angle;
-  float x_xi, y_xi, z_xi, x_et, y_et, z_et;
+  double trans = 180/PI;   // arc to angle
+  double dot, len_xi, len_et, cos_angle;
+  double x_xi, y_xi, z_xi, x_et, y_et, z_et;
 
   for(int k=0; k<nz-1; k++) {
     for(int j=0; j<ny-1; j++) {
@@ -126,16 +126,16 @@ cal_xizt(io_quality_t *io_quality, gd_t *gdcurv)
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
   size_t iptr,iptr1,iptr2;
-  float *x3d = gdcurv->x3d;
-  float *y3d = gdcurv->y3d;
-  float *z3d = gdcurv->z3d;
+  double *x3d = gdcurv->x3d;
+  double *y3d = gdcurv->y3d;
+  double *z3d = gdcurv->z3d;
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
-  float *var = io_quality->var;
+  double *var = io_quality->var;
 
-  float trans = 180/PI;   // arc to angle
-  float dot, len_xi, len_zt, cos_angle;
-  float x_xi, y_xi, z_xi, x_zt, y_zt, z_zt;
+  double trans = 180/PI;   // arc to angle
+  double dot, len_xi, len_zt, cos_angle;
+  double x_xi, y_xi, z_xi, x_zt, y_zt, z_zt;
 
   for(int k=0; k<nz-1; k++) {
     for(int j=0; j<ny-1; j++) {
@@ -177,16 +177,16 @@ cal_etzt(io_quality_t *io_quality, gd_t *gdcurv)
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
   size_t iptr,iptr1,iptr2;
-  float *x3d = gdcurv->x3d;
-  float *y3d = gdcurv->y3d;
-  float *z3d = gdcurv->z3d;
+  double *x3d = gdcurv->x3d;
+  double *y3d = gdcurv->y3d;
+  double *z3d = gdcurv->z3d;
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
-  float *var = io_quality->var;
+  double *var = io_quality->var;
 
-  float trans = 180/PI;   // arc to angle
-  float dot, len_et, len_zt, cos_angle;
-  float x_et, y_et, z_et, x_zt, y_zt, z_zt;
+  double trans = 180/PI;   // arc to angle
+  double dot, len_et, len_zt, cos_angle;
+  double x_et, y_et, z_et, x_zt, y_zt, z_zt;
 
   for(int k=0; k<nz-1; k++) {
     for(int j=0; j<ny-1; j++) {
@@ -228,16 +228,16 @@ cal_jacobi(io_quality_t *io_quality, gd_t *gdcurv)
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
   size_t iptr,iptr1,iptr2,iptr3;
-  float *x3d = gdcurv->x3d;
-  float *y3d = gdcurv->y3d;
-  float *z3d = gdcurv->z3d;
+  double *x3d = gdcurv->x3d;
+  double *y3d = gdcurv->y3d;
+  double *z3d = gdcurv->z3d;
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
-  float *var = io_quality->var;
-  float x_xi, y_xi, z_xi;
-  float x_et, y_et, z_et;
-  float x_zt, y_zt, z_zt;
-  float cros_x, cros_y, cros_z;
+  double *var = io_quality->var;
+  double x_xi, y_xi, z_xi;
+  double x_et, y_et, z_et;
+  double x_zt, y_zt, z_zt;
+  double cros_x, cros_y, cros_z;
   // jacobi(volume) = (A X B).C 
   for(int k=0; k<nz-1; k++) {
     for(int j=0; j<ny-1; j++) {
@@ -284,14 +284,14 @@ cal_step_xi(io_quality_t *io_quality, gd_t *gdcurv)
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
   size_t iptr,iptr1;
-  float *x3d = gdcurv->x3d;
-  float *y3d = gdcurv->y3d;
-  float *z3d = gdcurv->z3d;
+  double *x3d = gdcurv->x3d;
+  double *y3d = gdcurv->y3d;
+  double *z3d = gdcurv->z3d;
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
-  float *var = io_quality->var;
-  float x_xi, y_xi, z_xi;
-  float len_xi;
+  double *var = io_quality->var;
+  double x_xi, y_xi, z_xi;
+  double len_xi;
 
   for(int k=0; k<nz; k++) {
     for(int j=0; j<ny; j++) {
@@ -332,14 +332,14 @@ cal_step_et(io_quality_t *io_quality, gd_t *gdcurv)
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
   size_t iptr,iptr1;
-  float *x3d = gdcurv->x3d;
-  float *y3d = gdcurv->y3d;
-  float *z3d = gdcurv->z3d;
+  double *x3d = gdcurv->x3d;
+  double *y3d = gdcurv->y3d;
+  double *z3d = gdcurv->z3d;
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
-  float *var = io_quality->var;
-  float x_et, y_et, z_et;
-  float len_et;
+  double *var = io_quality->var;
+  double x_et, y_et, z_et;
+  double len_et;
 
   for(int k=0; k<nz; k++) {
     for(int j=0; j<ny-1; j++) {
@@ -380,14 +380,14 @@ cal_step_zt(io_quality_t *io_quality, gd_t *gdcurv)
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
   size_t iptr,iptr1;
-  float *x3d = gdcurv->x3d;
-  float *y3d = gdcurv->y3d;
-  float *z3d = gdcurv->z3d;
+  double *x3d = gdcurv->x3d;
+  double *y3d = gdcurv->y3d;
+  double *z3d = gdcurv->z3d;
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
-  float *var = io_quality->var;
-  float x_zt, y_zt, z_zt;
-  float len_zt;
+  double *var = io_quality->var;
+  double x_zt, y_zt, z_zt;
+  double len_zt;
 
   for(int k=0; k<nz-1; k++) {
     for(int j=0; j<ny; j++) {
@@ -428,15 +428,15 @@ cal_smooth_xi(io_quality_t *io_quality, gd_t *gdcurv)
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
   size_t iptr,iptr1,iptr2;
-  float *x3d = gdcurv->x3d;
-  float *y3d = gdcurv->y3d;
-  float *z3d = gdcurv->z3d;
+  double *x3d = gdcurv->x3d;
+  double *y3d = gdcurv->y3d;
+  double *z3d = gdcurv->z3d;
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
-  float *var = io_quality->var;
-  float x_xi1, y_xi1, z_xi1;
-  float x_xi2, y_xi2, z_xi2;
-  float r1, r2, len_xi1, len_xi2;
+  double *var = io_quality->var;
+  double x_xi1, y_xi1, z_xi1;
+  double x_xi2, y_xi2, z_xi2;
+  double r1, r2, len_xi1, len_xi2;
 
   for(int k=0; k<nz; k++) {
     for(int j=0; j<ny; j++) {
@@ -496,15 +496,15 @@ cal_smooth_et(io_quality_t *io_quality, gd_t *gdcurv)
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
   size_t iptr,iptr1,iptr2;
-  float *x3d = gdcurv->x3d;
-  float *y3d = gdcurv->y3d;
-  float *z3d = gdcurv->z3d;
+  double *x3d = gdcurv->x3d;
+  double *y3d = gdcurv->y3d;
+  double *z3d = gdcurv->z3d;
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
-  float *var = io_quality->var;
-  float x_et1, y_et1, z_et1;
-  float x_et2, y_et2, z_et2;
-  float r1, r2, len_et1, len_et2;
+  double *var = io_quality->var;
+  double x_et1, y_et1, z_et1;
+  double x_et2, y_et2, z_et2;
+  double r1, r2, len_et1, len_et2;
 
   for(int k=0; k<nz; k++) {
     for(int j=1; j<ny-1; j++) {
@@ -564,15 +564,15 @@ cal_smooth_zt(io_quality_t *io_quality, gd_t *gdcurv)
   int ny = gdcurv->ny;
   int nz = gdcurv->nz;
   size_t iptr,iptr1,iptr2;
-  float *x3d = gdcurv->x3d;
-  float *y3d = gdcurv->y3d;
-  float *z3d = gdcurv->z3d;
+  double *x3d = gdcurv->x3d;
+  double *y3d = gdcurv->y3d;
+  double *z3d = gdcurv->z3d;
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
-  float *var = io_quality->var;
-  float x_zt1, y_zt1, z_zt1;
-  float x_zt2, y_zt2, z_zt2;
-  float r1, r2, len_zt1, len_zt2;
+  double *var = io_quality->var;
+  double x_zt1, y_zt1, z_zt1;
+  double x_zt2, y_zt2, z_zt2;
+  double r1, r2, len_zt1, len_zt2;
 
   for(int k=1; k<nz-1; k++) {
     for(int j=0; j<ny; j++) {
@@ -625,7 +625,7 @@ cal_smooth_zt(io_quality_t *io_quality, gd_t *gdcurv)
   return 0;
 }
 
-int extend_var(float *var, int nx, int ny, int nz,
+int extend_var(double *var, int nx, int ny, int nz,
                size_t siz_iy, size_t siz_iz)
 {
   size_t iptr, iptr1;

@@ -11,7 +11,10 @@
 #include "par_t.h"
 
 #define PAR_MAX_STRLEN 1000
-#define PARABOLIC 1
+
+#define X_DIRE 1
+#define Y_DIRE 2
+#define Z_DIRE 3
 
 typedef struct{
 
@@ -34,7 +37,10 @@ typedef struct{
   char geometry_input_file[PAR_MAX_STRLEN];
   char grid_export_dir[PAR_MAX_STRLEN];
 
-  float coef;
+  int dire_itype;
+  char direction[PAR_MAX_STRLEN];
+
+  double coef;
   int o2i;  // outer to inner
 
 } par_t;

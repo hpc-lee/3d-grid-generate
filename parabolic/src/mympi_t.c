@@ -42,3 +42,22 @@ mympi_set(mympi_t *mympi,
   return ierr;
 }
 
+// when direction is y
+// need swap neighid 
+int
+modify_neighid(mympi_t *mympi)
+{
+  int tmp_neighid_4 = mympi->neighid[4];
+  int tmp_neighid_5 = mympi->neighid[5];
+  mympi->neighid[4] = mympi->neighid[2];
+  mympi->neighid[5] = mympi->neighid[3];
+  mympi->neighid[2] = tmp_neighid_4;
+  mympi->neighid[3] = tmp_neighid_5;
+
+  int tmp_topodid = mympi->topoid[2];
+  mympi->topoid[2] = mympi->topoid[1];
+  mympi->topoid[1] = tmp_topodid;
+
+  return 0;
+}
+

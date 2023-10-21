@@ -143,7 +143,23 @@ par_read_from_str(const char *str, par_t *par)
     if (subitem = cJSON_GetObjectItem(item, "o2i")) {
       par->o2i = subitem->valueint;
     }
+    if (subitem = cJSON_GetObjectItem(item, "direction")) {
+      sprintf(par->direction, "%s", subitem->valuestring);
+      if(strcmp(par->direction,"x") == 0)
+      {
+        par->dire_itype = X_DIRE;
+      }
+      if(strcmp(par->direction,"y") == 0)
+      {
+        par->dire_itype = Y_DIRE;
+      }
+      if(strcmp(par->direction,"z") == 0)
+      {
+        par->dire_itype = Z_DIRE;
+      }
+    }
   }
+
 
   return ierr;
 }

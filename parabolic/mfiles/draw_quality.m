@@ -5,21 +5,21 @@ addmypath
 
 % -------------------------- parameters input -------------------------- %
 % file and path name
-parfnm='../project/test.json';
-output_dir='../project/output';
+parfnm='../project1/test.json';
+output_dir='../project1/output';
 
-% which grid profile to plot
-subs=[150,1,1];    
+% % which grid profile to plot
+subs=[200,1,1];    
 subc=[1,-1,-1];   % '-1' to plot all points in this dimension
 subt=[1,1,1];
-% subs=[1,200,1];    
+% subs=[1,150,1];    
 % subc=[-1,1,-1];   % '-1' to plot all points in this dimension
 % subt=[1,1,1];
 
 % figure control parameters
 flag_km     = 0;
 flag_emlast = 1;
-flag_print  = 0;
+flag_print  = 0; 
 flag_clb    = 1;
 flag_title  = 1;
 scl_daspect = [1 1 1];
@@ -30,8 +30,10 @@ clrmp       = 'parula';
 % 'orth_etzt', 'jacobi',  
 % 'smooth_xi', 'smooth_et','smooth_zt',
 % 'step_xi', 'step_et', 'step_zt'
-varnm = 'orth_etzt';
-% varnm = 'jacobi';
+% varnm = 'orth_etzt';
+varnm = 'jacobi';
+% varnm = 'step_zt';
+% varnm = 'smooth_et';
 %-----------------------------------------------------------
 %-- load coord
 %-----------------------------------------------------------
@@ -74,9 +76,6 @@ elseif subc(3) == 1
     xlabel(['X axis (' str_unit ')']);
     ylabel(['Y axis (' str_unit ')']);
 end
-
-xlabel(['X axis (' str_unit ')']);
-ylabel(['Z axis (' str_unit ')']);
 
 set(gca,'layer','top');
 set(gcf,'color','white','renderer','painters');

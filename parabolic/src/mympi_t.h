@@ -34,8 +34,8 @@ typedef struct {
   int siz_sbuff;
   int siz_rbuff;
 
-  float *sbuff;
-  float *rbuff;
+  double *sbuff;
+  double *rbuff;
 
 } mympi_t;
 
@@ -48,5 +48,7 @@ mympi_set(mympi_t *mympi,
           int number_of_mpiprocs,
           MPI_Comm comm, 
           int myid, int verbose);
+int
+modify_neighid(mympi_t *mympi);
 
 #endif

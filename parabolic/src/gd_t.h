@@ -24,10 +24,10 @@ typedef struct {
 
   int ncmp;
   
-  float *v4d; // pointer to var
-  float *x3d; 
-  float *y3d; 
-  float *z3d;
+  double *v4d; // pointer to var
+  double *x3d; 
+  double *y3d; 
+  double *z3d;
 
   size_t siz_iy;
   size_t siz_iz;
@@ -40,13 +40,13 @@ typedef struct {
 
 typedef struct {
 
-  float *var;
-  float *x1;
-  float *x2;
-  float *y1;
-  float *y2;
-  float *z1;
-  float *z2;
+  double *var;
+  double *x1;
+  double *x2;
+  double *y1;
+  double *y2;
+  double *z1;
+  double *z2;
   int total_nx;
   int total_ny;
   int total_nz;
@@ -57,11 +57,11 @@ typedef struct {
  * function prototype
  *************************************************/
 
-int 
+int
 init_gdcurv(gd_t *gdcurv);
 
 int
-init_bdry(bdry_t *bdry, gd_t *gdcurv);
+init_bdry(bdry_t *bdry, par_t *par);
 
 int
 read_bdry(int myid, bdry_t *bdry, char *geometry_file);
@@ -78,11 +78,23 @@ gd_info_print(gd_t *gdcurv, mympi_t *mympi);
 
 int
 set_output_dir(gd_t *gdcurv, mympi_t *mympi,
-               char *output_dir, int verbose);
+               par_t *par, int verbose);
 
 int 
-check_bdry(float *x1, float *x2, float *y1, float *y2,float *z1, float *z2,
+check_bdry(double *x1, double *x2, double *y1, double *y2,double *z1, double *z2,
            int nx, int ny, int nz);
+
+int
+permute_bdry_x(bdry_t *bdry, gd_t *gdcurv);
+
+int
+permute_bdry_y(bdry_t *bdry, gd_t *gdcurv);
+
+int
+permute_coord_x(gd_t *gdcurv);
+
+int
+permute_coord_y(gd_t *gdcurv);
 
 int
 flip_coord_z(gd_t *gdcurv);

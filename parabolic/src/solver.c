@@ -26,10 +26,10 @@
 // d = right hand item
 // u is unknow vector
 int
-thomas(int n, float *a, float *b, float *c, float *d_x, 
-       float *d_y, float *d_z, float *u_x, float *u_y, float *u_z)
+thomas(int n, double *a, double *b, double *c, double *d_x, 
+       double *d_y, double *d_z, double *u_x, double *u_y, double *u_z)
 {
-  float factor;
+  double factor;
   for(int i=1; i<n; i++)
   {
     factor = a[i]/b[i-1];
