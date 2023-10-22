@@ -32,7 +32,7 @@ LDFLAGS := -L$(NETCDF)/lib -lnetcdf -L$(MPIHOME)/lib -lmpi -lm $(LDFLAGS)
 #   $^ The names of all the prerequisites 
 
 main_grid_3d:cJSON.o sacLib.o	lib_mem.o \
-				lib_math.o par_t.o par_t.o gd_t.o \
+				lib_math.o par_t.o gd_t.o \
 				io_funcs.o algebra.o quality_check.o \
 				mympi_t.o elliptic.o solver.o main.o
 	$(CC) -o $@ $^ $(LDFLAGS)
