@@ -5,9 +5,6 @@ set -e
 
 date
 
-#-- system related dir
-MPIDIR=/data3/lihl/software/openmpi-gnu-4.1.2
-
 #-- program related dir
 EXEC_GRID=`pwd`/../main_grid_3d
 echo "EXEC_GRID=${EXEC_GRID}"
@@ -26,21 +23,17 @@ rm -rf ${PROJDIR}
 mkdir -p ${PROJDIR}
 mkdir -p ${OUTPUT_DIR}
 
-#-- total mpi procs
-NUMPROCS=1
 #----------------------------------------------------------------------
 #-- create main conf
 #----------------------------------------------------------------------
 cat << ieof > ${PAR_FILE}
 {
-  "number_of_grid_points_x" : 400,
-  "number_of_grid_points_y" : 300,
-  "number_of_grid_points_z" : 200,
-
-  "number_of_mpiprocs" : $NUMPROCS,
+  "number_of_grid_points_x" : 51,
+  "number_of_grid_points_y" : 400,
+  "number_of_grid_points_z" : 300,
 
   "check_orth" : 1,
-  "check_jac"  : 1,
+  "check_jac" : 1,
   "check_step_xi" : 1,
   "check_step_et" : 1,
   "check_step_zt" : 1,
@@ -51,10 +44,15 @@ cat << ieof > ${PAR_FILE}
   "geometry_input_file" : "${INPUTDIR}/data_file_3d.txt",
   "grid_export_dir" : "${OUTPUT_DIR}",
 
-  "parabolic" : {
-      "coef" : -50,
+  "hyperbolic" : {
+      "coef" : 10,
+      "bdry_x_type" : 2,
+      "epsilon_x" : 0,
+      "bdry_y_type" : 1,
+      "epsilon_y" : 0,
+      "direction" : "x",
       "o2i" : 1,
-      "direction" : "z"
+      "step_input_file" : "${INPUTDIR}/step_file_3d.txt"
   }
 }
 ieof
@@ -66,17 +64,13 @@ echo "+ created $PAR_FILE"
 #-------------------------------------------------------------------------------
 #
 #-- gen run script
-echo $NUMPROCS
-
 cat << ieof > ${PROJDIR}/grid_generate.sh
 #!/bin/bash
 
 set -e
 
-printf "\nUse $NUMPROCS CPUs on following nodes:\n"
-
 printf "\nStart grid generate ...\n";
-time $MPIDIR/bin/mpiexec -np $NUMPROCS $EXEC_GRID $PAR_FILE 100 2 2>&1 |tee log
+time $EXEC_GRID $PAR_FILE 100 2>&1 |tee log
 if [ $? -ne 0 ]; then
     printf "\ngrid generate fail! stop!\n"
     exit 1
