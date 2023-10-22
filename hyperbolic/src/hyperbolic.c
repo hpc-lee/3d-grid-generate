@@ -25,11 +25,6 @@ hyper_gene(gd_t *gdcurv, par_t *par)
   int bdry_y_itype = par->bdry_y_itype;
   float epsilon_y = par->epsilon_y;
 
-  float *x3d = gdcurv->x3d;
-  float *y3d = gdcurv->y3d;
-  float *z3d = gdcurv->z3d;
-  float *step = gdcurv->step;
-
   float *coef_e_xi = NULL;
   coef_e_xi = (float *)mem_calloc_1d_float(size, 0.0, "init");
   float *coef_e_et = NULL;
@@ -63,13 +58,13 @@ hyper_gene(gd_t *gdcurv, par_t *par)
 
   for(int k=1; k<nz; k++)
   {
-    cal_smooth_coef(coef,x3d,y3d,z3d,nx,ny,nz,k,coef_e_xi,coef_e_et);
-    cal_matrix(x3d,y3d,z3d,nx,ny,k,step,a_xi,b_xi,c_xi,a_et,b_et,c_et,d_et,volume);
-    modify_smooth(x3d,y3d,z3d,nx,ny,k,coef_e_xi,coef_e_et,a_xi,b_xi,c_xi,a_et,b_et,c_et,d_et);
+    cal_smooth_coef(gdcurv,coef,k,coef_e_xi,coef_e_et);
+    cal_matrix(gdcurv,k,a_xi,b_xi,c_xi,a_et,b_et,c_et,d_et,volume);
+    modify_smooth(gdcurv,k,coef_e_xi,coef_e_et,a_xi,b_xi,c_xi,a_et,b_et,c_et,d_et);
     modify_bdry(a_xi,b_xi,c_xi,a_et,b_et,c_et,d_et,nx,ny,epsilon_x,bdry_x_itype,epsilon_y,bdry_y_itype);
     solve_et_block(a_et,b_et,c_et,d_et,g_xi,nx,ny);
     solve_xi_block(a_xi,b_xi,c_xi,g_xi,xyz,nx,ny);
-    assign_coords(xyz,x3d,y3d,z3d,nx,ny,k,epsilon_x,bdry_x_itype,epsilon_y,bdry_y_itype);
+    assign_coords(gdcurv,xyz,k,epsilon_x,bdry_x_itype,epsilon_y,bdry_y_itype);
     fprintf(stdout,"number of layer is %d\n",k);
     fflush(stdout);
   }
@@ -99,9 +94,15 @@ hyper_gene(gd_t *gdcurv, par_t *par)
 }
 
 int
-cal_smooth_coef(float coef, float *x3d, float *y3d, float *z3d, int nx,
-                int ny, int nz, int k, float *coef_e_xi, float *coef_e_et)
+cal_smooth_coef(gd_t *gdcurv, float coef, int k, float *coef_e_xi, float *coef_e_et)
 {
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
+  int nx = gdcurv->nx;
+  int ny = gdcurv->ny;
+  int nz = gdcurv->nz;
+
   float S;
   size_t iptr1,iptr2,iptr3,iptr4;
   float x_xi,y_xi,z_xi;
@@ -299,10 +300,18 @@ cal_smooth_coef(float coef, float *x3d, float *y3d, float *z3d, int nx,
 }
 
 int 
-cal_matrix(float *x3d,float *y3d,float *z3d, int nx, int ny, int k,
-           float *step, double *a_xi, double *b_xi, double *c_xi, double *a_et,
-           double *b_et, double *c_et, double *d_et, float *volume)
+cal_matrix(gd_t *gdcurv, int k, double *a_xi, double *b_xi, double *c_xi, 
+           double *a_et, double *b_et, double *c_et, double *d_et, float *volume)
 {
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
+  float *step = gdcurv->step;
+  int nx = gdcurv->nx;
+  int ny = gdcurv->ny;
+  size_t siz_iy = gdcurv->siz_iy;
+  size_t siz_iz = gdcurv->siz_iz;
+  
   double A[3][3],B[3][3],C[3][3];
   double mat1[3][3], mat2[3][3], mat3[3][3];
   double vec_d[3], vec_g[3];
@@ -311,8 +320,6 @@ cal_matrix(float *x3d,float *y3d,float *z3d, int nx, int ny, int k,
   double sigma[3],omega[3],tau[3];
   double area;
 
-  size_t siz_iy = nx;
-  size_t siz_iz = nx*ny;
 
   if(k==1)
   {
@@ -467,17 +474,22 @@ cal_matrix(float *x3d,float *y3d,float *z3d, int nx, int ny, int k,
 }
 
 int
-modify_smooth(float *x3d, float *y3d, float *z3d, int nx, int ny, int k,
-              float *coef_e_xi, float *coef_e_et, double *a_xi, double *b_xi,
-              double *c_xi, double *a_et, double *b_et, 
-              double *c_et, double *d_et)
+modify_smooth(gd_t *gdcurv, int k, float *coef_e_xi, float *coef_e_et, 
+              double *a_xi, double *b_xi, double *c_xi, double *a_et, 
+              double *b_et, double *c_et, double *d_et)
 {
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
+  int nx = gdcurv->nx;
+  int ny = gdcurv->ny;
+  size_t siz_iy = gdcurv->siz_iy;
+  size_t siz_iz = gdcurv->siz_iz;
+
   double vec1[3],vec2[3],vec3[3],vec4[3],vec5[3];
   float coef_i_xi,coef_i_et;
   size_t iptr1, iptr2, iptr3, iptr4, iptr5;
   double mat[3][3];
-  size_t siz_iy = nx;
-  size_t siz_iz = nx*ny;
   mat_iden3x3(mat);
   for(int j=1; j<ny-1; j++)
   {
@@ -611,14 +623,19 @@ modify_bdry(double *a_xi, double *b_xi, double *c_xi, double *a_et,
 }
 
 int
-assign_coords(double *xyz, float *x3d, float *y3d, float *z3d,
-              int nx, int ny,int k, float epsilon_x, int bdry_x_itype,
-              float epsilon_y, int bdry_y_itype)
+assign_coords(gd_t *gdcurv, double *xyz, int k, float epsilon_x, 
+              int bdry_x_itype, float epsilon_y, int bdry_y_itype)
 {
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
+  int nx = gdcurv->nx;
+  int ny = gdcurv->ny;
+  size_t siz_iy = gdcurv->siz_iy;
+  size_t siz_iz = gdcurv->siz_iz;
+
   size_t iptr,iptr1,iptr2;
   size_t iptr3,iptr4,iptr5;
-  size_t siz_iy = nx;
-  size_t siz_iz = nx*ny;
   for(int j=1; j<ny-1; j++)
   {
     for(int i=1; i<nx-1; i++)
