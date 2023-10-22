@@ -97,6 +97,10 @@ int main(int argc, char** argv)
   time_t t_start = time(NULL);
   switch(par->method_itype)
   {
+    case LINEAR_TFI : {
+      // had use tfi to generate init grid
+      break;
+    }
     case ELLI_DIRI : {
       
       diri_gene(gdcurv,par,mympi);

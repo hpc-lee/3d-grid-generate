@@ -1393,7 +1393,8 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
   float *R_z2 = src->R_z2;
 
   float theta0 = PI/2;
-  float a = 0.1;
+  // test a value, not effct iter number
+  float a = 0.1; 
   size_t iptr,iptr1,iptr2,iptr3,iptr4;
   float dot, len_xi, len_et, len_zt, dif_dis;
   float cos_theta, theta, dif_theta;

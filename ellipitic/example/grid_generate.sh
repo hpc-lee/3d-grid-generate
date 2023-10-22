@@ -67,12 +67,13 @@ cat << ieof > ${PAR_FILE}
   "grid_export_dir" : "${OUTPUT_DIR}",
 
   "grid_method" : {
-      "elli_diri" : {
+      "#linear_tfi" : "",
+      "#elli_diri" : {
           "coef" : -20,
           "iter_err" : 1E-2,
           "max_iter" : 5E3
       },
-      "#elli_higen" : {
+      "elli_higen" : {
           "coef" : -20,
           "iter_err" : 1E-2,
           "max_iter" : 5E3,

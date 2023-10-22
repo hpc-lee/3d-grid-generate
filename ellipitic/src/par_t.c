@@ -173,6 +173,9 @@ par_read_from_str(const char *str, par_t *par)
   }
 
   if (item = cJSON_GetObjectItem(root, "grid_method")) {
+    if (subitem = cJSON_GetObjectItem(item, "linear_tfi")) {
+      par->method_itype = LINEAR_TFI;
+    }
     if (subitem = cJSON_GetObjectItem(item, "elli_diri")) {
       par->method_itype = ELLI_DIRI;
       if (thirditem = cJSON_GetObjectItem(subitem, "coef")) {
@@ -258,6 +261,9 @@ par_print(par_t *par)
   }
 
   fprintf(stdout, "------- grid generate method-------\n");
+  if(par->method_itype == LINEAR_TFI) {
+    fprintf(stdout, "grid generate method is linear_tfi\n");
+  }
   if(par->method_itype == ELLI_DIRI) {
     fprintf(stdout, "grid generate method is elliptic_dirichlet\n");
     fprintf(stdout, "elli_diri coef is %f\n", par->coef);

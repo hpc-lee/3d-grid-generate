@@ -10,8 +10,9 @@
 #include "constants.h"
 
 #define PAR_MAX_STRLEN 1000
-#define ELLI_DIRI 1
-#define ELLI_HIGEN 2
+#define LINEAR_TFI 1
+#define ELLI_DIRI  2
+#define ELLI_HIGEN 3
 
 #define X_DIRE 1
 #define Y_DIRE 2
@@ -50,9 +51,8 @@ typedef struct{
   char geometry_input_file[PAR_MAX_STRLEN];
   char output_dir[PAR_MAX_STRLEN];
   
-  // TFI hermite elliptic-dirichlet
+  // linear-TFI elliptic-dirichlet
   // elliptic-hilgenstock
-  // parabolic hyperbolic
   int method_itype;
 
   float coef;
