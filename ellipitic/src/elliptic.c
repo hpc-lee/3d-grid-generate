@@ -1184,13 +1184,13 @@ higen_gene(gd_t *gdcurv, par_t *par, mympi_t *mympi)
   src_t *src = (src_t *) malloc(sizeof(src_t)); 
   init_src(src,gdcurv);
 
-  float dx1,dx2,dy1,dy2,dz1,dz2;
-  dx1 = par->distance[0];
-  dx2 = par->distance[1];
-  dy1 = par->distance[2];
-  dy2 = par->distance[3];
-  dz1 = par->distance[4];
-  dz2 = par->distance[5];
+  float *dx1 = (float *)mem_calloc_1d_float(nz*ny, 0.0, "dx1");
+  float *dx2 = (float *)mem_calloc_1d_float(nz*ny, 0.0, "dx2");
+  float *dy1 = (float *)mem_calloc_1d_float(nz*nx, 0.0, "dy1");
+  float *dy2 = (float *)mem_calloc_1d_float(nz*nx, 0.0, "dy2");
+  float *dz1 = (float *)mem_calloc_1d_float(ny*nx, 0.0, "dz1");
+  float *dz2 = (float *)mem_calloc_1d_float(ny*nx, 0.0, "dz2");
+  dist_cal(gdcurv,dx1,dx2,dy1,dy2,dz1,dz2,neighid);
 
   set_src_higen(x3d,y3d,z3d,gdcurv,src,dx1,dx2,dy1,dy2,dz1,dz2,mympi);
   interp_inner_source(src, gdcurv, coef);
@@ -1320,15 +1320,21 @@ higen_gene(gd_t *gdcurv, par_t *par, mympi_t *mympi)
   gdcurv->v4d_tmp = x3d_tmp;
 
   free(gdcurv->v4d_tmp);  // free temp grid space
+  free(dx1);  
+  free(dx2);  
+  free(dy1);  
+  free(dy2);  
+  free(dz1);  
+  free(dz2);  
 
   return 0;
 }
 
 int
 set_src_higen(float *x3d, float *y3d, float *z3d, 
-              gd_t *gdcurv, src_t *src, float dx1, 
-              float dx2, float dy1, float dy2,
-              float dz1, float dz2, mympi_t *mympi)
+              gd_t *gdcurv, src_t *src, float *dx1, 
+              float *dx2, float *dy1, float *dy2,
+              float *dz1, float *dz2, mympi_t *mympi)
              
 {
   int nx = gdcurv->nx;
@@ -1394,7 +1400,7 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
 
   float theta0 = PI/2;
   // test a value, not effct iter number
-  float a = 0.1; 
+  float a = 0.2; 
   size_t iptr,iptr1,iptr2,iptr3,iptr4;
   float dot, len_xi, len_et, len_zt, dif_dis;
   float cos_theta, theta, dif_theta;
@@ -1454,7 +1460,8 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
         dif_theta = (theta0-theta)/theta0;
         R_x1_loc[iptr] = R_x1_loc[iptr] - a*tanh(dif_theta);
 
-        dif_dis = (dx1-len_xi)/dx1;
+        iptr1 = k*ny+j;
+        dif_dis = (dx1[iptr1]-len_xi)/dx1[iptr1];
         P_x1_loc[iptr] = P_x1_loc[iptr] + a*tanh(dif_dis);
       }
     }
@@ -1506,7 +1513,8 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
         dif_theta = (theta0-theta)/theta0;
         R_x2_loc[iptr] = R_x2_loc[iptr] + a*tanh(dif_theta);
 
-        dif_dis = (dx2-len_xi)/dx2;
+        iptr1 = k*ny+j;
+        dif_dis = (dx2[iptr1]-len_xi)/dx2[iptr1];
         P_x2_loc[iptr] = P_x2_loc[iptr] - a*tanh(dif_dis);
       }
     }
@@ -1558,7 +1566,8 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
         dif_theta = (theta0-theta)/theta0;
         R_y1_loc[iptr] = R_y1_loc[iptr] - a*tanh(dif_theta);
 
-        dif_dis = (dy1-len_et)/dy1;
+        iptr1 = k*nx+i;
+        dif_dis = (dy1[iptr1]-len_et)/dy1[iptr1];
         Q_y1_loc[iptr] = Q_y1_loc[iptr] + a*tanh(dif_dis);
       }
     }
@@ -1610,7 +1619,8 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
         dif_theta = (theta0-theta)/theta0;
         R_y2_loc[iptr] = R_y2_loc[iptr] + a*tanh(dif_theta);
 
-        dif_dis = (dy2-len_et)/dy2;
+        iptr1 = k*nx+i;
+        dif_dis = (dy2[iptr1]-len_et)/dy2[iptr1];
         Q_y2_loc[iptr] = Q_y2_loc[iptr] - a*tanh(dif_dis);
       }
     }
@@ -1662,7 +1672,8 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
         dif_theta = (theta0-theta)/theta0;
         Q_z1_loc[iptr] = Q_z1_loc[iptr] - a*tanh(dif_theta);
 
-        dif_dis = (dz1-len_zt)/dz1;
+        iptr1 = j*nx+i;
+        dif_dis = (dz1[iptr1]-len_zt)/dz1[iptr1];
         R_z1_loc[iptr] = R_z1_loc[iptr] + a*tanh(dif_dis);
       }
     }
@@ -1714,7 +1725,8 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
         dif_theta = (theta0-theta)/theta0;
         Q_z2_loc[iptr] = Q_z2_loc[iptr] + a*tanh(dif_theta);
 
-        dif_dis = (dz2-len_zt)/dz2;
+        iptr1 = j*nx+i;
+        dif_dis = (dz2[iptr1]-len_zt)/dz2[iptr1];
         R_z2_loc[iptr] = R_z2_loc[iptr] - a*tanh(dif_dis);
       }
     }
@@ -1746,6 +1758,246 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
   MPI_Allreduce(P_z2_loc, P_z2, siz_bz, MPI_FLOAT, MPI_SUM, topocomm);
   MPI_Allreduce(Q_z2_loc, Q_z2, siz_bz, MPI_FLOAT, MPI_SUM, topocomm);
   MPI_Allreduce(R_z2_loc, R_z2, siz_bz, MPI_FLOAT, MPI_SUM, topocomm);
+
+  return 0;
+}
+
+int
+dist_cal(gd_t *gdcurv, float *dx1, float *dx2, float *dy1, float *dy2, float *dz1, float *dz2, int *neighid)
+{
+  size_t iptr,iptr1,iptr2;
+  float x_xi,y_xi,z_xi;
+  float x_et,y_et,z_et;
+  float x_zt,y_zt,z_zt;
+  float x_xi0,y_xi0,z_xi0;
+  float x_et0,y_et0,z_et0;
+  float x_zt0,y_zt0,z_zt0;
+  float vn_x,vn_y,vn_z,len_vn;
+  float vn_x0,vn_y0,vn_z0;
+  int nx = gdcurv->nx;
+  int ny = gdcurv->ny;
+  int nz = gdcurv->nz;
+  size_t siz_iy = gdcurv->siz_iy;
+  size_t siz_iz = gdcurv->siz_iz;
+  float *x3d = gdcurv->x3d; 
+  float *y3d = gdcurv->y3d; 
+  float *z3d = gdcurv->z3d; 
+  // bdry x1 r_et X r_zt
+  if(neighid[0] == MPI_PROC_NULL)
+  {
+    for(int k=1; k<nz-1; k++) {
+      for(int j=1; j<ny-1; j++)
+      {
+        iptr1 = k*siz_iz + j*siz_iy + 1;    //(1,j,k)
+        iptr2 = k*siz_iz + j*siz_iy + 0;    //(0,j,k)
+        x_xi0 = x3d[iptr1] - x3d[iptr2];
+        y_xi0 = y3d[iptr1] - y3d[iptr2];
+        z_xi0 = z3d[iptr1] - z3d[iptr2];
+        iptr1 = k*siz_iz + (j+1)*siz_iy + 0;   //(0,j+1,k)
+        iptr2 = k*siz_iz + (j-1)*siz_iy + 0;   //(0,j-1,k)
+        x_et = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_et = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_et = 0.5*(z3d[iptr1] - z3d[iptr2]);
+        iptr1 = (k+1)*siz_iz + j*siz_iy + 0;   //(0,j,k+1)
+        iptr2 = (k-1)*siz_iz + j*siz_iy + 0;   //(0,j,k-1)
+        x_zt = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_zt = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_zt = 0.5*(z3d[iptr1] - z3d[iptr2]);
+        // orth vector. cross product
+        vn_x = y_et*z_zt - z_et*y_zt;
+        vn_y = z_et*x_zt - x_et*z_zt;
+        vn_z = x_et*y_zt - y_et*x_zt;
+        len_vn = sqrt(pow(vn_x,2)+pow(vn_y,2)+pow(vn_z,2));
+        // norm
+        vn_x0 = vn_x/len_vn;
+        vn_y0 = vn_y/len_vn;
+        vn_z0 = vn_z/len_vn;
+        // projection from r_xi0 to vn. dot product
+        iptr = k*ny + j;
+        dx1[iptr] = x_xi0*vn_x0 + y_xi0*vn_y0 + z_xi0*vn_z0;
+      }
+    }
+  }
+  // bdry x2 r_et X r_zt
+  if(neighid[1] == MPI_PROC_NULL)
+  {
+    for(int k=1; k<nz-1; k++) {
+      for(int j=1; j<ny-1; j++)
+      {
+        iptr1 = k*siz_iz + j*siz_iy + nx-1;    //(nx-1,j,k)
+        iptr2 = k*siz_iz + j*siz_iy + nx-2;    //(nx-2,j,k)
+        x_xi0 = x3d[iptr1] - x3d[iptr2];
+        y_xi0 = y3d[iptr1] - y3d[iptr2];
+        z_xi0 = z3d[iptr1] - z3d[iptr2];
+        iptr1 = k*siz_iz + (j+1)*siz_iy + nx-1;   //(nx-1,j+1,k)
+        iptr2 = k*siz_iz + (j-1)*siz_iy + nx-1;   //(nx-1,j-1,k)
+        x_et = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_et = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_et = 0.5*(z3d[iptr1] - z3d[iptr2]);
+        iptr1 = (k+1)*siz_iz + j*siz_iy + nx-1;   //(nx-1,j,k+1)
+        iptr2 = (k-1)*siz_iz + j*siz_iy + nx-1;   //(nx-1,j,k-1)
+        x_zt = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_zt = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_zt = 0.5*(z3d[iptr1] - z3d[iptr2]);
+        // orth vector. cross product
+        vn_x = y_et*z_zt - z_et*y_zt;
+        vn_y = z_et*x_zt - x_et*z_zt;
+        vn_z = x_et*y_zt - y_et*x_zt;
+        len_vn = sqrt(pow(vn_x,2)+pow(vn_y,2)+pow(vn_z,2));
+        // norm
+        vn_x0 = vn_x/len_vn;
+        vn_y0 = vn_y/len_vn;
+        vn_z0 = vn_z/len_vn;
+        // projection from r_xi0 to vn. dot product
+        iptr = k*ny + j;
+        dx2[iptr] = x_xi0*vn_x0 + y_xi0*vn_y0 + z_xi0*vn_z0;
+      }
+    }
+  }
+  // bdry y1 r_zt X r_xi
+  if(neighid[2] == MPI_PROC_NULL)
+  {
+    for(int k=1; k<nz-1; k++) {
+      for(int i=1; i<nx-1; i++)
+      {
+        iptr1 = k*siz_iz + 1*siz_iy + i;    //(i,1,k)
+        iptr2 = k*siz_iz + 0*siz_iy + i;    //(i,0,k)
+        x_et0 = x3d[iptr1] - x3d[iptr2];
+        y_et0 = y3d[iptr1] - y3d[iptr2];
+        z_et0 = z3d[iptr1] - z3d[iptr2];
+        iptr1 = k*siz_iz + 0*siz_iy + (i+1);   //(i+1,0,k)
+        iptr2 = k*siz_iz + 0*siz_iy + (i-1);   //(i-1,0,k)
+        x_xi = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_xi = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_xi = 0.5*(z3d[iptr1] - z3d[iptr2]);
+        iptr1 = (k+1)*siz_iz + 0*siz_iy + i;   //(i,0,k+1)
+        iptr2 = (k-1)*siz_iz + 0*siz_iy + i;   //(i,0,k-1)
+        x_zt = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_zt = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_zt = 0.5*(z3d[iptr1] - z3d[iptr2]);
+        // orth vector. cross product
+        vn_x = y_zt*z_xi - z_zt*y_xi;
+        vn_y = z_zt*x_xi - x_zt*z_xi;
+        vn_z = x_zt*y_xi - y_zt*x_xi;
+        len_vn = sqrt(pow(vn_x,2)+pow(vn_y,2)+pow(vn_z,2));
+        // norm
+        vn_x0 = vn_x/len_vn;
+        vn_y0 = vn_y/len_vn;
+        vn_z0 = vn_z/len_vn;
+        // projection from r_et0 to vn. dot product
+        iptr = k*nx + i;
+        dy1[iptr] = x_et0*vn_x0 + y_et0*vn_y0 + z_et0*vn_z0;
+      }
+    }
+  }
+  // bdry y2 r_zt X r_xi
+  if(neighid[3] == MPI_PROC_NULL)
+  {
+    for(int k=1; k<nz-1; k++) {
+      for(int i=1; i<nx-1; i++)
+      {
+        iptr1 = k*siz_iz + (ny-1)*siz_iy + i;    //(i,ny-1,k)
+        iptr2 = k*siz_iz + (ny-2)*siz_iy + i;    //(i,ny-2,k)
+        x_et0 = x3d[iptr1] - x3d[iptr2];
+        y_et0 = y3d[iptr1] - y3d[iptr2];
+        z_et0 = z3d[iptr1] - z3d[iptr2];
+        iptr1 = k*siz_iz + (ny-1)*siz_iy + (i+1);   //(i+1,ny-1,k)
+        iptr2 = k*siz_iz + (ny-1)*siz_iy + (i-1);   //(i-1,ny-1,k)
+        x_xi = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_xi = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_xi = 0.5*(z3d[iptr1] - z3d[iptr2]);
+        iptr1 = (k+1)*siz_iz + (ny-1)*siz_iy + i;   //(i,ny-1,k+1)
+        iptr2 = (k-1)*siz_iz + (ny-1)*siz_iy + i;   //(i,ny-1,k-1)
+        x_zt = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_zt = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_zt = 0.5*(z3d[iptr1] - z3d[iptr2]);
+        // orth vector. cross product
+        vn_x = y_zt*z_xi - z_zt*y_xi;
+        vn_y = z_zt*x_xi - x_zt*z_xi;
+        vn_z = x_zt*y_xi - y_zt*x_xi;
+        len_vn = sqrt(pow(vn_x,2)+pow(vn_y,2)+pow(vn_z,2));
+        // norm
+        vn_x0 = vn_x/len_vn;
+        vn_y0 = vn_y/len_vn;
+        vn_z0 = vn_z/len_vn;
+        // projection from r_et0 to vn. dot product
+        iptr = k*nx + i;
+        dy2[iptr] = x_et0*vn_x0 + y_et0*vn_y0 + z_et0*vn_z0;
+      }
+    }
+  }
+  // bdry z1 r_xi X r_et
+  if(neighid[4] == MPI_PROC_NULL)
+  {
+    for(int j=1; j<ny-1; j++) {
+      for(int i=1; i<nx-1; i++)
+      {
+        iptr1 = 1*siz_iz + j*siz_iy + i;    //(i,j,1)
+        iptr2 = 0*siz_iz + j*siz_iy + i;    //(i,j,0)
+        x_zt0 = x3d[iptr1] - x3d[iptr2];
+        y_zt0 = y3d[iptr1] - y3d[iptr2];
+        z_zt0 = z3d[iptr1] - z3d[iptr2];
+        iptr1 = 0*siz_iz + j*siz_iy + (i+1);   //(i+1,j,0)
+        iptr2 = 0*siz_iz + j*siz_iy + (i-1);   //(i-1,j,0)
+        x_xi = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_xi = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_xi = 0.5*(z3d[iptr1] - z3d[iptr2]);
+        iptr1 = 0*siz_iz + (j+1)*siz_iy + i;   //(i,j+1,0)
+        iptr2 = 0*siz_iz + (j-1)*siz_iy + i;   //(i,j-1,0)
+        x_et = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_et = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_et = 0.5*(z3d[iptr1] - z3d[iptr2]);
+        // orth vector. cross product
+        vn_x = y_xi*z_et - z_xi*y_et;
+        vn_y = z_xi*x_et - x_xi*z_et;
+        vn_z = x_xi*y_et - y_xi*x_et;
+        len_vn = sqrt(pow(vn_x,2)+pow(vn_y,2)+pow(vn_z,2));
+        // norm
+        vn_x0 = vn_x/len_vn;
+        vn_y0 = vn_y/len_vn;
+        vn_z0 = vn_z/len_vn;
+        // projection from r_et0 to vn. dot product
+        iptr = j*nx + i;
+        dz1[iptr] = x_zt0*vn_x0 + y_zt0*vn_y0 + z_zt0*vn_z0;
+      }
+    }
+  }
+  // bdry z2 r_xi X r_et
+  if(neighid[5] == MPI_PROC_NULL)
+  {
+    for(int j=1; j<ny-1; j++) {
+      for(int i=1; i<nx-1; i++)
+      {
+        iptr1 = (nz-1)*siz_iz + j*siz_iy + i;    //(i,j,nz-1)
+        iptr2 = (nz-2)*siz_iz + j*siz_iy + i;    //(i,j,nz-2)
+        x_zt0 = x3d[iptr1] - x3d[iptr2];
+        y_zt0 = y3d[iptr1] - y3d[iptr2];
+        z_zt0 = z3d[iptr1] - z3d[iptr2];
+        iptr1 = (nz-1)*siz_iz + j*siz_iy + (i+1);   //(i+1,j,nz-1)
+        iptr2 = (nz-1)*siz_iz + j*siz_iy + (i-1);   //(i-1,j,nz-1)
+        x_xi = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_xi = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_xi = 0.5*(z3d[iptr1] - z3d[iptr2]);
+        iptr1 = (nz-1)*siz_iz + (j+1)*siz_iy + i;   //(i,j+1,nz-1)
+        iptr2 = (nz-1)*siz_iz + (j-1)*siz_iy + i;   //(i,j-1,nz-1)
+        x_et = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_et = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_et = 0.5*(z3d[iptr1] - z3d[iptr2]);
+        // orth vector. cross product
+        vn_x = y_xi*z_et - z_xi*y_et;
+        vn_y = z_xi*x_et - x_xi*z_et;
+        vn_z = x_xi*y_et - y_xi*x_et;
+        len_vn = sqrt(pow(vn_x,2)+pow(vn_y,2)+pow(vn_z,2));
+        // norm
+        vn_x0 = vn_x/len_vn;
+        vn_y0 = vn_y/len_vn;
+        vn_z0 = vn_z/len_vn;
+        // projection from r_et0 to vn. dot product
+        iptr = j*nx + i;
+        dz2[iptr] = x_zt0*vn_x0 + y_zt0*vn_y0 + z_zt0*vn_z0;
+      }
+    }
+  }
 
   return 0;
 }

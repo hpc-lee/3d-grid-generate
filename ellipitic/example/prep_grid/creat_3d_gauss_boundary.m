@@ -11,12 +11,12 @@ flag_topo_y = 1;
 flag_topo_z = 1;
 
 num_pml = 00;
-nx1 = 200;
-ny1 = 200;
+nx1 = 500;
+ny1 = 500;
 
 nx = nx1+2*num_pml;
 ny = ny1+2*num_pml;
-nz = 100;
+nz = 250;
 
 dx = 100;
 dy = 100;
@@ -47,8 +47,8 @@ end
 if flag_topo_z
   point_x= origin_x + floor(nx1/2)*dx; 
   point_y= origin_y + floor(ny1/2)*dy; 
-  L = 40*dx;
-  H = 30*dz;
+  L = 0.3*nx*dx;
+  H = 0.2*nx*dz;
   for j = 1:ny1
     for i = 1:nx1
       r1 = sqrt((bz2(j+num_pml,i+num_pml,1)-point_x)^2 + (bz2(j+num_pml,i+num_pml,2)-point_y)^2);
@@ -96,8 +96,8 @@ end
 if flag_topo_x
   point_z= origin_z - floor(nz/2)*dz; 
   point_y= origin_y + floor(ny1/2)*dy; 
-  L = 40*dz;
-  H = 20*dx;
+  L = 0.2*ny*dy;
+  H = 0.1*ny*dy;
   for k = 1:nz
     for j = 1:ny1
       r1 = sqrt((bx2(k,j+num_pml,2)-point_y)^2 + (bx2(k,j+num_pml,3)-point_z)^2);
@@ -115,8 +115,8 @@ end
 if flag_topo_y
   point_z= origin_z - floor(nz/2)*dz; 
   point_x= origin_x + floor(nx1/2)*dx; 
-  L = 40*dz;
-  H = 20*dy;
+  L = 0.2*nx*dx;
+  H = 0.1*nx*dx;
   for k = 1:nz
     for i = 1:nx1
       r1 = sqrt((by2(k,i+num_pml,1)-point_x)^2 + (by2(k,i+num_pml,3)-point_z)^2);

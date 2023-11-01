@@ -22,6 +22,15 @@ int main(int argc, char** argv)
   char *par_fname;
   char err_message[CONST_MAX_STRLEN];
 
+  // init MPI
+  int myid, mpi_size;
+  MPI_Init(&argc, &argv);
+  MPI_Comm comm = MPI_COMM_WORLD;
+  MPI_Comm_rank(comm, &myid);
+  MPI_Comm_size(comm, &mpi_size);
+
+  if (myid==0 && verbose>0) fprintf(stdout,"comm=%d, size=%d\n", comm, mpi_size); 
+  if (myid==0 && verbose>0) fprintf(stdout,"par file =  %s\n", par_fname); 
   //-------------------------------------------------------------------------------
   // get commond-line argument
   //-------------------------------------------------------------------------------
@@ -36,22 +45,11 @@ int main(int argc, char** argv)
 
   if (argc >= 3) {
     verbose = atoi(argv[2]); // verbose number
-    fprintf(stdout,"verbose=%d\n", verbose); fflush(stdout);
+    if (myid==0 && verbose>0) fprintf(stdout,"verbose=%d\n", verbose); fflush(stdout);
   }
 
-  fprintf(stdout,"par file =  %s\n", par_fname); fflush(stdout);
+  if (myid==0 && verbose>0) fprintf(stdout,"par file =  %s\n", par_fname); fflush(stdout);
 
-  // init MPI
-
-  int myid, mpi_size;
-  MPI_Init(&argc, &argv);
-  MPI_Comm comm = MPI_COMM_WORLD;
-  MPI_Comm_rank(comm, &myid);
-  MPI_Comm_size(comm, &mpi_size);
-
-
-  if (myid==0 && verbose>0) fprintf(stdout,"comm=%d, size=%d\n", comm, mpi_size); 
-  if (myid==0 && verbose>0) fprintf(stdout,"par file =  %s\n", par_fname); 
 
   // read par
   par_t *par = (par_t *) malloc(sizeof(par_t));

@@ -193,11 +193,6 @@ par_read_from_str(const char *str, par_t *par)
       if (thirditem = cJSON_GetObjectItem(subitem, "coef")) {
         par->coef = thirditem->valuedouble;
       }
-      if (thirditem = cJSON_GetObjectItem(subitem, "distance")) {
-        for (int i=0; i<6; i++) {
-          par->distance[i] = cJSON_GetArrayItem(thirditem, i)->valuedouble;
-        }
-      }
       if (thirditem = cJSON_GetObjectItem(subitem, "iter_err")) {
         par->iter_err = thirditem->valuedouble;
       }
@@ -275,12 +270,6 @@ par_print(par_t *par)
     fprintf(stdout, "elli_higen coef is %f\n", par->coef);
     fprintf(stdout, "max_iteration is %d\n", par->max_iter);
     fprintf(stdout, "iter_error is %f\n", par->iter_err);
-    fprintf(stdout, "expect distance x1 bdry is %f\n",par->distance[0]);
-    fprintf(stdout, "expect distance x2 bdry is %f\n",par->distance[1]);
-    fprintf(stdout, "expect distance y1 bdry is %f\n",par->distance[2]);
-    fprintf(stdout, "expect distance y2 bdry is %f\n",par->distance[3]);
-    fprintf(stdout, "expect distance z1 bdry is %f\n",par->distance[4]);
-    fprintf(stdout, "expect distance z2 bdry is %f\n",par->distance[5]);
   }
 
   return ierr;

@@ -57,7 +57,6 @@ typedef struct{
 
   float coef;
 
-  float distance[6];  // for higenstock dx1,dx2,dy1,dy2,dz1,dz2 
   float iter_err;   // iteration error
   int max_iter;  // max iterations
 } par_t;
