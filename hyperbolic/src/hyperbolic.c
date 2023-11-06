@@ -127,17 +127,17 @@ cal_smooth_coef(gd_t *gdcurv, float coef, int k, float *coef_e_xi, float *coef_e
   size_t siz_iy = nx;
   size_t siz_iz = nx*ny;
 
-  if(nz<=20) {
+  if(nz<=50) {
     S = sqrt((1.0*k)/(nz-1));
   }
 
-  if(nz>20) 
+  if(nz>50) 
   {
-    if(k<20)
+    if(k<=50)
     {
-      S = sqrt((1.0*k)/19);
+      S = sqrt((1.0*k)/(50));
     } else {
-      S = 1.0;
+      S = 1.0 + (k-51)/(nz-51);
     }
   }
 
@@ -342,9 +342,9 @@ cal_matrix(gd_t *gdcurv, int k, double *a_xi, double *b_xi, double *c_xi,
         // define sigma = r_xi0 X r_et0
         cross_product(r_xi0,r_et0,sigma);
 
-        C[0][0] = r_xi0[0]; C[0][1] = r_xi0[1]; C[0][2] = r_xi0[2];
-        C[1][0] = r_et0[0]; C[1][1] = r_et0[1]; C[1][2] = r_et0[2];
-        C[2][0] = sigma[0]; C[2][1] = sigma[1]; C[2][2] = sigma[2];
+        C[0][0] = r_xi0[0]+1e-7; C[0][1] = r_xi0[1];      C[0][2] = r_xi0[2];
+        C[1][0] = r_et0[0]     ; C[1][1] = r_et0[1]+1e-7; C[1][2] = r_et0[2];
+        C[2][0] = sigma[0]     ; C[2][1] = sigma[1];      C[2][2] = sigma[2]+1e-7;
 
         area = sqrt(pow(sigma[0],2) + pow(sigma[1],2) + pow(sigma[2],2));
         // area->volume
@@ -367,9 +367,9 @@ cal_matrix(gd_t *gdcurv, int k, double *a_xi, double *b_xi, double *c_xi,
 
         A[0][0] = r_zt0[0]; A[0][1] = r_zt0[1]; A[0][2] = r_zt0[2];
         A[1][0] = 0       ; A[1][1] = 0       ; A[1][2] = 0       ;
-        A[2][0] = tau[0]  ; A[2][1] = tau[1]  ; A[2][2] = tau[2]  ;
+        A[2][0] = tau[0]  ; A[2][1] = tau[1]  ; A[2][2] = tau[2];
 
-        B[0][0] = 0       ; B[0][1] = 0       ; B[0][2] = 0       ;
+        B[0][0] = 0;        B[0][1] = 0       ; B[0][2] = 0;
         B[1][0] = r_zt0[0]; B[1][1] = r_zt0[1]; B[1][2] = r_zt0[2];
         B[2][0] = omega[0]; B[2][1] = omega[1]; B[2][2] = omega[2];
 
@@ -415,9 +415,10 @@ cal_matrix(gd_t *gdcurv, int k, double *a_xi, double *b_xi, double *c_xi,
         // define sigma = r_xi0 X r_et0
         cross_product(r_xi0,r_et0,sigma);
 
-        C[0][0] = r_xi0[0]; C[0][1] = r_xi0[1]; C[0][2] = r_xi0[2];
-        C[1][0] = r_et0[0]; C[1][1] = r_et0[1]; C[1][2] = r_et0[2];
-        C[2][0] = sigma[0]; C[2][1] = sigma[1]; C[2][2] = sigma[2];
+        // add damping factor, maybe inv(C) is singular
+        C[0][0] = r_xi0[0]+1e-7; C[0][1] = r_xi0[1];      C[0][2] = r_xi0[2];
+        C[1][0] = r_et0[0]     ; C[1][1] = r_et0[1]+1e-7; C[1][2] = r_et0[2];
+        C[2][0] = sigma[0]     ; C[2][1] = sigma[1];      C[2][2] = sigma[2]+1e-7;
 
         area = sqrt(pow(sigma[0],2) + pow(sigma[1],2) + pow(sigma[2],2));
         // area->volume
@@ -440,9 +441,9 @@ cal_matrix(gd_t *gdcurv, int k, double *a_xi, double *b_xi, double *c_xi,
 
         A[0][0] = r_zt0[0]; A[0][1] = r_zt0[1]; A[0][2] = r_zt0[2];
         A[1][0] = 0       ; A[1][1] = 0       ; A[1][2] = 0       ;
-        A[2][0] = tau[0]  ; A[2][1] = tau[1]  ; A[2][2] = tau[2]  ;
+        A[2][0] = tau[0]  ; A[2][1] = tau[1]  ; A[2][2] = tau[2];
 
-        B[0][0] = 0       ; B[0][1] = 0       ; B[0][2] = 0       ;
+        B[0][0] = 0;        B[0][1] = 0       ; B[0][2] = 0;
         B[1][0] = r_zt0[0]; B[1][1] = r_zt0[1]; B[1][2] = r_zt0[2];
         B[2][0] = omega[0]; B[2][1] = omega[1]; B[2][2] = omega[2];
 

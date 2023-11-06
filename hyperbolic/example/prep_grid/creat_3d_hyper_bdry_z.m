@@ -6,10 +6,10 @@ flag_printf = 1;
 flag_topo_z = 1;
 
 num_pml = 0;
-nx1 = 400;
+nx1 = 300;
 nx = nx1 + 2*num_pml; 
 
-ny1 = 300;
+ny1 = 400;
 ny = ny1 + 2*num_pml; 
 
 dx = 10;
@@ -35,8 +35,8 @@ end
 if  flag_topo_z
   point_x= origin_x + floor(nx1/2)*dx; 
   point_y= origin_y + floor(ny1/2)*dy; 
-  L = 0.3*nx*dx;
-  H = 0.2*nx*dx;
+  L = 0.5*nx*dx;
+  H = 0.25*nx*dx;
   for j = 1:ny1
     for i = 1:nx1
       r1 = sqrt((bz(j+num_pml,i+num_pml,1)-point_x)^2 + (bz(j+num_pml,i+num_pml,2)-point_y)^2);
@@ -49,9 +49,10 @@ if  flag_topo_z
     end
   end
 end
+
 [bz] = extend_abs_layer(bz,dx,dy,nx,ny,num_pml);
 A = 0.00001;
-% [bz] = arc_strech(A,bz);
+[bz] = arc_strech(A,bz);
 
 if flag_printf
     figure(1)   

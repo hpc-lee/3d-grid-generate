@@ -12,12 +12,12 @@ output_dir='../project/output';
 % subs=[200,1,1];    
 % subc=[1,-1,-1];   % '-1' to plot all points in this dimension
 % subt=[1,1,1];
-% subs=[1,200,1];    
-% subc=[-1,1,-1];   % '-1' to plot all points in this dimension
-% subt=[1,1,1];
-subs=[1,1,150];    
-subc=[-1,-1,1];   % '-1' to plot all points in this dimension
+subs=[1,200,1];    
+subc=[-1,1,-1];   % '-1' to plot all points in this dimension
 subt=[1,1,1];
+% subs=[150,1,1];    
+% subc=[1,-1,-1];   % '-1' to plot all points in this dimension
+% subt=[1,1,1];
 
 % figure control parameters
 flag_km     = 0;
@@ -33,7 +33,7 @@ clrmp       = 'parula';
 % 'orth_etzt', 'jacobi',  
 % 'smooth_xi', 'smooth_et','smooth_zt',
 % 'step_xi', 'step_et', 'step_zt'
-varnm = 'orth_xiet';
+varnm = 'orth_xizt';
 % varnm = 'jacobi';
 % varnm = 'step_xi';
 %-----------------------------------------------------------

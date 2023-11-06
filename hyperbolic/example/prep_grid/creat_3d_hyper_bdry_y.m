@@ -45,7 +45,10 @@ if  flag_topo_y
     end
   end
 end
+
+%[bz] = extend_abs_layer(bz,dx,dy,nx,ny,num_pml);
 A = 0.00001;
+[by] = arc_strech(A,by);
 
 if flag_printf
     figure(1)   

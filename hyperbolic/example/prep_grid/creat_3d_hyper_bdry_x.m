@@ -46,6 +46,7 @@ if  flag_topo_x
   end
 end
 A = 0.00001;
+[bx] = arc_strech(A,bx);
 
 if flag_printf
     figure(1)   
