@@ -9,9 +9,9 @@ parfnm='../project/test.json';
 output_dir='../project/output';
 
 % which grid profile to plot
-subs=[250,1,1];    
+subs=[125,1,1];    
 subc=[1,-1,-1];   % '-1' to plot all points in this dimension
-subt=[1,2,2];
+subt=[1,1,1];
 
 % figure control parameters
 flag_km     = 0;

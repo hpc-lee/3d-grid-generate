@@ -11,12 +11,12 @@ flag_topo_y = 1;
 flag_topo_z = 1;
 
 num_pml = 00;
-nx1 = 500;
-ny1 = 500;
+nx1 = 250;
+ny1 = 250;
 
 nx = nx1+2*num_pml;
 ny = ny1+2*num_pml;
-nz = 250;
+nz = 125;
 
 dx = 100;
 dy = 100;
@@ -48,7 +48,7 @@ if flag_topo_z
   point_x= origin_x + floor(nx1/2)*dx; 
   point_y= origin_y + floor(ny1/2)*dy; 
   L = 0.3*nx*dx;
-  H = 0.2*nx*dz;
+  H = 0.1*nx*dx;
   for j = 1:ny1
     for i = 1:nx1
       r1 = sqrt((bz2(j+num_pml,i+num_pml,1)-point_x)^2 + (bz2(j+num_pml,i+num_pml,2)-point_y)^2);
@@ -57,7 +57,7 @@ if flag_topo_z
           topo = 0.5*H * (1+cos(pi*r1/L));
       end
       
-      bz2(j+num_pml,i+num_pml,3) = bz2(j+num_pml,i+num_pml,3) + topo;
+      bz2(j+num_pml,i+num_pml,3) = bz2(j+num_pml,i+num_pml,3) - topo;
     end
   end
 end

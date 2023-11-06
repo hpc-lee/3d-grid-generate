@@ -37,9 +37,9 @@ NPROCS_Z=2
 #----------------------------------------------------------------------
 cat << ieof > ${PAR_FILE}
 {
-  "number_of_grid_points_x" : 500,
-  "number_of_grid_points_y" : 500,
-  "number_of_grid_points_z" : 250,
+  "number_of_grid_points_x" : 250,
+  "number_of_grid_points_y" : 250,
+  "number_of_grid_points_z" : 125,
 
   "number_of_mpiprocs_x" : $NPROCS_X,
   "number_of_mpiprocs_y" : $NPROCS_Y,
@@ -68,12 +68,12 @@ cat << ieof > ${PAR_FILE}
 
   "grid_method" : {
       "#linear_tfi" : "",
-      "#elli_diri" : {
+      "elli_diri" : {
           "coef" : -20,
           "iter_err" : 1E-2,
           "max_iter" : 5E3
       },
-      "elli_higen" : {
+      "#elli_higen" : {
           "coef" : -20,
           "iter_err" : 1E-2,
           "max_iter" : 5E3
