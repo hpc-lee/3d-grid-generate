@@ -34,7 +34,7 @@ LDFLAGS := -L$(NETCDF)/lib -lnetcdf -lm $(LDFLAGS)
 
 grid_post_proc_3d: cJSON.o lib_mem.o \
 				io_funcs.o gd_t.o par_t.o \
-				algebra.o main.o
+				quality_check.o algebra.o main.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 cJSON.o: lib/cJSON.c
@@ -48,6 +48,8 @@ gd_t.o: src/gd_t.c
 io_funcs.o: src/io_funcs.c
 	${CC} -c -o $@ $(CFLAGS) $<
 algebra.o: src/algebra.c
+	${CC} -c -o $@ $(CFLAGS) $<
+quality_check.o:src/quality_check.c
 	${CC} -c -o $@ $(CFLAGS) $<
 
 main.o: src/main.c

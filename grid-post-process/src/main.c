@@ -10,6 +10,7 @@
 #include "io_funcs.h"
 #include "algebra.h"
 #include "constants.h"
+#include "quality_check.h"
 
 int main(int argc, char** argv)
 {
@@ -107,6 +108,23 @@ int main(int argc, char** argv)
     fprintf(stdout,"export coord to file ... \n");
     fflush(stdout);
     gd_curv_coord_export(gdcurv,par);
+  }
+
+  // grid quality check and export quality data
+  io_quality_t *io_quality = (io_quality_t *) malloc(sizeof(io_quality_t));
+  if(par->grid_check == 1)
+  {
+    fprintf(stdout,"****************************************************** \n");
+    fprintf(stdout,"***** grid quality check and export quality data ***** \n");
+    fprintf(stdout,"****************************************************** \n");
+    if(par->flag_sample == 1)
+    {
+      init_io_quality(io_quality,gdcurv_new);
+      grid_quality_check(io_quality,gdcurv_new,par);
+    } else {
+      init_io_quality(io_quality,gdcurv);
+      grid_quality_check(io_quality,gdcurv,par);
+    }
   }
 
   return 0;

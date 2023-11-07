@@ -32,6 +32,16 @@ typedef struct{
   int  number_of_pml_z1;
   int  number_of_pml_z2;
 
+  int grid_check;
+  int check_orth;
+  int check_jac;
+  int check_step_xi;
+  int check_step_et;
+  int check_step_zt;
+  int check_smooth_xi;
+  int check_smooth_et;
+  int check_smooth_zt;
+
   int flag_strech_xi;
   int flag_strech_et;
   int flag_strech_zt;

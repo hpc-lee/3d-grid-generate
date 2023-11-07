@@ -118,6 +118,50 @@ par_read_from_str(const char *str, par_t *par)
       par->number_of_pml_z2 = subitem->valueint;
     }
   }
+
+  // default not check
+  par->grid_check  = 0;
+  par->check_orth  = 0;
+  par->check_jac   = 0;
+  par->check_step_xi  = 0;
+  par->check_step_et  = 0;
+  par->check_step_zt  = 0;
+  par->check_smooth_xi = 0;
+  par->check_smooth_et = 0;
+  par->check_smooth_zt = 0;
+  if (item = cJSON_GetObjectItem(root, "check_orth")) {
+    par->check_orth = item->valueint;
+  }
+  if (item = cJSON_GetObjectItem(root, "check_jac")) {
+    par->check_jac = item->valueint;
+  }
+  if (item = cJSON_GetObjectItem(root, "check_step_xi")) {
+    par->check_step_xi = item->valueint;
+  }
+  if (item = cJSON_GetObjectItem(root, "check_step_et")) {
+    par->check_step_et = item->valueint;
+  }
+  if (item = cJSON_GetObjectItem(root, "check_step_zt")) {
+    par->check_step_zt = item->valueint;
+  }
+  if (item = cJSON_GetObjectItem(root, "check_smooth_xi")) {
+    par->check_smooth_xi = item->valueint;
+  }
+  if (item = cJSON_GetObjectItem(root, "check_smooth_et")) {
+    par->check_smooth_et = item->valueint;
+  }
+  if (item = cJSON_GetObjectItem(root, "check_smooth_zt")) {
+    par->check_smooth_zt = item->valueint;
+  }
+  int check = par->check_orth + par->check_jac
+            + par->check_step_xi + par->check_step_et
+            + par->check_step_zt + par->check_smooth_xi
+            + par->check_smooth_et + par->check_smooth_zt;
+  if(check != 0)
+  {
+    par->grid_check = 1;
+  }
+
   // default not strech
   par->flag_strech_xi = 0;
   par->flag_strech_et = 0;

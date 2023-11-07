@@ -14,17 +14,29 @@ subc=[1,-1,-1];   % '-1' to plot all points in this dimension
 subt=[1,1,1];
 
 % figure control parameters
-flag_km     = 1;
+flag_km     = 0;
 flag_emlast = 1;
 flag_print  = 0;
+flag_clb    = 1;
 flag_title  = 1;
 scl_daspect = [1 1 1];
+clrmp       = 'parula';
 
+% varable to plot 
+% 'orth_xiet', 'orth_xizt',
+% 'orth_etzt', 'jacobi',  
+% 'smooth_xi', 'smooth_et','smooth_zt',
+% 'step_xi', 'step_et', 'step_zt'
+% varnm = 'orth_etzt';
+varnm = 'jacobi';
 %-----------------------------------------------------------
 %-- load coord
 %-----------------------------------------------------------
-coordinfo=locate_coord(parfnm,output_dir,subs,subc,subt);
-[x,y,z]=gather_coord(coordinfo,output_dir);
+
+qualityinfo=locate_quality(parfnm,output_dir,subs,subc,subt);
+[x,y,z]=gather_coord(qualityinfo,output_dir);
+
+v=gather_quality(qualityinfo,output_dir,varnm);
 
 %- set coord unit
 if flag_km
@@ -39,58 +51,64 @@ end
 %-----------------------------------------------------------
 %-- set figure
 %-----------------------------------------------------------
-hid = figure;
+
+% figure plot
+hid=figure;
 set(hid,'BackingStore','on');
+
 if subc(1) == 1
-    plot(permute(y,[2,1]),permute(z,[2,1]),'k-');
-    hold on;
-    plot(y,z,'k-');
+    pcolor(y,z,v);
     xlabel(['Y axis (' str_unit ')']);
     ylabel(['Z axis (' str_unit ')']);
      
 elseif subc(2) == 1
-    plot(permute(x,[2,1]),permute(z,[2,1]),'k-');
-    hold on;
-    plot(x,z,'k-');
+    pcolor(x,z,v);
     xlabel(['X axis (' str_unit ')']);
     ylabel(['Z axis (' str_unit ')']);
      
 elseif subc(3) == 1
-    plot(permute(x,[2,1]),permute(y,[2,1]),'k-');
-    hold on;
-    plot(x,y,'k-');
+    pcolor(x,y,v);
     xlabel(['X axis (' str_unit ')']);
     ylabel(['Y axis (' str_unit ')']);
 end
-  
+
+xlabel(['X axis (' str_unit ')']);
+ylabel(['Z axis (' str_unit ')']);
+
 set(gca,'layer','top');
 set(gcf,'color','white','renderer','painters');
 
+% shading
+% shading interp;
+% shading flat;
+% colorbar range/scale
+if exist('scl_caxis','var')
+    caxis(scl_caxis);
+end
 % axis daspect
 if exist('scl_daspect')
     daspect(scl_daspect);
 end
-axis tight;
-
+axis equal
+% colormap and colorbar
+if exist('clrmp')
+    colormap(clrmp);
+end
+if flag_clb
+    cid=colorbar;
+end
 % title
 if flag_title
-  if (subc(1) == 1)
-    gridtitle='YOZ-Grid';
-  elseif (subc(2) == 1)
-    gridtitle='XOZ-Grid';
-  elseif (subc(3) == 1)
-    gridtitle='XOY-Grid';
-  end
-  title(gridtitle);
+    title(varnm,'interpreter','none');
 end
 
 % save and print figure
 if flag_print
-  width= 500;
-  height=500;
-  set(gcf,'paperpositionmode','manual');
-  set(gcf,'paperunits','points');
-  set(gcf,'papersize',[width,height]);
-  set(gcf,'paperposition',[0,0,width,height]);
-  print(gcf,[gridtitle '.png'],'-dpng');
+    width= 500;
+    height=500;
+    set(gcf,'paperpositionmode','manual');
+    set(gcf,'paperunits','points');
+    set(gcf,'papersize',[width,height]);
+    set(gcf,'paperposition',[0,0,width,height]);
+    print(gcf,[varnm '.png'],'-dpng');
 end
