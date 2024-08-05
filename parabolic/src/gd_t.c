@@ -584,7 +584,6 @@ check_bdry(float *x1, float *x2, float *y1, float *y2, float *z1, float *z2,
       exit(1);
     }
   }
-
   // 5 check bdry x1 z1
   for(int j=0; j<ny; j++)
   {

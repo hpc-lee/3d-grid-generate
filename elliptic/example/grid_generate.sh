@@ -27,9 +27,9 @@ mkdir -p ${PROJDIR}
 mkdir -p ${OUTPUT_DIR}
 
 #-- total x mpi procs
-NPROCS_X=4
+NPROCS_X=2
 #-- total y mpi procs
-NPROCS_Y=4
+NPROCS_Y=2
 #-- total z mpi procs
 NPROCS_Z=2
 #----------------------------------------------------------------------
@@ -37,9 +37,9 @@ NPROCS_Z=2
 #----------------------------------------------------------------------
 cat << ieof > ${PAR_FILE}
 {
-  "number_of_grid_points_x" : 250,
-  "number_of_grid_points_y" : 250,
-  "number_of_grid_points_z" : 125,
+  "number_of_grid_points_x" : 100,
+  "number_of_grid_points_y" : 400,
+  "number_of_grid_points_z" : 200,
 
   "number_of_mpiprocs_x" : $NPROCS_X,
   "number_of_mpiprocs_y" : $NPROCS_Y,
@@ -67,9 +67,9 @@ cat << ieof > ${PAR_FILE}
   "grid_export_dir" : "${OUTPUT_DIR}",
 
   "grid_method" : {
-      "#linear_tfi" : "",
-      "elli_diri" : {
-          "coef" : -20,
+      "linear_tfi" : "",
+      "#elli_diri" : {
+          "coef" : -5,
           "iter_err" : 1E-2,
           "max_iter" : 5E3
       },

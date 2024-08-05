@@ -17,7 +17,7 @@ output_dir='../project/output';
 % subt=[1,1,1];
 subs=[1,150,1];    
 subc=[-1,1,-1];   % '-1' to plot all points in this dimension
-subt=[1,1,1];
+subt=[3,2,3];
 
 % figure control parameters
 flag_km     = 0;

@@ -141,7 +141,7 @@ predict_point(gd_t *gdcurv, bdry_effct_t *bdry_effct, mympi_t *mympi,
   int gnj1 = gdcurv->gnj1;
   int gni, gnj;
 
-  zt = (1.0*k)/(nz-1);
+  zt = (1.0*(k-1))/(nz-1-2);
   cs = exp(coef*zt);
 
   for(int j=1; j<ny-1; j++) {

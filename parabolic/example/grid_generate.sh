@@ -27,7 +27,7 @@ mkdir -p ${PROJDIR}
 mkdir -p ${OUTPUT_DIR}
 
 #-- total mpi procs
-NUMPROCS=3
+NUMPROCS=10
 #----------------------------------------------------------------------
 #-- create main conf
 #----------------------------------------------------------------------
@@ -41,18 +41,18 @@ cat << ieof > ${PAR_FILE}
 
   "check_orth" : 1,
   "check_jac"  : 1,
-  "check_step_xi" : 1,
-  "check_step_et" : 1,
-  "check_step_zt" : 1,
-  "check_smooth_xi" : 1,
-  "check_smooth_et" : 1,
-  "check_smooth_zt" : 1,
+  "check_step_xi" : 0,
+  "check_step_et" : 0,
+  "check_step_zt" : 0,
+  "check_smooth_xi" : 0,
+  "check_smooth_et" : 0,
+  "check_smooth_zt" : 0,
 
   "geometry_input_file" : "${INPUTDIR}/data_file_3d.txt",
   "grid_export_dir" : "${OUTPUT_DIR}",
 
   "parabolic" : {
-      "coef" : -50,
+      "coef" : -30,
       "o2i" : 1,
       "direction" : "z"
   }

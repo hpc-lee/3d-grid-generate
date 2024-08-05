@@ -6,8 +6,8 @@ clear all;
 close all;
 
 flag_printf = 1;
-flag_topo_x = 1;
-flag_topo_y = 1;
+flag_topo_x = 0;
+flag_topo_y = 0;
 flag_topo_z = 1;
 
 num_pml = 00;

@@ -10,7 +10,8 @@ EXEC_GRID=`pwd`/../grid_post_proc_3d
 echo "EXEC_GRID=${EXEC_GRID}"
 
 #-- input dir
-INPUTDIR=/data3/lihl/code-lihl/3d-grid-generate/ellipitic/project/output
+#INPUTDIR=/data3/lihl/code-lihl/3d-grid-generate/ellipitic/project/output
+INPUTDIR=/data3/lihl/code-lihl/3d-grid-generate/parabolic/project/output
 
 #-- output and conf
 PROJDIR=`pwd`/../project
@@ -25,17 +26,17 @@ mkdir -p ${OUTPUT_DIR}
 
 # grid generate procs
 #-- total x mpi procs
-NPROCS_X_IN=2
+NPROCS_X_IN=1
 #-- total y mpi procs
-NPROCS_Y_IN=2
+NPROCS_Y_IN=10
 #-- total z mpi procs
-NPROCS_Z_IN=2
+NPROCS_Z_IN=1
 
 # after post procs
 #-- total x mpi procs
-NPROCS_X_OUT=3
+NPROCS_X_OUT=2
 #-- total y mpi procs
-NPROCS_Y_OUT=3
+NPROCS_Y_OUT=2
 #-- total z mpi procs
 NPROCS_Z_OUT=1
 
@@ -44,9 +45,9 @@ NPROCS_Z_OUT=1
 #----------------------------------------------------------------------
 cat << ieof > ${PAR_FILE}
 {
-  "number_of_grid_points_x" : 250,
-  "number_of_grid_points_y" : 250,
-  "number_of_grid_points_z" : 125,
+  "number_of_grid_points_x" : 400,
+  "number_of_grid_points_y" : 300,
+  "number_of_grid_points_z" : 200,
 
   "number_of_mpiprocs_x_in" : $NPROCS_X_IN,
   "number_of_mpiprocs_y_in" : $NPROCS_Y_IN,
@@ -57,11 +58,11 @@ cat << ieof > ${PAR_FILE}
   "number_of_mpiprocs_z_out" : $NPROCS_Z_OUT,
 
   "pml_layers" : {
-         "number_of_pml_x1" : 10,
-         "number_of_pml_x2" : 10,
-         "number_of_pml_y1" : 10,
-         "number_of_pml_y2" : 10,
-         "number_of_pml_z1" : 10,
+         "number_of_pml_x1" : 0,
+         "number_of_pml_x2" : 0,
+         "number_of_pml_y1" : 0,
+         "number_of_pml_y2" : 0,
+         "number_of_pml_z1" : 0,
          "number_of_pml_z2" : 0
   },
 
@@ -79,10 +80,10 @@ cat << ieof > ${PAR_FILE}
   "strech_xi_coef" : 0.0001,
   "flag_strech_et" : 0,
   "strech_et_coef" : 0.0001,
-  "flag_strech_zt" : 1,
+  "flag_strech_zt" : 0,
   "strech_zt_coef" : 0.0001,
 
-  "flag_sample" : 1,
+  "flag_sample" : 0,
   "sample_factor_xi" : 1,
   "sample_factor_et" : 2,
   "sample_factor_zt" : 3,
