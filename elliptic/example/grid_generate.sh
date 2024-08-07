@@ -46,15 +46,6 @@ cat << ieof > ${PAR_FILE}
   "number_of_mpiprocs_y" : $NPROCS_Y,
   "number_of_mpiprocs_z" : $NPROCS_Z,
 
-  "#pml_layers" : {
-         "number_of_pml_x1" : 10,
-         "number_of_pml_x2" : 10,
-         "number_of_pml_y1" : 10,
-         "number_of_pml_y2" : 10,
-         "number_of_pml_z1" : 10,
-         "number_of_pml_z2" : 10
-  },
-
   "check_orth" : 1,
   "check_jac" : 1,
   "check_step_xi" : 1,

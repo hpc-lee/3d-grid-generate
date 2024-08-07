@@ -30,14 +30,6 @@ typedef struct{
   int number_of_mpiprocs_y;
   int number_of_mpiprocs_z;
 
-  // number of pml
-  int number_of_pml_x1;
-  int number_of_pml_x2;
-  int number_of_pml_y1;
-  int number_of_pml_y2;
-  int number_of_pml_z1;
-  int number_of_pml_z2;
-
   int grid_check;
   int check_orth;
   int check_jac;

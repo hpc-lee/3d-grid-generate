@@ -94,34 +94,6 @@ par_read_from_str(const char *str, par_t *par)
     par->number_of_grid_points_z = item->valueint;
   }
 
-  // default pml layers
-  par->number_of_pml_x1 = 0;
-  par->number_of_pml_x2 = 0;
-  par->number_of_pml_y1 = 0;
-  par->number_of_pml_y2 = 0;
-  par->number_of_pml_z1 = 0;
-  par->number_of_pml_z2 = 0;
-  if (item = cJSON_GetObjectItem(root, "pml_layers")) {
-    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_x1")) {
-      par->number_of_pml_x1 = subitem->valueint;
-    }
-    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_x2")) {
-      par->number_of_pml_x2 = subitem->valueint;
-    }
-    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_y1")) {
-      par->number_of_pml_y1 = subitem->valueint;
-    }
-    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_y2")) {
-      par->number_of_pml_y2 = subitem->valueint;
-    }
-    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_z1")) {
-      par->number_of_pml_z1 = subitem->valueint;
-    }
-    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_z2")) {
-      par->number_of_pml_z2 = subitem->valueint;
-    }
-  }
-
   // default not check
   par->grid_check  = 0;
   par->check_orth  = 0;
@@ -218,11 +190,6 @@ par_print(par_t *par)
   fprintf(stdout,"number of mpi procs x is %d\n",par->number_of_mpiprocs_x);
   fprintf(stdout,"number of mpi procs y is %d\n",par->number_of_mpiprocs_y);
   fprintf(stdout,"number of mpi procs z is %d\n",par->number_of_mpiprocs_z);
-
-  fprintf(stdout,"number of pml layers x1 is %d\n",par->number_of_pml_x1);
-  fprintf(stdout,"number of pml layers x2 is %d\n",par->number_of_pml_x2);
-  fprintf(stdout,"number of pml layers y1 is %d\n",par->number_of_pml_y1);
-  fprintf(stdout,"number of pml layers y2 is %d\n",par->number_of_pml_y2);
 
   fprintf(stdout,"input geometry file is \n %s\n",par->geometry_input_file);
   fprintf(stdout,"export grid dir is \n %s\n",par->output_dir);

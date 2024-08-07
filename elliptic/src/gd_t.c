@@ -448,13 +448,6 @@ gd_info_set(gd_t *gdcurv,
   int number_of_grid_points_y = par->number_of_grid_points_y;
   int number_of_grid_points_z = par->number_of_grid_points_z;
 
-  int number_of_pml_x1 = par->number_of_pml_x1;
-  int number_of_pml_x2 = par->number_of_pml_x2;
-  int number_of_pml_y1 = par->number_of_pml_y1;
-  int number_of_pml_y2 = par->number_of_pml_y2;
-  int number_of_pml_z1 = par->number_of_pml_z1;
-  int number_of_pml_z2 = par->number_of_pml_z2;
-
   // 3 point center difference
   // ghost number is 1
 
@@ -462,30 +455,13 @@ gd_info_set(gd_t *gdcurv,
   // bbry point to set ghost
   int nx_et = number_of_grid_points_x-2;
 
-  // double cfspml layer, load balance
-  nx_et += number_of_pml_x1 + number_of_pml_x2;
-
   // partition into average plus left at last
   int nx_avg  = nx_et / mympi->nprocx;
   int nx_left = nx_et % mympi->nprocx;
 
-  // nx_avg must > pml layers
-  if(nx_avg<=number_of_pml_x1 || nx_avg<=number_of_pml_x2)
-  {
-    fprintf(stdout,"nx must large pml_layers\n");
-    fflush(stdout);
-    exit(1);
-  }
 
   // default set to average value
   int ni = nx_avg;
-  // subtract nlay for pml node
-  if (mympi->neighid[0] == MPI_PROC_NULL) {
-    ni -= number_of_pml_x1;
-  }
-  if (mympi->neighid[1] == MPI_PROC_NULL) {
-    ni -= number_of_pml_x2;
-  }
 
   // first nx_left node add one more point
   if (mympi->topoid[0] < nx_left) {
@@ -495,7 +471,7 @@ gd_info_set(gd_t *gdcurv,
   if (mympi->topoid[0]==0) {
     gdcurv->gni1 = 0;
   } else {
-    gdcurv->gni1 = mympi->topoid[0] * nx_avg - number_of_pml_x1;
+    gdcurv->gni1 = mympi->topoid[0] * nx_avg;
   }
   if (nx_left != 0) {
     gdcurv->gni1 += (mympi->topoid[0] < nx_left)? mympi->topoid[0] : nx_left;
@@ -504,28 +480,10 @@ gd_info_set(gd_t *gdcurv,
   // determine nj
   int ny_et = number_of_grid_points_y-2;
 
-  // double cfspml layer, load balance
-  ny_et += number_of_pml_y1 + number_of_pml_y2;
-
   int ny_avg  = ny_et / mympi->nprocy;
   int ny_left = ny_et % mympi->nprocy;
 
-  // ny_avg must > pml layers
-  if(ny_avg<=number_of_pml_y1 || ny_avg<=number_of_pml_y2)
-  {
-    fprintf(stdout,"ny must large pml_layers\n");
-    fflush(stdout);
-    exit(1);
-  }
-
   int nj = ny_avg;
-  // subtract nlay for pml node
-  if (mympi->neighid[2] == MPI_PROC_NULL) {
-    nj -= number_of_pml_y1;
-  }
-  if (mympi->neighid[3] == MPI_PROC_NULL) {
-    nj -= number_of_pml_y2;
-  }
 
   // not equal divided points given to first ny_left procs
   if (mympi->topoid[1] < ny_left) {
@@ -535,7 +493,7 @@ gd_info_set(gd_t *gdcurv,
   if (mympi->topoid[1]==0) {
     gdcurv->gnj1 = 0;
   } else {
-    gdcurv->gnj1 = mympi->topoid[1] * ny_avg - number_of_pml_y1;
+    gdcurv->gnj1 = mympi->topoid[1] * ny_avg;
   }
   if (ny_left != 0) {
     gdcurv->gnj1 += (mympi->topoid[1] < ny_left)? mympi->topoid[1] : ny_left;
@@ -544,28 +502,10 @@ gd_info_set(gd_t *gdcurv,
   // determine nk
   int nz_et = number_of_grid_points_z-2;
 
-  // double cfspml layer, load balance
-  nz_et += number_of_pml_z1 + number_of_pml_z2;
-
   int nz_avg  = nz_et / mympi->nprocz;
   int nz_left = nz_et % mympi->nprocz;
 
-  // nz_avg must > pml layers
-  if(nz_avg<=number_of_pml_z1 || nz_avg<=number_of_pml_z2)
-  {
-    fprintf(stdout,"nz must large pml_layers\n");
-    fflush(stdout);
-    exit(1);
-  }
-
   int nk = nz_avg;
-  // subtract nlay for pml node
-  if (mympi->neighid[4] == MPI_PROC_NULL) {
-    nk -= number_of_pml_z1;
-  }
-  if (mympi->neighid[5] == MPI_PROC_NULL) {
-    nk -= number_of_pml_z2;
-  }
 
   // not equal divided points given to first nz_left procs
   if (mympi->topoid[2] < nz_left) {
@@ -575,7 +515,7 @@ gd_info_set(gd_t *gdcurv,
   if (mympi->topoid[2]==0) {
     gdcurv->gnk1 = 0;
   } else {
-    gdcurv->gnk1 = mympi->topoid[2] * nz_avg - number_of_pml_z1;
+    gdcurv->gnk1 = mympi->topoid[2] * nz_avg;
   }
   if (nz_left != 0) {
     gdcurv->gnk1 += (mympi->topoid[2] < nz_left)? mympi->topoid[2] : nz_left;
