@@ -6,7 +6,7 @@ set -e
 date
 
 #-- program related dir
-EXEC_GRID=`pwd`/../grid_post_proc_3d
+EXEC_GRID=`pwd`/../main
 echo "EXEC_GRID=${EXEC_GRID}"
 
 #-- input dir
