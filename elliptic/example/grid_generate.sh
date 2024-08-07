@@ -6,17 +6,18 @@ set -e
 date
 
 #-- system related dir
-MPIDIR=/data3/lihl/software/openmpi-gnu-4.1.2
+#MPIDIR=/data3/lihl/software/openmpi-gnu-4.1.2
+MPIDIR=/data/apps/openmpi/4.1.5-cuda-aware
 
 #-- program related dir
-EXEC_GRID=`pwd`/../main_grid_3d
+EXEC_GRID=`pwd`/../main
 echo "EXEC_GRID=${EXEC_GRID}"
 
 #-- input dir
 INPUTDIR=`pwd`
 
 #-- output and conf
-PROJDIR=`pwd`/../project
+PROJDIR=`pwd`/../project2
 PAR_FILE=${PROJDIR}/test.json
 OUTPUT_DIR=${PROJDIR}/output
 
@@ -67,8 +68,8 @@ cat << ieof > ${PAR_FILE}
   "grid_export_dir" : "${OUTPUT_DIR}",
 
   "grid_method" : {
-      "linear_tfi" : "",
-      "#elli_diri" : {
+      "#linear_tfi" : "",
+      "elli_diri" : {
           "coef" : -5,
           "iter_err" : 1E-2,
           "max_iter" : 5E3

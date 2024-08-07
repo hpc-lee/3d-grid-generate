@@ -109,7 +109,7 @@ cal_xiet(io_quality_t *io_quality, gd_t *gdcurv)
         len_et = sqrt(pow(x_et,2) + pow(y_et,2) + pow(z_et,2));
         cos_angle = dot/(len_xi*len_et); 
         // offset relative 90 degree
-        var[iptr] = fabs((acos(cos_angle) * trans - 90));
+        var[iptr] = 90 - fabs((acos(cos_angle) * trans - 90));
       }
     }
   }
@@ -160,7 +160,7 @@ cal_xizt(io_quality_t *io_quality, gd_t *gdcurv)
         len_zt = sqrt(pow(x_zt,2) + pow(y_zt,2) + pow(z_zt,2));
         cos_angle = dot/(len_xi*len_zt); 
         // offset relative 90 degree
-        var[iptr] = fabs((acos(cos_angle) * trans - 90));
+        var[iptr] = 90 - fabs((acos(cos_angle) * trans - 90));
       }
     }
   }
@@ -211,7 +211,7 @@ cal_etzt(io_quality_t *io_quality, gd_t *gdcurv)
         len_zt = sqrt(pow(x_zt,2) + pow(y_zt,2) + pow(z_zt,2));
         cos_angle = dot/(len_et*len_zt); 
         // offset relative 90 degree
-        var[iptr] = fabs((acos(cos_angle) * trans - 90));
+        var[iptr] = 90 - fabs((acos(cos_angle) * trans - 90));
       }
     }
   }
