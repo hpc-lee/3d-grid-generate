@@ -22,6 +22,8 @@ CFLAGS := -O3 -std=c99 $(CFLAGS)
 #- dynamic
 LDFLAGS := -L$(NETCDF)/lib -lnetcdf -L$(MPIHOME)/lib -lmpi -lm $(LDFLAGS)
 
+skeldirs := obj
+DIR_OBJ  := ./obj
 #-------------------------------------------------------------------------------
 # target
 #-------------------------------------------------------------------------------
@@ -31,43 +33,31 @@ LDFLAGS := -L$(NETCDF)/lib -lnetcdf -L$(MPIHOME)/lib -lmpi -lm $(LDFLAGS)
 # 	$< The names of the first prerequisite
 #   $^ The names of all the prerequisites 
 
-main_grid_3d: cJSON.o sacLib.o	lib_mem.o \
+OBJS := cJSON.o sacLib.o	lib_mem.o \
 				lib_math.o par_t.o gd_t.o \
 				mympi_t.o io_funcs.o parabolic.o\
 				solver.o quality_check.o main.o
+
+OBJS := $(addprefix $(DIR_OBJ)/,$(OBJS))
+
+vpath  %.c .
+
+all: skel main
+skel:
+	@mkdir -p $(skeldirs)
+
+main: $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-cJSON.o: lib/cJSON.c
-	${CC} -c -o $@ $(CFLAGS) $<
-sacLib.o: lib/sacLib.c
-	${CC} -c -o $@ $(CFLAGS) $<
-lib_mem.o: lib/lib_mem.c
-	${CC} -c -o $@ $(CFLAGS) $<
-lib_math.o: lib/lib_math.c
-	${CC} -c -o $@ $(CFLAGS) $<
-par_t.o: src/par_t.c
-	${CC} -c -o $@ $(CFLAGS) $<
-gd_t.o: src/gd_t.c
-	${CC} -c -o $@ $(CFLAGS) $<
-mympi_t.o:src/mympi_t.c
-	${CC} -c -o $@ $(CFLAGS) $<
-io_funcs.o:src/io_funcs.c
-	${CC} -c -o $@ $(CFLAGS) $<
-quality_check.o:src/quality_check.c
-	${CC} -c -o $@ $(CFLAGS) $<
-solver.o: src/solver.c
-	${CC} -c -o $@ $(CFLAGS) $<
-parabolic.o: src/parabolic.c
-	${CC} -c -o $@ $(CFLAGS) $<
-
-main.o: src/main.c
-	${CC} -c -o $@ $(CFLAGS) $<
-
+$(DIR_OBJ)/%.o : src/%.c
+	${CC} $(CFLAGS) -c $^ -o $@ 
+$(DIR_OBJ)/%.o : lib/%.c
+	${CC} $(CFLAGS) -c $^ -o $@ 
 cleanexe:
-	rm -f main_grid_3d
+	rm -f main
 
 cleanobj:
-	rm -f *.o
+	rm -rf $(DIR_OBJ)
 cleanall: cleanexe cleanobj
 	echo "clean all"
 distclean: cleanexe cleanobj

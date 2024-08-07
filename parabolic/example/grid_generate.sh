@@ -9,7 +9,7 @@ date
 MPIDIR=/data3/lihl/software/openmpi-gnu-4.1.2
 
 #-- program related dir
-EXEC_GRID=`pwd`/../main_grid_3d
+EXEC_GRID=`pwd`/../main
 echo "EXEC_GRID=${EXEC_GRID}"
 
 #-- input dir
