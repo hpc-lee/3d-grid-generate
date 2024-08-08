@@ -14,6 +14,8 @@
 
 int main(int argc, char** argv)
 {
+  time_t t_start = time(NULL);
+
   int verbose;
   char *par_fname;
   char err_message[CONST_MAX_STRLEN];
@@ -43,12 +45,12 @@ int main(int argc, char** argv)
   par_read_from_file(par_fname, par, verbose);
 
   if (verbose>0) par_print(par);
-
   gd_t *gdcurv = (gd_t *) malloc(sizeof(gd_t));
   // for grid sample space
   gd_t *gdcurv_new = (gd_t *) malloc(sizeof(gd_t));
 
   read_import_coord(gdcurv,par);
+
   // strech xi-direction grid
   if(par->flag_strech_xi == 1)
   {
@@ -72,23 +74,23 @@ int main(int argc, char** argv)
     fprintf(stdout,"\n\n******** sample grid ******* \n");
     fprintf(stdout,"export coord to file ... \n");
     fprintf(stdout,"\n\n\n!!!!!!!!! NOTE !!!!!!!!!!!! \n");
-    fprintf(stdout,"after sample grid, each direction abs(pml) layers must \n");
+    fprintf(stdout,"after sample grid, we advise each direction pml layers must \n");
     fprintf(stdout,"multiply by sample factor\n");
 
     fprintf(stdout,"\n ****old abs layers ****\n");
-    fprintf(stdout,"old number of pml layers x1 is %d\n",par->number_of_pml_x1);
-    fprintf(stdout,"old number of pml layers x2 is %d\n",par->number_of_pml_x2);
-    fprintf(stdout,"old number of pml layers y1 is %d\n",par->number_of_pml_y1);
-    fprintf(stdout,"old number of pml layers y2 is %d\n",par->number_of_pml_y2);
-    fprintf(stdout,"old number of pml layers z1 is %d\n",par->number_of_pml_z1);
-    fprintf(stdout,"old number of pml layers z2 is %d\n",par->number_of_pml_z2);
+    fprintf(stdout,"old number of pml layers x1 is %d\n",par->num_of_pml_x1);
+    fprintf(stdout,"old number of pml layers x2 is %d\n",par->num_of_pml_x2);
+    fprintf(stdout,"old number of pml layers y1 is %d\n",par->num_of_pml_y1);
+    fprintf(stdout,"old number of pml layers y2 is %d\n",par->num_of_pml_y2);
+    fprintf(stdout,"old number of pml layers z1 is %d\n",par->num_of_pml_z1);
+    fprintf(stdout,"old number of pml layers z2 is %d\n",par->num_of_pml_z2);
     fprintf(stdout,"\n ****after sample new abs layers ****\n");
-    fprintf(stdout,"new number of pml layers x1 is %d\n",par->number_of_pml_x1*par->sample_factor_xi);
-    fprintf(stdout,"new number of pml layers x2 is %d\n",par->number_of_pml_x2*par->sample_factor_xi);
-    fprintf(stdout,"new number of pml layers y1 is %d\n",par->number_of_pml_y1*par->sample_factor_et);
-    fprintf(stdout,"new number of pml layers y2 is %d\n",par->number_of_pml_y2*par->sample_factor_et);
-    fprintf(stdout,"new number of pml layers z1 is %d\n",par->number_of_pml_z1*par->sample_factor_zt);
-    fprintf(stdout,"new number of pml layers z2 is %d\n",par->number_of_pml_z2*par->sample_factor_zt);
+    fprintf(stdout,"new number of pml layers x1 is %d\n",par->num_of_pml_x1*par->sample_factor_xi);
+    fprintf(stdout,"new number of pml layers x2 is %d\n",par->num_of_pml_x2*par->sample_factor_xi);
+    fprintf(stdout,"new number of pml layers y1 is %d\n",par->num_of_pml_y1*par->sample_factor_et);
+    fprintf(stdout,"new number of pml layers y2 is %d\n",par->num_of_pml_y2*par->sample_factor_et);
+    fprintf(stdout,"new number of pml layers z1 is %d\n",par->num_of_pml_z1*par->sample_factor_zt);
+    fprintf(stdout,"new number of pml layers z2 is %d\n",par->num_of_pml_z2*par->sample_factor_zt);
     fprintf(stdout,"currently sampling, please wait\n");
     fflush(stdout);
 
@@ -126,6 +128,8 @@ int main(int argc, char** argv)
       grid_quality_check(io_quality,gdcurv,par);
     }
   }
+  time_t t_end = time(NULL);
+  fprintf(stdout,"Computation Time:%f s \n", difftime(t_end,t_start));
 
   return 0;
 }

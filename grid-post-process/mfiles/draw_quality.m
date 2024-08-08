@@ -9,8 +9,8 @@ parfnm='../project/test.json';
 output_dir='../project/output';
 
 % which grid profile to plot
-subs=[125,1,1];    
-subc=[1,-1,-1];   % '-1' to plot all points in this dimension
+subs=[1,125,1];    
+subc=[-1,1,-1];   % '-1' to plot all points in this dimension
 subt=[1,1,1];
 
 % figure control parameters
@@ -27,8 +27,8 @@ clrmp       = 'parula';
 % 'orth_etzt', 'jacobi',  
 % 'smooth_xi', 'smooth_et','smooth_zt',
 % 'step_xi', 'step_et', 'step_zt'
-% varnm = 'orth_etzt';
-varnm = 'jacobi';
+varnm = 'orth_xizt';
+% varnm = 'jacobi';
 %-----------------------------------------------------------
 %-- load coord
 %-----------------------------------------------------------

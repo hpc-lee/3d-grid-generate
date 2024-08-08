@@ -29,104 +29,207 @@ init_io_quality(io_quality_t *io_quality, gd_t *gdcurv)
 int
 read_import_coord(gd_t *gdcurv, par_t *par)
 {
-  int total_nx = par->number_of_grid_points_x;
-  int total_ny = par->number_of_grid_points_y;
-  int total_nz = par->number_of_grid_points_z;
-
-  int nprocx_in = par->number_of_mpiprocs_x_in;
-  int nprocy_in = par->number_of_mpiprocs_y_in;
-  int nprocz_in = par->number_of_mpiprocs_z_in;
-
   char fname_coords[CONST_MAX_STRLEN];
   char in_file[CONST_MAX_STRLEN];
-
   int ierr;
+  int gni1, gnj1, gnk1;
+  int gni, gnj, gnk;
+  int ni, nj, nk;
+  size_t iptr, iptr1;
+  int points_nx;
+  int points_ny;
+  int points_nz;
+
+  // malloc each grid space and read coord
+  gd_t *gdcurv_in = (gd_t *) malloc(par->num_of_grid*sizeof(gd_t));
+  for(int id=0; id<par->num_of_grid; id++)
+  {
+    points_nx = par->num_of_points[0 +id*CONST_NDIM];
+    points_ny = par->num_of_points[1 +id*CONST_NDIM];
+    points_nz = par->num_of_points[2 +id*CONST_NDIM];
+    gd_t *gdcurv_in_one = gdcurv_in + id;
+    init_gdcurv(gdcurv_in_one,points_nx,points_ny,points_nz);
+    float *x3d = gdcurv_in_one->x3d;
+    float *y3d = gdcurv_in_one->y3d;
+    float *z3d = gdcurv_in_one->z3d;
+
+    float *coord_x = (float *) malloc(sizeof(float)*points_nx*points_ny*points_nz);
+    float *coord_y = (float *) malloc(sizeof(float)*points_nx*points_ny*points_nz);
+    float *coord_z = (float *) malloc(sizeof(float)*points_nx*points_ny*points_nz);
+    int nprocx_in = par->num_of_procs_in[0+id*CONST_NDIM];
+    int nprocy_in = par->num_of_procs_in[1+id*CONST_NDIM];
+    int nprocz_in = par->num_of_procs_in[2+id*CONST_NDIM];
+
+    int ncid;
+    int xid, yid, zid;
+    int global_index[3];
+    int count_points[3];
+    size_t start[3] = {0, 0, 0};
+    size_t count[3];
+    char att_global[CONST_MAX_STRLEN] = "global_index_of_first_physical_points";
+    char att_count[CONST_MAX_STRLEN] = "count_of_physical_points";
+
+    // read coord nc file
+    for(int kk=0; kk<nprocz_in; kk++) {
+      for(int jj=0; jj<nprocy_in; jj++) {
+        for(int ii=0; ii<nprocx_in; ii++)
+        {
+          sprintf(fname_coords,"px%d_py%d_pz%d",ii,jj,kk);
+          sprintf(in_file,"%s/coord_%s.nc",par->import_dir[id],fname_coords);
+
+          ierr = nc_open(in_file, NC_NOWRITE, &ncid); handle_nc_err(ierr);
+
+          ierr = nc_get_att_int(ncid,NC_GLOBAL,att_global,global_index);
+          ierr = nc_get_att_int(ncid,NC_GLOBAL,att_count,count_points);
+
+          gni1 = global_index[0];
+          gnj1 = global_index[1];
+          gnk1 = global_index[2];
+
+          ni = count_points[0];
+          nj = count_points[1];
+          nk = count_points[2];
+
+          count[0] = nk;
+          count[1] = nj;
+          count[2] = ni;
+
+          //read vars
+          ierr = nc_inq_varid(ncid, "x", &xid);  handle_nc_err(ierr);
+          ierr = nc_inq_varid(ncid, "y", &yid);  handle_nc_err(ierr);
+          ierr = nc_inq_varid(ncid, "z", &zid);  handle_nc_err(ierr);
+          
+          ierr = nc_get_vara_float(ncid, xid, start, count, coord_x);  handle_nc_err(ierr);
+          ierr = nc_get_vara_float(ncid, yid, start, count, coord_y);  handle_nc_err(ierr);
+          ierr = nc_get_vara_float(ncid, zid, start, count, coord_z);  handle_nc_err(ierr);
+
+          for(int k=0; k<nk; k++) {
+            for(int j=0; j<nj; j++) {
+              for(int i=0; i<ni; i++)
+              {
+                gni = gni1 + i;
+                gnj = gnj1 + j;
+                gnk = gnk1 + k;
+                iptr = gnk*points_nx*points_ny + gnj*points_nx + gni;
+
+                iptr1 = k*ni*nj + j*ni + i;
+
+                x3d[iptr] = coord_x[iptr1];
+                y3d[iptr] = coord_y[iptr1];
+                z3d[iptr] = coord_z[iptr1];
+              }
+            }
+          }
+
+          //close file
+          ierr = nc_close(ncid);  handle_nc_err(ierr);
+        }
+      }
+    }
+    free(coord_x);
+    free(coord_y);
+    free(coord_z);
+  }
+
+  int total_nx = 0;
+  int total_ny = 0;
+  int total_nz = 0;
+  if(par->num_of_grid == 1)
+  {
+    total_nx = par->num_of_points[0];
+    total_ny = par->num_of_points[1];
+    total_nz = par->num_of_points[2];
+  }
+  if(par->num_of_grid > 1)
+  {
+    if(par->merge_idire == X_DIRE)
+    {
+      for(int id=0; id<par->num_of_grid; id++)
+      {
+        total_nx += par->num_of_points[0 + id*CONST_NDIM];
+      }
+      total_nx = total_nx - par->num_of_grid + 1;
+      total_ny = par->num_of_points[1];
+      total_nz = par->num_of_points[2];
+    }
+    if(par->merge_idire == Y_DIRE)
+    {
+      for(int id=0; id<par->num_of_grid; id++)
+      {
+        total_ny += par->num_of_points[1 + id*CONST_NDIM];
+      }
+      total_ny = total_ny - par->num_of_grid + 1;
+      total_nx = par->num_of_points[0];
+      total_nz = par->num_of_points[2];
+    }
+    if(par->merge_idire == Z_DIRE)
+    {
+      for(int id=0; id<par->num_of_grid; id++)
+      {
+        total_nz += par->num_of_points[2 + id*CONST_NDIM];
+      }
+      total_nz = total_nz - par->num_of_grid + 1;
+      total_nx = par->num_of_points[0];
+      total_ny = par->num_of_points[1];
+    }
+  }
 
   init_gdcurv(gdcurv,total_nx,total_ny,total_nz);
   float *x3d = gdcurv->x3d;
   float *y3d = gdcurv->y3d;
   float *z3d = gdcurv->z3d;
-  
-  float *coord_x = (float *) malloc(sizeof(float)*total_nx*total_ny*total_nz);
-  float *coord_y = (float *) malloc(sizeof(float)*total_nx*total_ny*total_nz);
-  float *coord_z = (float *) malloc(sizeof(float)*total_nx*total_ny*total_nz);
+  // merge grid and init global index set to 0 
+  gni1 = 0;
+  gnj1 = 0;
+  gnk1 = 0;
+  for(int id=0; id<par->num_of_grid; id++)
+  {
+    gd_t *gdcurv_in_one = gdcurv_in + id;
+    float *x3d_in = gdcurv_in_one->x3d;
+    float *y3d_in = gdcurv_in_one->y3d;
+    float *z3d_in = gdcurv_in_one->z3d;
+    points_nx = par->num_of_points[0 +id*CONST_NDIM];
+    points_ny = par->num_of_points[1 +id*CONST_NDIM];
+    points_nz = par->num_of_points[2 +id*CONST_NDIM];
+    if(par->merge_idire == X_DIRE && id>0)
+    {
+      gni1 = gni1 + par->num_of_points[0 +(id-1)*CONST_NDIM] - 1;
+    }
+    if(par->merge_idire == Y_DIRE && id>0)
+    {
+      gnj1 = gnj1 + par->num_of_points[1 +(id-1)*CONST_NDIM] - 1;
+    }
+    if(par->merge_idire == Z_DIRE && id>0)
+    {
+      gnk1 = gnk1 + par->num_of_points[2 +(id-1)*CONST_NDIM] - 1;
+    }
 
-  int ncid;
-  int xid, yid, zid;
-  int global_index[3];
-  int count_points[3];
-  size_t start[3] = {0, 0, 0};
-  size_t count[3];
-  char att_global[CONST_MAX_STRLEN] = "global_index_of_first_physical_points";
-  char att_count[CONST_MAX_STRLEN] = "count_of_physical_points";
+    for(int k=0; k<points_nz; k++) {
+      for(int j=0; j<points_ny; j++) {
+        for(int i=0; i<points_nx; i++)
+        {
+          gni = gni1 + i;
+          gnj = gnj1 + j;
+          gnk = gnk1 + k;
+          iptr = gnk*total_nx*total_ny + gnj*total_nx + gni;
 
-  int gni1, gnj1, gnk1;
-  int gni, gnj, gnk;
-  int ni, nj, nk;
-  size_t iptr, iptr1;
-  
-  // read coord nc file
-  for(int kk=0; kk<nprocz_in; kk++) {
-    for(int jj=0; jj<nprocy_in; jj++) {
-      for(int ii=0; ii<nprocx_in; ii++)
-      {
-        sprintf(fname_coords,"px%d_py%d_pz%d",ii,jj,kk);
-        sprintf(in_file,"%s/coord_%s.nc",par->import_dir,fname_coords);
+          iptr1 = k*points_ny*points_nx + j*points_nx + i;
 
-        ierr = nc_open(in_file, NC_NOWRITE, &ncid); handle_nc_err(ierr);
-
-        ierr = nc_get_att_int(ncid,NC_GLOBAL,att_global,global_index);
-        ierr = nc_get_att_int(ncid,NC_GLOBAL,att_count,count_points);
-
-        gni1 = global_index[0];
-        gnj1 = global_index[1];
-        gnk1 = global_index[2];
-
-        ni = count_points[0];
-        nj = count_points[1];
-        nk = count_points[2];
-
-        count[0] = nk;
-        count[1] = nj;
-        count[2] = ni;
-
-        //read vars
-        ierr = nc_inq_varid(ncid, "x", &xid);  handle_nc_err(ierr);
-        ierr = nc_inq_varid(ncid, "y", &yid);  handle_nc_err(ierr);
-        ierr = nc_inq_varid(ncid, "z", &zid);  handle_nc_err(ierr);
-        
-        ierr = nc_get_vara_float(ncid, xid, start, count, coord_x);  handle_nc_err(ierr);
-        ierr = nc_get_vara_float(ncid, yid, start, count, coord_y);  handle_nc_err(ierr);
-        ierr = nc_get_vara_float(ncid, zid, start, count, coord_z);  handle_nc_err(ierr);
-
-        for(int k=0; k<nk; k++) {
-          for(int j=0; j<nj; j++) {
-            for(int i=0; i<ni; i++)
-            {
-              gni = gni1 + i;
-              gnj = gnj1 + j;
-              gnk = gnk1 + k;
-              iptr = gnk*total_nx*total_ny + gnj*total_nx + gni;
-
-              iptr1 = k*ni*nj + j*ni + i;
-
-              x3d[iptr] = coord_x[iptr1];
-              y3d[iptr] = coord_y[iptr1];
-              z3d[iptr] = coord_z[iptr1];
-            }
-          }
+          x3d[iptr] = x3d_in[iptr1];
+          y3d[iptr] = y3d_in[iptr1];
+          z3d[iptr] = z3d_in[iptr1];
         }
-
-        //close file
-        ierr = nc_close(ncid);  handle_nc_err(ierr);
       }
     }
   }
 
-  free(coord_x);
-  free(coord_y);
-  free(coord_z);
-
+  // free 
+  for(int id=0; id<par->num_of_grid; id++)
+  {
+    gd_t *gdcurv_in_one = gdcurv_in + id;
+    free(gdcurv_in_one->v4d);
+  }
+  free(gdcurv_in);
 
   return 0;
 }
@@ -134,9 +237,9 @@ read_import_coord(gd_t *gdcurv, par_t *par)
 int
 gd_curv_coord_export(gd_t *gdcurv, par_t *par)
 {
-  int nprocx_out = par->number_of_mpiprocs_x_out;
-  int nprocy_out = par->number_of_mpiprocs_y_out;
-  int nprocz_out = par->number_of_mpiprocs_z_out;
+  int nprocx_out = par->num_of_procs_out[0];
+  int nprocy_out = par->num_of_procs_out[1];
+  int nprocz_out = par->num_of_procs_out[2];
 
   int total_nx = gdcurv->nx;
   int total_ny = gdcurv->ny;
@@ -245,9 +348,9 @@ gd_curv_coord_export(gd_t *gdcurv, par_t *par)
 int
 quality_export(io_quality_t *io_quality, gd_t *gdcurv, par_t *par, char *var_name)
 {
-  int nprocx_out = par->number_of_mpiprocs_x_out;
-  int nprocy_out = par->number_of_mpiprocs_y_out;
-  int nprocz_out = par->number_of_mpiprocs_z_out;
+  int nprocx_out = par->num_of_procs_out[0];
+  int nprocy_out = par->num_of_procs_out[1];
+  int nprocz_out = par->num_of_procs_out[2];
 
   int total_nx = io_quality->nx;
   int total_ny = io_quality->ny;
