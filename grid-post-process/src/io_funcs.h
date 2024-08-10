@@ -2,6 +2,7 @@
 #define IO_FUNCS_H
 
 #include "gd_t.h"
+#include "algebra.h"
 
 /*************************************************
  ** structure

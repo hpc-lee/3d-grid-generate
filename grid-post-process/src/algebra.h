@@ -6,15 +6,14 @@
 /*************************************************
  * function prototype
  *************************************************/
+int 
+xi_arc_stretch(gd_t *gdcurv, float *arc_len);
 
 int 
-et_arc_strech(gd_t *gdcurv, float coef);
+et_arc_stretch(gd_t *gdcurv, float *arc_len);
 
 int 
-xi_arc_strech(gd_t *gdcurv, float coef);
-
-int 
-zt_arc_strech(gd_t *gdcurv, float coef);
+zt_arc_stretch(gd_t *gdcurv, float *arc_len);
 
 int 
 sample_interp(gd_t *gdcurv_new, gd_t *gdcurv);

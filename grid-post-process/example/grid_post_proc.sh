@@ -12,7 +12,8 @@ echo "EXEC_GRID=${EXEC_GRID}"
 #-- input dir
 INPUTDIR1=/data/lihl/code/3d-grid-generate/elliptic/project1/output
 INPUTDIR2=/data/lihl/code/3d-grid-generate/elliptic/project2/output
-
+STRETCH_FILE1=`pwd`/arc_len_file1.txt
+STRETCH_FILE2=`pwd`/arc_len_file2.txt
 #-- output and conf
 PROJDIR=`pwd`/../project
 PAR_FILE=${PROJDIR}/test.json
@@ -32,28 +33,24 @@ cat << ieof > ${PAR_FILE}
   "input_grids_info" : [
     {
       "grid_import_dir" : "${INPUTDIR1}",
-      "number_of_grid_points" : [250,250,125],
-      "number_of_mpiprocs_in" : [2,2,2]
+      "number_of_grid_points" : [250,250,200],
+      "number_of_mpiprocs_in" : [2,2,2],
+      "flag_stretch" : 1,
+      "stretch_file" : "${STRETCH_FILE1}"
     },
     {
       "grid_import_dir" : "${INPUTDIR2}",
       "number_of_grid_points" : [250,250,200],
-      "number_of_mpiprocs_in" : [3,2,2]
+      "number_of_mpiprocs_in" : [3,2,2],
+      "flag_stretch" : 1,
+      "stretch_file" : "${STRETCH_FILE2}"
     }
   ],
     
+  "stretch_direction" : "z",
   "merge_direction" : "z",
 
   "number_of_mpiprocs_out" : [3,3,2],
-
-  "pml_layers" : {
-         "number_of_pml_x1" : 10,
-         "number_of_pml_x2" : 10,
-         "number_of_pml_y1" : 10,
-         "number_of_pml_y2" : 10,
-         "number_of_pml_z1" : 10,
-         "number_of_pml_z2" : 0
-  },
 
   "check_orth" : 1,
   "check_jac" : 1,
@@ -64,20 +61,22 @@ cat << ieof > ${PAR_FILE}
   "check_smooth_et" : 1,
   "check_smooth_zt" : 1,
 
-
-  "flag_strech_xi" : 0,
-  "strech_xi_coef" : 0.0001,
-  "flag_strech_et" : 0,
-  "strech_et_coef" : 0.0001,
-  "flag_strech_zt" : 0,
-  "strech_zt_coef" : 0.0001,
-
-  "flag_sample" : 1,
+  "flag_sample" : 0,
   "sample_factor_xi" : 2,
   "sample_factor_et" : 2,
   "sample_factor_zt" : 3,
 
-  "grid_export_dir" : "${OUTPUT_DIR}"
+  "grid_export_dir" : "${OUTPUT_DIR}",
+
+  "flag_pml" : 1,
+  "pml_layers" : {
+         "number_of_pml_x1" : 10,
+         "number_of_pml_x2" : 10,
+         "number_of_pml_y1" : 10,
+         "number_of_pml_y2" : 10,
+         "number_of_pml_z1" : 10,
+         "number_of_pml_z2" : 0
+  }
 
 }
 ieof

@@ -51,46 +51,11 @@ int main(int argc, char** argv)
 
   read_import_coord(gdcurv,par);
 
-  // strech xi-direction grid
-  if(par->flag_strech_xi == 1)
-  {
-    xi_arc_strech(gdcurv,par->strech_xi_coef);
-  }
-
-  // strech et-direction grid
-  if(par->flag_strech_et == 1)
-  {
-    et_arc_strech(gdcurv,par->strech_et_coef);
-  }
-
-  // strech zt-direction grid
-  if(par->flag_strech_zt == 1)
-  {
-    zt_arc_strech(gdcurv,par->strech_zt_coef);
-  }
-
   if(par->flag_sample == 1)
   {
     fprintf(stdout,"\n\n******** sample grid ******* \n");
     fprintf(stdout,"export coord to file ... \n");
     fprintf(stdout,"\n\n\n!!!!!!!!! NOTE !!!!!!!!!!!! \n");
-    fprintf(stdout,"after sample grid, we advise each direction pml layers must \n");
-    fprintf(stdout,"multiply by sample factor\n");
-
-    fprintf(stdout,"\n ****old abs layers ****\n");
-    fprintf(stdout,"old number of pml layers x1 is %d\n",par->num_of_pml_x1);
-    fprintf(stdout,"old number of pml layers x2 is %d\n",par->num_of_pml_x2);
-    fprintf(stdout,"old number of pml layers y1 is %d\n",par->num_of_pml_y1);
-    fprintf(stdout,"old number of pml layers y2 is %d\n",par->num_of_pml_y2);
-    fprintf(stdout,"old number of pml layers z1 is %d\n",par->num_of_pml_z1);
-    fprintf(stdout,"old number of pml layers z2 is %d\n",par->num_of_pml_z2);
-    fprintf(stdout,"\n ****after sample new abs layers ****\n");
-    fprintf(stdout,"new number of pml layers x1 is %d\n",par->num_of_pml_x1*par->sample_factor_xi);
-    fprintf(stdout,"new number of pml layers x2 is %d\n",par->num_of_pml_x2*par->sample_factor_xi);
-    fprintf(stdout,"new number of pml layers y1 is %d\n",par->num_of_pml_y1*par->sample_factor_et);
-    fprintf(stdout,"new number of pml layers y2 is %d\n",par->num_of_pml_y2*par->sample_factor_et);
-    fprintf(stdout,"new number of pml layers z1 is %d\n",par->num_of_pml_z1*par->sample_factor_zt);
-    fprintf(stdout,"new number of pml layers z2 is %d\n",par->num_of_pml_z2*par->sample_factor_zt);
     fprintf(stdout,"currently sampling, please wait\n");
     fflush(stdout);
 

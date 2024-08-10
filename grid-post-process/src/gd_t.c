@@ -78,12 +78,12 @@ gd_info_set(gd_t *gdcurv, par_t *par, int iprocx, int iprocy, int iprocz,
   int nprocy_out = par->num_of_procs_out[1];
   int nprocz_out = par->num_of_procs_out[2];
 
-  int num_of_pml_x1 = par->num_of_pml_x1*par->sample_factor_xi;
-  int num_of_pml_x2 = par->num_of_pml_x2*par->sample_factor_xi;
-  int num_of_pml_y1 = par->num_of_pml_y1*par->sample_factor_et;
-  int num_of_pml_y2 = par->num_of_pml_y2*par->sample_factor_et;
-  int num_of_pml_z1 = par->num_of_pml_z1*par->sample_factor_zt;
-  int num_of_pml_z2 = par->num_of_pml_z2*par->sample_factor_zt;
+  int num_of_pml_x1 = par->num_of_pml_x1;
+  int num_of_pml_x2 = par->num_of_pml_x2;
+  int num_of_pml_y1 = par->num_of_pml_y1;
+  int num_of_pml_y2 = par->num_of_pml_y2;
+  int num_of_pml_z1 = par->num_of_pml_z1;
+  int num_of_pml_z2 = par->num_of_pml_z2;
 
   int gni1, gnj1, gnk1;
   // determine ni

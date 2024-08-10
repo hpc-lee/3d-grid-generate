@@ -131,6 +131,68 @@ read_import_coord(gd_t *gdcurv, par_t *par)
     free(coord_z);
   }
 
+  // stretch grid
+  for(int id=0; id<par->num_of_grid; id++)
+  {
+    gd_t *gdcurv_in_one = gdcurv_in + id;
+    int npoints;
+    FILE *fp = NULL;
+    char str[500];
+
+    if(par->flag_stretch[id] == 1)
+    {
+      // read stretch file
+      if ((fp = fopen(par->stretch_file[id],"r"))==NULL) {
+         fprintf(stderr,"ERROR: fail to open step file=%s\n", par->stretch_file[id]);
+         fflush(stdout); exit(1);
+      }
+      // number of points
+      if (!io_get_nextline(fp,str,500)) {
+        sscanf(str,"%d",&npoints);
+      }
+
+      float *arc_len = (float *)mem_calloc_1d_float(
+                              npoints, 0.0, "arc length");
+
+      for (int i=0; i<npoints; i++)
+      {
+        if (!io_get_nextline(fp,str,500)) {
+          sscanf(str,"%f",arc_len + i);
+        }
+      }
+      if(par->stretch_idire == X_DIRE)
+      {
+        if(npoints != gdcurv_in_one->nx)
+        {
+          fprintf(stdout,"!error stretch x direction points number not matching\n");
+          exit(-1);
+        }
+        xi_arc_stretch(gdcurv_in_one, arc_len);
+      }
+      if(par->stretch_idire == Y_DIRE)
+      {
+        if(npoints != gdcurv_in_one->ny)
+        {
+          fprintf(stdout,"!error stretch y direction points number not matching\n");
+          exit(-1);
+        }
+        et_arc_stretch(gdcurv_in_one, arc_len);
+      }
+      if(par->stretch_idire == Z_DIRE)
+      {
+        if(npoints != gdcurv_in_one->nz)
+        {
+          fprintf(stdout,"!error stretch z direction points number not matching\n");
+          exit(-1);
+        }
+        zt_arc_stretch(gdcurv_in_one, arc_len);
+      }
+      // close step file and free local pointer
+      fclose(fp);
+      free(arc_len);
+    }
+  }
+
   int total_nx = 0;
   int total_ny = 0;
   int total_nz = 0;

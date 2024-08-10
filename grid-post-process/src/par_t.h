@@ -23,8 +23,16 @@ typedef struct{
   int num_of_grid;
   char **import_dir;
 
+  int *flag_stretch;
+  char **stretch_file;
+
+  char stretch_dire[PAR_MAX_STRLEN];
+  int stretch_idire;
+
   char merge_dire[PAR_MAX_STRLEN];
   int merge_idire;
+
+  int flag_pml;
 
   int  num_of_pml_x1;
   int  num_of_pml_x2;
@@ -43,12 +51,6 @@ typedef struct{
   int check_smooth_et;
   int check_smooth_zt;
 
-  int flag_strech_xi;
-  int flag_strech_et;
-  int flag_strech_zt;
-  float strech_xi_coef;
-  float strech_et_coef;
-  float strech_zt_coef;
 
   int flag_sample;
   int sample_factor_xi;

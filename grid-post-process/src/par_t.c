@@ -58,7 +58,9 @@ par_read_from_str(const char *str, par_t *par)
     par->num_of_grid = cJSON_GetArraySize(item);
     par->num_of_points = (int *)malloc(par->num_of_grid*sizeof(int)*CONST_NDIM);
     par->num_of_procs_in = (int *)malloc(par->num_of_grid*sizeof(int)*CONST_NDIM);
+    par->flag_stretch = (int *)malloc(par->num_of_grid*sizeof(int));
     par->import_dir = (char **)malloc(par->num_of_grid*sizeof(char*));
+    par->stretch_file = (char **)malloc(par->num_of_grid*sizeof(char*));
     // each input grid info
     for (int i=0; i < par->num_of_grid; i++)
     {
@@ -80,6 +82,18 @@ par_read_from_str(const char *str, par_t *par)
           par->num_of_procs_in[i*CONST_NDIM+j] = cJSON_GetArrayItem(thirditem, j)->valueint;
         }
       }
+      if (thirditem = cJSON_GetObjectItem(subitem, "flag_stretch"))
+      {
+        par->flag_stretch[i] = thirditem->valueint;
+      }
+      if(par->flag_stretch[i] == 1)
+      {
+        par->stretch_file[i] = (char *)malloc(PAR_MAX_STRLEN*sizeof(char));
+        if (thirditem = cJSON_GetObjectItem(subitem, "stretch_file"))
+        {
+          sprintf(par->stretch_file[i],"%s",thirditem->valuestring);
+        }
+      }
     }
   }
 
@@ -92,6 +106,22 @@ par_read_from_str(const char *str, par_t *par)
     }
   }
 
+  par->stretch_idire = 0;
+  if (item = cJSON_GetObjectItem(root, "stretch_direction")) 
+  {
+    sprintf(par->stretch_dire, "%s", item->valuestring);
+    if(strcmp(par->stretch_dire, "x")==0)
+    {
+      par->stretch_idire = X_DIRE;
+    } else if (strcmp(par->stretch_dire, "y")==0) {
+      par->stretch_idire = Y_DIRE;
+    } else if (strcmp(par->stretch_dire, "z")==0) {
+      par->stretch_idire = Z_DIRE;
+    } else {
+      fprintf(stdout,"ERROR: must give stretch direction\n");
+      exit(-1);
+    }
+  }
   par->merge_idire = 0;
   if (par->num_of_grid > 1)
   {
@@ -115,30 +145,42 @@ par_read_from_str(const char *str, par_t *par)
   }
 
   // default pml layers
+  par->flag_pml = 0;
   par->num_of_pml_x1 = 0;
   par->num_of_pml_x2 = 0;
   par->num_of_pml_y1 = 0;
   par->num_of_pml_y2 = 0;
   par->num_of_pml_z1 = 0;
   par->num_of_pml_z2 = 0;
-  if (item = cJSON_GetObjectItem(root, "pml_layers")) {
-    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_x1")) {
-      par->num_of_pml_x1 = subitem->valueint;
-    }
-    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_x2")) {
-      par->num_of_pml_x2 = subitem->valueint;
-    }
-    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_y1")) {
-      par->num_of_pml_y1 = subitem->valueint;
-    }
-    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_y2")) {
-      par->num_of_pml_y2 = subitem->valueint;
-    }
-    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_z1")) {
-      par->num_of_pml_z1 = subitem->valueint;
-    }
-    if (subitem = cJSON_GetObjectItem(item, "number_of_pml_z2")) {
-      par->num_of_pml_z2 = subitem->valueint;
+
+  // flag_pml = 1; double pml layer for computation balance
+  // eg. nx = 100, pml_x1 = 10, pml_x2 = 10, nproc_x=3
+  // gird points is (30 40 30)
+  // not (33,33,34)
+  if (item = cJSON_GetObjectItem(root, "flag_pml")) {
+    par->flag_pml = item->valueint;
+  }
+  if(par->flag_pml==1)
+  {
+    if (item = cJSON_GetObjectItem(root, "pml_layers")) {
+      if (subitem = cJSON_GetObjectItem(item, "number_of_pml_x1")) {
+        par->num_of_pml_x1 = subitem->valueint;
+      }
+      if (subitem = cJSON_GetObjectItem(item, "number_of_pml_x2")) {
+        par->num_of_pml_x2 = subitem->valueint;
+      }
+      if (subitem = cJSON_GetObjectItem(item, "number_of_pml_y1")) {
+        par->num_of_pml_y1 = subitem->valueint;
+      }
+      if (subitem = cJSON_GetObjectItem(item, "number_of_pml_y2")) {
+        par->num_of_pml_y2 = subitem->valueint;
+      }
+      if (subitem = cJSON_GetObjectItem(item, "number_of_pml_z1")) {
+        par->num_of_pml_z1 = subitem->valueint;
+      }
+      if (subitem = cJSON_GetObjectItem(item, "number_of_pml_z2")) {
+        par->num_of_pml_z2 = subitem->valueint;
+      }
     }
   }
 
@@ -185,28 +227,6 @@ par_read_from_str(const char *str, par_t *par)
     par->grid_check = 1;
   }
 
-  // default not strech
-  par->flag_strech_xi = 0;
-  par->flag_strech_et = 0;
-  par->flag_strech_zt = 0;
-  if (item = cJSON_GetObjectItem(root, "flag_strech_xi")) {
-    par->flag_strech_xi = item->valueint;
-  }
-  if (item = cJSON_GetObjectItem(root, "strech_xi_coef")) {
-    par->strech_xi_coef = item->valuedouble;
-  }
-  if (item = cJSON_GetObjectItem(root, "flag_strech_et")) {
-    par->flag_strech_et = item->valueint;
-  }
-  if (item = cJSON_GetObjectItem(root, "strech_et_coef")) {
-    par->strech_et_coef = item->valuedouble;
-  }
-  if (item = cJSON_GetObjectItem(root, "flag_strech_zt")) {
-    par->flag_strech_zt = item->valueint;
-  }
-  if (item = cJSON_GetObjectItem(root, "strech_zt_coef")) {
-    par->strech_zt_coef = item->valuedouble;
-  }
 
   // default not intep
   par->sample_factor_xi = 1;
@@ -269,6 +289,10 @@ par_print(par_t *par)
     par->num_of_procs_in[2+i*CONST_NDIM]);
 
     fprintf(stdout,"input grid dir is \n %s\n", par->import_dir[i]);
+    if(par->flag_stretch[i] == 1) {
+      fprintf(stdout, "------- strech direction is %s\n",par->stretch_dire);
+      fprintf(stdout, "------- strech file is %s\n",par->stretch_file[i]);
+    }
   }
 
   if(par->num_of_grid>1)
@@ -292,15 +316,6 @@ par_print(par_t *par)
     fprintf(stdout,"------- sample grid xi direction factor is %d------- \n",par->sample_factor_xi);
     fprintf(stdout,"------- sample grid et direction factor is %d------- \n",par->sample_factor_et);
     fprintf(stdout,"------- sample grid zt direction factor is %d------- \n",par->sample_factor_zt);
-  }
-  if(par->flag_strech_xi == 1) {
-    fprintf(stdout, "------- strech xi and strech coef is %f-------\n",par->strech_xi_coef);
-  }
-  if(par->flag_strech_et == 1) {
-    fprintf(stdout, "------- strech et and strech coef is %f-------\n",par->strech_et_coef);
-  }
-  if(par->flag_strech_zt == 1) {
-    fprintf(stdout, "------- strech zt and strech coef is %f-------\n",par->strech_zt_coef);
   }
 
   fprintf(stdout,"export grid dir is \n %s\n",par->export_dir);
