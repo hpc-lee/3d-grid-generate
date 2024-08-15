@@ -16,7 +16,6 @@ int main(int argc, char** argv)
 {
   time_t t_start = time(NULL);
 
-  int verbose;
   char *par_fname;
   char err_message[CONST_MAX_STRLEN];
 
@@ -25,26 +24,21 @@ int main(int argc, char** argv)
   //-------------------------------------------------------------------------------
 
   // argc checking
-  if (argc < 3) {
-    fprintf(stdout,"usage: main_grid_3d <par_file> <opt: verbose>\n");
+  if (argc < 2) {
+    fprintf(stdout,"usage: main_grid_3d <par_file>\n");
     exit(1);
   }
 
   par_fname = argv[1];
-
-  if (argc >= 3) {
-    verbose = atoi(argv[2]); // verbose number
-    fprintf(stdout,"verbose=%d\n", verbose); fflush(stdout);
-  }
 
   fprintf(stdout,"par file =  %s\n", par_fname); fflush(stdout);
 
   // read par
   par_t *par = (par_t *) malloc(sizeof(par_t));
 
-  par_read_from_file(par_fname, par, verbose);
+  par_read_from_file(par_fname, par);
 
-  if (verbose>0) par_print(par);
+  par_print(par);
   gd_t *gdcurv = (gd_t *) malloc(sizeof(gd_t));
   // for grid sample space
   gd_t *gdcurv_new = (gd_t *) malloc(sizeof(gd_t));
@@ -54,9 +48,8 @@ int main(int argc, char** argv)
   if(par->flag_sample == 1)
   {
     fprintf(stdout,"\n\n******** sample grid ******* \n");
-    fprintf(stdout,"export coord to file ... \n");
-    fprintf(stdout,"\n\n\n!!!!!!!!! NOTE !!!!!!!!!!!! \n");
     fprintf(stdout,"currently sampling, please wait\n");
+    fprintf(stdout,"export coord to file ... \n");
     fflush(stdout);
 
     grid_sample(gdcurv_new,gdcurv,par->sample_factor_xi,par->sample_factor_et,par->sample_factor_zt);
