@@ -36,7 +36,7 @@ init_gdcurv(gd_t *gdcurv)
 
 int
 gd_info_set(gd_t *gdcurv, mympi_t *mympi,
-            par_t *par, int verbose)
+            par_t *par)
 {
   int ierr = 0;
 
@@ -206,7 +206,7 @@ gd_info_print(gd_t *gdcurv, mympi_t *mympi)
 
 int
 set_output_dir(gd_t *gdcurv, mympi_t *mympi,
-               par_t *par, int verbose)
+               par_t *par)
 {
   // output file name
   if(par->dire_itype == Z_DIRE)

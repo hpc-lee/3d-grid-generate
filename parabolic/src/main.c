@@ -14,7 +14,6 @@
 
 int main(int argc, char** argv)
 {
-  int verbose;
   char *par_fname;
   char err_message[CONST_MAX_STRLEN];
 
@@ -23,17 +22,12 @@ int main(int argc, char** argv)
   //-------------------------------------------------------------------------------
 
   // argc checking
-  if (argc < 3) {
-    fprintf(stdout,"usage: main_grid_3d <par_file> <opt: verbose>\n");
+  if (argc < 2) {
+    fprintf(stdout,"usage: main_grid_3d <par_file>\n");
     exit(1);
   }
 
   par_fname = argv[1];
-
-  if (argc >= 3) {
-    verbose = atoi(argv[2]); // verbose number
-    fprintf(stdout,"verbose=%d\n", verbose); fflush(stdout);
-  }
 
   fprintf(stdout,"par file =  %s\n", par_fname); fflush(stdout);
 
@@ -46,31 +40,31 @@ int main(int argc, char** argv)
   MPI_Comm_size(comm, &mpi_size);
 
 
-  if (myid==0 && verbose>0) fprintf(stdout,"comm=%d, size=%d\n", comm, mpi_size); 
-  if (myid==0 && verbose>0) fprintf(stdout,"par file =  %s\n", par_fname); 
+  if (myid==0) fprintf(stdout,"comm=%d, size=%d\n", comm, mpi_size); 
+  if (myid==0) fprintf(stdout,"par file =  %s\n", par_fname); 
 
   // read par
   par_t *par = (par_t *) malloc(sizeof(par_t));
-  par_mpi_get(par_fname, myid, comm, par, verbose);
-  if (myid==0 && verbose>0) par_print(par);
+  par_mpi_get(par_fname, myid, comm, par);
+  if (myid==0) par_print(par);
 
   // set mpi
   mympi_t *mympi = (mympi_t *) malloc(sizeof(mympi_t));
-  if (myid==0 && verbose>0) fprintf(stdout,"set mpi topo ...\n"); 
+  if (myid==0) fprintf(stdout,"set mpi topo ...\n"); 
   mympi_set(mympi,
             par->number_of_mpiprocs,
             comm,
-            myid, verbose);
+            myid);
 
   gd_t *gdcurv = (gd_t *) malloc(sizeof(gd_t));
   // set gdinfo
-  gd_info_set(gdcurv, mympi, par, verbose);
+  gd_info_set(gdcurv, mympi, par);
 
   gd_info_print(gdcurv, mympi);
   init_gdcurv(gdcurv);
 
   // set str in blk
-  set_output_dir(gdcurv, mympi, par, verbose);
+  set_output_dir(gdcurv, mympi, par);
   
   // read bdry and init iter grid 
   bdry_t *bdry = (bdry_t *) malloc(sizeof(bdry_t));

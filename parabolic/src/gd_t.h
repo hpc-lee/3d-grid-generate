@@ -71,14 +71,14 @@ assign_bdry_coord(gd_t *gdcurv, bdry_t *bdry, mympi_t *mympi);
 
 int
 gd_info_set(gd_t *gdcurv, mympi_t *mympi,
-            par_t *par, int verbose);
+            par_t *par);
 
 int
 gd_info_print(gd_t *gdcurv, mympi_t *mympi);
 
 int
 set_output_dir(gd_t *gdcurv, mympi_t *mympi,
-               par_t *par, int verbose);
+               par_t *par);
 
 int 
 check_bdry(float *x1, float *x2, float *y1, float *y2,float *z1, float *z2,

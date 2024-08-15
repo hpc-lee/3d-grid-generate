@@ -13,7 +13,7 @@ int
 mympi_set(mympi_t *mympi,
           int number_of_mpiprocs,
           MPI_Comm comm,
-          int myid, int verbose)
+          int myid)
 {
   int ierr = 0;
   
