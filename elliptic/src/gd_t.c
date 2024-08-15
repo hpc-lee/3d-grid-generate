@@ -435,8 +435,8 @@ check_bdry(float *x1, float *x2, float *y1, float *y2, float *z1, float *z2,
 int
 gd_info_set(gd_t *gdcurv,
             mympi_t *mympi,
-            par_t *par,
-            int verbose)
+            par_t *par)
+           
 {
   int ierr = 0;
 
@@ -559,8 +559,7 @@ gd_info_set(gd_t *gdcurv,
 int
 set_output_dir(gd_t *gdcurv,
                mympi_t *mympi,
-               char *output_dir,
-               int verbose)
+               char *output_dir)
 {
   // output file name
   sprintf(gdcurv->fname_part,"px%d_py%d_pz%d", mympi->topoid[0],mympi->topoid[1],mympi->topoid[2]);
@@ -603,7 +602,7 @@ gd_info_print(gd_t *gdcurv, mympi_t *mympi)
 
   fflush(stdout);
 
-  return(0);
+  return 0;
 }
 
 int

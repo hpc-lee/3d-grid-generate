@@ -2050,6 +2050,7 @@ int interp_inner_source(src_t *src, gd_t *gdcurv, float coef)
 
   float xi,et,zt,c0,c1,r0,r1;
   size_t iptr, iptr1;
+
   for(int k=1; k<nz-1; k++) {
     for(int j=1; j<ny-1; j++) {
       for(int i=1; i<nx-1; i++)
@@ -2120,6 +2121,30 @@ int interp_inner_source(src_t *src, gd_t *gdcurv, float coef)
       }
     }
   }
+
+  //for(int k=1; k<nz-1; k++) {
+  //  for(int j=1; j<ny-1; j++) {
+  //    for(int i=1; i<nx-1; i++)
+  //    {
+  //      gni = gni1 + i;
+  //      gnk = gnk1 + k-1; 
+  //      gnj = gnj1 + j-1; 
+  //      xi = (1.0*gni)/(total_nx-1);
+
+  //      c0 = 1-xi;
+  //      c1 = xi;
+
+  //      r0 = exp(coef*xi);
+  //      r1 = exp(coef*(1-xi)); 
+  //      
+  //      iptr  = k*siz_iz + j*siz_iy + i;
+  //      iptr1 = gnk*(total_ny-2) + gnj;
+  //      P[iptr] = c0*P_x1[iptr1] + c1*P_x2[iptr1];
+  //      Q[iptr] = r0*Q_x1[iptr1] + r1*Q_x2[iptr1];
+  //      R[iptr] = r0*R_x1[iptr1] + r1*R_x2[iptr1];
+  //    }
+  //  }
+  //}
 
   return 0;
 }

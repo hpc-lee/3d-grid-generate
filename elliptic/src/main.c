@@ -18,7 +18,6 @@
 
 int main(int argc, char** argv)
 {
-  int verbose;
   char *par_fname;
   char err_message[CONST_MAX_STRLEN];
 
@@ -29,56 +28,51 @@ int main(int argc, char** argv)
   MPI_Comm_rank(comm, &myid);
   MPI_Comm_size(comm, &mpi_size);
 
-  if (myid==0 && verbose>0) fprintf(stdout,"comm=%d, size=%d\n", comm, mpi_size); 
-  if (myid==0 && verbose>0) fprintf(stdout,"par file =  %s\n", par_fname); 
+  if (myid==0) fprintf(stdout,"comm=%d, size=%d\n", comm, mpi_size); 
+  if (myid==0) fprintf(stdout,"par file =  %s\n", par_fname); 
   //-------------------------------------------------------------------------------
   // get commond-line argument
   //-------------------------------------------------------------------------------
 
   // argc checking
-  if (argc < 3) {
-    fprintf(stdout,"usage: main_grid_2d <par_file> <opt: verbose>\n");
+  if (argc < 2) {
+    fprintf(stdout,"usage: main_grid_2d <par_file>\n");
     exit(1);
   }
 
   par_fname = argv[1];
 
-  if (argc >= 3) {
-    verbose = atoi(argv[2]); // verbose number
-    if (myid==0 && verbose>0) fprintf(stdout,"verbose=%d\n", verbose); fflush(stdout);
-  }
 
-  if (myid==0 && verbose>0) fprintf(stdout,"par file =  %s\n", par_fname); fflush(stdout);
+  if (myid==0) fprintf(stdout,"par file =  %s\n", par_fname); fflush(stdout);
 
 
   // read par
   par_t *par = (par_t *) malloc(sizeof(par_t));
 
-  par_mpi_get(par_fname, myid, comm, par, verbose);
+  par_mpi_get(par_fname, myid, comm, par);
 
-  if (myid==0 && verbose>0) par_print(par);
+  if (myid==0) par_print(par);
 
   gd_t *gdcurv = (gd_t *) malloc(sizeof(gd_t));
   mympi_t *mympi = (mympi_t *) malloc(sizeof(mympi_t));
   // set mpi
-  if (myid==0 && verbose>0) fprintf(stdout,"set mpi topo ...\n"); 
+  if (myid==0) fprintf(stdout,"set mpi topo ...\n"); 
   mympi_set(mympi,
             par->number_of_mpiprocs_x,
             par->number_of_mpiprocs_y,
             par->number_of_mpiprocs_z,
             comm,
-            myid, verbose);
+            myid);
 
   // set gdinfo
-  gd_info_set(gdcurv, mympi, par,verbose);
+  gd_info_set(gdcurv, mympi, par);
 
   gd_info_print(gdcurv, mympi);
   init_gdcurv(gdcurv);
 
   // set str in blk
   set_output_dir(gdcurv, mympi,
-                 par->output_dir,
-                 verbose);
+                 par->output_dir);
   
   // read bdry and init iter grid 
   bdry_t *bdry = (bdry_t *) malloc(sizeof(bdry_t));
@@ -86,9 +80,9 @@ int main(int argc, char** argv)
   read_bdry(myid,bdry,par->geometry_input_file);
 
   // linear tfi generate init iter grid
-  if(myid == 0 && verbose>0) fprintf(stdout,"use linear tfi to generate init grid\n");
+  if(myid == 0) fprintf(stdout,"use linear tfi to generate init grid\n");
   linear_tfi(gdcurv,bdry,mympi);
-  if(myid == 0 && verbose>0) fprintf(stdout,"exchange coords\n");
+  if(myid == 0) fprintf(stdout,"exchange coords\n");
   gd_curv_coord_exchange(gdcurv,mympi->neighid,mympi->topocomm);
   grid_mesg_init(mympi, gdcurv);
 
