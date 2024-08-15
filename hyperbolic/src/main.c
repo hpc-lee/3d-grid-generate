@@ -14,7 +14,6 @@
 
 int main(int argc, char** argv)
 {
-  int verbose;
   char *par_fname;
   char err_message[CONST_MAX_STRLEN];
 
@@ -23,26 +22,21 @@ int main(int argc, char** argv)
   //-------------------------------------------------------------------------------
 
   // argc checking
-  if (argc < 3) {
-    fprintf(stdout,"usage: main_grid_3d <par_file> <opt: verbose>\n");
+  if (argc < 2) {
+    fprintf(stdout,"usage: main_grid_3d <par_file>\n");
     exit(1);
   }
 
   par_fname = argv[1];
-
-  if (argc >= 3) {
-    verbose = atoi(argv[2]); // verbose number
-    fprintf(stdout,"verbose=%d\n", verbose); fflush(stdout);
-  }
 
   fprintf(stdout,"par file =  %s\n", par_fname); fflush(stdout);
 
   // read par
   par_t *par = (par_t *) malloc(sizeof(par_t));
 
-  par_read_from_file(par_fname, par, verbose);
+  par_read_from_file(par_fname, par);
 
-  if (verbose>0) par_print(par);
+  par_print(par);
 
   // generate grid 
   gd_t *gdcurv = (gd_t *) malloc(sizeof(gd_t));
