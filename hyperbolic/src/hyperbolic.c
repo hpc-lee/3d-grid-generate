@@ -56,6 +56,16 @@ hyper_gene(gd_t *gdcurv, par_t *par)
   double *xyz = NULL;
   xyz = (double *)mem_calloc_1d_double(size*3, 0.0, "init");
 
+  // solve first layer
+  int k=1;
+  cal_matrix(gdcurv,k,a_xi,b_xi,c_xi,a_et,b_et,c_et,d_et,volume);
+  modify_smooth(gdcurv,k,coef_e_xi,coef_e_et,a_xi,b_xi,c_xi,a_et,b_et,c_et,d_et);
+  modify_bdry(a_xi,b_xi,c_xi,a_et,b_et,c_et,d_et,nx,ny,epsilon_x,bdry_x_itype,epsilon_y,bdry_y_itype);
+  solve_et_block(a_et,b_et,c_et,d_et,g_xi,nx,ny);
+  solve_xi_block(a_xi,b_xi,c_xi,g_xi,xyz,nx,ny);
+  assign_coords(gdcurv,xyz,k,epsilon_x,bdry_x_itype,epsilon_y,bdry_y_itype);
+
+
   for(int k=1; k<nz; k++)
   {
     cal_smooth_coef(gdcurv,coef,k,coef_e_xi,coef_e_et);
@@ -127,21 +137,177 @@ cal_smooth_coef(gd_t *gdcurv, float coef, int k, float *coef_e_xi, float *coef_e
   size_t siz_iy = nx;
   size_t siz_iz = nx*ny;
 
-  if(nz<=50) {
-    S = sqrt((1.0*k)/(nz-1));
-  }
+  S = sqrt((1.0*k)/(nz-1));
+  //if(nz<=50) {
+  //  S = sqrt((1.0*k)/(nz-1));
+  //}
 
-  if(nz>50) 
+  //if(nz>50) 
+  //{
+  //  if(k<=50)
+  //  {
+  //    S = sqrt((1.0*k)/(50));
+  //  } else {
+  //    S = 1.0 + (k-51)/(nz-51);
+  //  }
+  //}
+
+  if(k==1)
   {
-    if(k<=50)
-    {
-      S = sqrt((1.0*k)/(50));
-    } else {
-      S = 1.0 + (k-51)/(nz-51);
+    int k1=2;
+    for(int j=1; j<ny-1; j++) {
+      for(int i=1; i<nx-1; i++)
+      {
+        iptr1 = (k1-1)*siz_iz + j*siz_iy + i+1;   // (i+1,j,k-1)
+        iptr2 = (k1-1)*siz_iz + j*siz_iy + i-1;   // (i-1,j,k-1)
+        x_xi = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_xi = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_xi = 0.5*(z3d[iptr1] - z3d[iptr2]); 
+
+        iptr1 = (k1-1)*siz_iz + (j+1)*siz_iy + i; // (i,j+1,k-1)
+        iptr2 = (k1-1)*siz_iz + (j-1)*siz_iy + i; // (i,j-1,k-1)
+        x_et = 0.5*(x3d[iptr1] - x3d[iptr2]);
+        y_et = 0.5*(y3d[iptr1] - y3d[iptr2]);
+        z_et = 0.5*(z3d[iptr1] - z3d[iptr2]); 
+
+        iptr1 = (k1-1)*siz_iz + j*siz_iy + i;     // (i,j,k-1)
+        iptr2 = (k1-2)*siz_iz + j*siz_iy + i;     // (i,j,k-2)
+        x_zt = x3d[iptr1] - x3d[iptr2];
+        y_zt = y3d[iptr1] - y3d[iptr2];
+        z_zt = z3d[iptr1] - z3d[iptr2];
+
+        xi_len = sqrt(pow(x_xi,2) + pow(y_xi,2) + pow(z_xi,2));
+        et_len = sqrt(pow(x_et,2) + pow(y_et,2) + pow(z_et,2));
+        zt_len = sqrt(pow(x_zt,2) + pow(y_zt,2) + pow(z_zt,2));
+        N_xi = zt_len/xi_len;
+        N_et = zt_len/et_len;
+
+        iptr1 = (k1-2)*siz_iz + j*siz_iy + i+1;   // (i+1,j,k-2)
+        iptr2 = (k1-2)*siz_iz + j*siz_iy + i;     // (i,  j,k-2)
+        iptr3 = (k1-2)*siz_iz + j*siz_iy + i-1;   // (i-1,j,k-2)
+        x_xi_plus = x3d[iptr1] - x3d[iptr2];
+        y_xi_plus = y3d[iptr1] - y3d[iptr2];
+        z_xi_plus = z3d[iptr1] - z3d[iptr2];
+        xi_plus1 = sqrt(pow(x_xi_plus,2) + pow(y_xi_plus,2) + pow(z_xi_plus,2));
+        x_xi_minus = x3d[iptr2] - x3d[iptr3];
+        y_xi_minus = y3d[iptr2] - y3d[iptr3];
+        z_xi_minus = z3d[iptr2] - z3d[iptr3];
+        xi_minus1 = sqrt(pow(x_xi_minus,2) + pow(y_xi_minus,2) + pow(z_xi_minus,2));
+        iptr1 = (k1-2)*siz_iz + (j+1)*siz_iy + i;   // (i,j+1,k-2)
+        iptr2 = (k1-2)*siz_iz + j*siz_iy + i;       // (i,  j,k-2)
+        iptr3 = (k1-2)*siz_iz + (j-1)*siz_iy + i;   // (i,j-1,k-2)
+        x_et_plus = x3d[iptr1] - x3d[iptr2];
+        y_et_plus = y3d[iptr1] - y3d[iptr2];
+        z_et_plus = z3d[iptr1] - z3d[iptr2];
+        et_plus1 = sqrt(pow(x_et_plus,2) + pow(y_et_plus,2) + pow(z_et_plus,2));
+        x_et_minus = x3d[iptr2] - x3d[iptr3];
+        y_et_minus = y3d[iptr2] - y3d[iptr3];
+        z_et_minus = z3d[iptr2] - z3d[iptr3];
+        et_minus1 = sqrt(pow(x_et_minus,2) + pow(y_et_minus,2) + pow(z_et_minus,2));
+
+        iptr1 = (k1-1)*siz_iz + j*siz_iy + i+1;   // (i+1,j,k-1)
+        iptr2 = (k1-1)*siz_iz + j*siz_iy + i;     // (i,  j,k-1)
+        iptr3 = (k1-1)*siz_iz + j*siz_iy + i-1;   // (i-1,j,k-1)
+        x_xi_plus = x3d[iptr1] - x3d[iptr2];
+        y_xi_plus = y3d[iptr1] - y3d[iptr2];
+        z_xi_plus = z3d[iptr1] - z3d[iptr2];
+        xi_plus2 = sqrt(pow(x_xi_plus,2) + pow(y_xi_plus,2) + pow(z_xi_plus,2));
+        x_xi_minus = x3d[iptr2] - x3d[iptr3];
+        y_xi_minus = y3d[iptr2] - y3d[iptr3];
+        z_xi_minus = z3d[iptr2] - z3d[iptr3];
+        xi_minus2 = sqrt(pow(x_xi_minus,2) + pow(y_xi_minus,2) + pow(z_xi_minus,2));
+        iptr1 = (k1-1)*siz_iz + (j+1)*siz_iy + i;   // (i,j+1,k-1)
+        iptr2 = (k1-1)*siz_iz + j*siz_iy + i;       // (i,  j,k-1)
+        iptr3 = (k1-1)*siz_iz + (j-1)*siz_iy + i;   // (i,j-1,k-1)
+        x_et_plus = x3d[iptr1] - x3d[iptr2];
+        y_et_plus = y3d[iptr1] - y3d[iptr2];
+        z_et_plus = z3d[iptr1] - z3d[iptr2];
+        et_plus2 = sqrt(pow(x_et_plus,2) + pow(y_et_plus,2) + pow(z_et_plus,2));
+        x_et_minus = x3d[iptr2] - x3d[iptr3];
+        y_et_minus = y3d[iptr2] - y3d[iptr3];
+        z_et_minus = z3d[iptr2] - z3d[iptr3];
+        et_minus2 = sqrt(pow(x_et_minus,2) + pow(y_et_minus,2) + pow(z_et_minus,2));
+
+        d_xi1 = xi_plus1 + xi_minus1;
+        d_xi2 = xi_plus2 + xi_minus2;
+        d_et1 = et_plus1 + et_minus1;
+        d_et2 = et_plus2 + et_minus2;
+
+        delta_xi = d_xi1/d_xi2;
+        delta_et = d_et1/d_et2;
+        delta_xi_mdfy = fmax(pow(delta_xi,2/S),0.1);
+        delta_et_mdfy = fmax(pow(delta_et,2/S),0.1);
+
+        // normalization
+        iptr1 = (k1-1)*siz_iz + j*siz_iy + i+1;   // (i+1,j,k-1)
+        iptr2 = (k1-1)*siz_iz + j*siz_iy + i;     // (i,  j,k-1)
+        iptr3 = (k1-1)*siz_iz + j*siz_iy + i-1;   // (i-1,j,k-1)
+        x_xi_plus = (x3d[iptr1]-x3d[iptr2])/xi_plus2;
+        y_xi_plus = (y3d[iptr1]-y3d[iptr2])/xi_plus2;
+        z_xi_plus = (z3d[iptr1]-z3d[iptr2])/xi_plus2;
+        x_xi_minus = (x3d[iptr3]-x3d[iptr2])/xi_minus2;
+        y_xi_minus = (y3d[iptr3]-y3d[iptr2])/xi_minus2;
+        z_xi_minus = (z3d[iptr3]-z3d[iptr2])/xi_minus2;
+        iptr1 = (k1-1)*siz_iz + (j+1)*siz_iy + i;   // (i,j+1,k-1)
+        iptr2 = (k1-1)*siz_iz + j*siz_iy + i;       // (i,  j,k-1)
+        iptr3 = (k1-1)*siz_iz + (j-1)*siz_iy + i;   // (i,j-1,k-1)
+        x_et_plus = (x3d[iptr1]-x3d[iptr2])/et_plus2;
+        y_et_plus = (y3d[iptr1]-y3d[iptr2])/et_plus2;
+        z_et_plus = (z3d[iptr1]-z3d[iptr2])/et_plus2;
+        x_et_minus = (x3d[iptr3]-x3d[iptr2])/et_minus2;
+        y_et_minus = (y3d[iptr3]-y3d[iptr2])/et_minus2;
+        z_et_minus = (z3d[iptr3]-z3d[iptr2])/et_minus2;
+
+        r_xi[0] = x_xi_plus - x_xi_minus; 
+        r_xi[1] = y_xi_plus - y_xi_minus; 
+        r_xi[2] = z_xi_plus - z_xi_minus; 
+        r_et[0] = x_et_plus - x_et_minus; 
+        r_et[1] = y_et_plus - y_et_minus; 
+        r_et[2] = z_et_plus - z_et_minus; 
+
+        // define vec_n = r_xi X r_et
+        cross_product(r_xi,r_et,vec_n);
+        len_vec = sqrt(pow(vec_n[0],2) + pow(vec_n[1],2) + pow(vec_n[2],2)); 
+        vec_n[0] = vec_n[0]/len_vec;
+        vec_n[1] = vec_n[1]/len_vec;
+        vec_n[2] = vec_n[2]/len_vec;
+
+        cos_alpha_xi1 = vec_n[0]*x_xi_plus  + vec_n[1]*y_xi_plus  + vec_n[2]*z_xi_plus;
+        cos_alpha_xi2 = vec_n[0]*x_xi_minus + vec_n[1]*y_xi_minus + vec_n[2]*z_xi_minus;
+        cos_alpha_xi = 0.5*(cos_alpha_xi1 + cos_alpha_xi2);
+
+        cos_alpha_et1 = vec_n[0]*x_et_plus  + vec_n[1]*y_et_plus  + vec_n[2]*z_et_plus;
+        cos_alpha_et2 = vec_n[0]*x_et_minus + vec_n[1]*y_et_minus + vec_n[2]*z_et_minus;
+        cos_alpha_et = 0.5*(cos_alpha_et1 + cos_alpha_et2);
+        if(cos_alpha_xi>=0)
+        {
+          alpha_xi = 1.0/(1-pow(cos_alpha_xi,2));
+        }
+        if(cos_alpha_xi<0)
+        {
+          alpha_xi = 1.0;
+        }
+        if(cos_alpha_et>=0)
+        {
+          alpha_et = 1.0/(1-pow(cos_alpha_et,2));
+        }
+        if(cos_alpha_et<0)
+        {
+          alpha_et = 1.0;
+        }
+        if(cos_alpha_xi>1 || cos_alpha_xi<(-1) || cos_alpha_et>1 ||cos_alpha_et<(-1))
+        {
+          fprintf(stdout,"angle calculation is wrong\n");
+          fflush(stdout); exit(1);
+        }
+        iptr1 = (j-1)*(nx-2) + i-1;
+        coef_e_xi[iptr1] = coef*N_xi*S*delta_xi_mdfy*alpha_xi;
+        coef_e_et[iptr1] = coef*N_et*S*delta_et_mdfy*alpha_et;
+      }
     }
   }
 
-  // k=1 do nothing
+
   if(k>1)
   {
     for(int j=1; j<ny-1; j++) {
