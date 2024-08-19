@@ -137,6 +137,18 @@ par_read_from_str(const char *str, par_t *par)
     par->grid_check = 1;
   }
 
+  //default set
+  for (int i=0; i<6; i++)
+  {
+    par->flag_bdry_orth[i] = 1;
+  }
+  if (item = cJSON_GetObjectItem(root, "flag_bdry_orth")) {
+    for (int i=0; i<6; i++)
+    {
+      par->flag_bdry_orth[i] = cJSON_GetArrayItem(item, i)->valueint;
+    }
+  }
+
   if (item = cJSON_GetObjectItem(root, "geometry_input_file")) {
     sprintf(par->geometry_input_file, "%s", item->valuestring);
   }

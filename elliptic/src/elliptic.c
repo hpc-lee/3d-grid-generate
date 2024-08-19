@@ -82,6 +82,7 @@ diri_gene(gd_t *gdcurv, par_t *par, mympi_t *mympi)
   float err = par->iter_err;
   int max_iter = par->max_iter;
   float coef = par->coef;
+  int *flag_orth = par->flag_bdry_orth;
 
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
@@ -124,7 +125,7 @@ diri_gene(gd_t *gdcurv, par_t *par, mympi_t *mympi)
   g33_z = (float *)mem_calloc_1d_float(ny*nx*2, 0.0, "g33_z");
   ghost_cal(x3d,y3d,z3d,nx,ny,nz,p_x,p_y,p_z,g11_x,g22_y,g33_z,neighid);
 
-  set_src_diri(x3d,y3d,z3d,gdcurv,src,p_x,p_y,p_z,g11_x,g22_y,g33_z,mympi);
+  set_src_diri(x3d,y3d,z3d,gdcurv,src,p_x,p_y,p_z,g11_x,g22_y,g33_z,flag_orth,mympi);
   interp_inner_source(src, gdcurv, coef);
 
   // copy coord
@@ -230,7 +231,7 @@ diri_gene(gd_t *gdcurv, par_t *par, mympi_t *mympi)
     y3d_tmp = ptr_y;
     z3d_tmp = ptr_z;
     
-    set_src_diri(x3d,y3d,z3d,gdcurv,src,p_x,p_y,p_z,g11_x,g22_y,g33_z,mympi);
+    set_src_diri(x3d,y3d,z3d,gdcurv,src,p_x,p_y,p_z,g11_x,g22_y,g33_z,flag_orth,mympi);
     interp_inner_source(src, gdcurv, coef);
 
     if(Niter>max_iter) {
@@ -265,7 +266,8 @@ diri_gene(gd_t *gdcurv, par_t *par, mympi_t *mympi)
 int
 set_src_diri(float *x3d, float *y3d, float *z3d, gd_t *gdcurv, 
              src_t *src, float *p_x, float *p_y, float *p_z,
-             float *g11_x, float *g22_y, float *g33_z, mympi_t *mympi)
+             float *g11_x, float *g22_y, float *g33_z, 
+             int *flag_orth, mympi_t *mympi)
 {
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
@@ -363,7 +365,7 @@ set_src_diri(float *x3d, float *y3d, float *z3d, gd_t *gdcurv,
   float *Q_z2 = src->Q_z2;
   float *R_z2 = src->R_z2;
   // bdry x1 xi=0
-  if(neighid[0] == MPI_PROC_NULL)
+  if(neighid[0] == MPI_PROC_NULL && flag_orth[0] == 1)
   {
     for(int k=1; k<nz-1; k++) {
       for(int j=1; j<ny-1; j++)
@@ -436,7 +438,7 @@ set_src_diri(float *x3d, float *y3d, float *z3d, gd_t *gdcurv,
   }
 
   // bdry x2 
-  if(neighid[1] == MPI_PROC_NULL)
+  if(neighid[1] == MPI_PROC_NULL && flag_orth[1] == 1)
   {
     for(int k=1; k<nz-1; k++) {
       for(int j=1; j<ny-1; j++)
@@ -511,7 +513,7 @@ set_src_diri(float *x3d, float *y3d, float *z3d, gd_t *gdcurv,
   }
 
   // bdry y1 
-  if(neighid[2] == MPI_PROC_NULL)
+  if(neighid[2] == MPI_PROC_NULL && flag_orth[2] == 1)
   {
     for(int k=1; k<nz-1; k++) {
       for(int i=1; i<nx-1; i++)
@@ -583,7 +585,7 @@ set_src_diri(float *x3d, float *y3d, float *z3d, gd_t *gdcurv,
     }
   }
   // bdry y2 
-  if(neighid[3] == MPI_PROC_NULL)
+  if(neighid[3] == MPI_PROC_NULL && flag_orth[3] == 1)
   {
     for(int k=1; k<nz-1; k++) {
       for(int i=1; i<nx-1; i++)
@@ -655,7 +657,7 @@ set_src_diri(float *x3d, float *y3d, float *z3d, gd_t *gdcurv,
     }
   }
   // bdry z1 
-  if(neighid[4] == MPI_PROC_NULL)
+  if(neighid[4] == MPI_PROC_NULL && flag_orth[4] == 1)
   {
     for(int j=1; j<ny-1; j++) {
       for(int i=1; i<nx-1; i++)
@@ -727,7 +729,7 @@ set_src_diri(float *x3d, float *y3d, float *z3d, gd_t *gdcurv,
     }
   }
   // bdry z2 
-  if(neighid[5] == MPI_PROC_NULL)
+  if(neighid[5] == MPI_PROC_NULL && flag_orth[5] == 1)
   {
     for(int j=1; j<ny-1; j++) {
       for(int i=1; i<nx-1; i++)
@@ -1158,6 +1160,7 @@ higen_gene(gd_t *gdcurv, par_t *par, mympi_t *mympi)
   float err = par->iter_err;
   int max_iter = par->max_iter;
   float coef = par->coef;
+  int *flag_orth = par->flag_bdry_orth;
 
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
@@ -1192,7 +1195,7 @@ higen_gene(gd_t *gdcurv, par_t *par, mympi_t *mympi)
   float *dz2 = (float *)mem_calloc_1d_float(ny*nx, 0.0, "dz2");
   dist_cal(gdcurv,dx1,dx2,dy1,dy2,dz1,dz2,neighid);
 
-  set_src_higen(x3d,y3d,z3d,gdcurv,src,dx1,dx2,dy1,dy2,dz1,dz2,mympi);
+  set_src_higen(x3d,y3d,z3d,gdcurv,src,dx1,dx2,dy1,dy2,dz1,dz2,flag_orth,mympi);
   interp_inner_source(src, gdcurv, coef);
 
   // copy coord
@@ -1298,7 +1301,7 @@ higen_gene(gd_t *gdcurv, par_t *par, mympi_t *mympi)
     y3d_tmp = ptr_y;
     z3d_tmp = ptr_z;
     
-    set_src_higen(x3d,y3d,z3d,gdcurv,src,dx1,dx2,dy1,dy2,dz1,dz2,mympi);
+    set_src_higen(x3d,y3d,z3d,gdcurv,src,dx1,dx2,dy1,dy2,dz1,dz2,flag_orth,mympi);
     interp_inner_source(src, gdcurv, coef);
 
     if(Niter>max_iter) {
@@ -1334,7 +1337,7 @@ int
 set_src_higen(float *x3d, float *y3d, float *z3d, 
               gd_t *gdcurv, src_t *src, float *dx1, 
               float *dx2, float *dy1, float *dy2,
-              float *dz1, float *dz2, mympi_t *mympi)
+              float *dz1, float *dz2, int *flag_orth, mympi_t *mympi)
              
 {
   int nx = gdcurv->nx;
@@ -1414,7 +1417,7 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
   // xi = 0. Q R -, P + 
   // xi = 1. Q R +, P - 
   // bdry x1 xi=0
-  if(neighid[0] == MPI_PROC_NULL)
+  if(neighid[0] == MPI_PROC_NULL && flag_orth[0] == 1)
   {
     for(int k=1; k<nz-1; k++) {
       for(int j=1; j<ny-1; j++)
@@ -1467,7 +1470,7 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
     }
   }
   // bdry x2 xi=1
-  if(neighid[1] == MPI_PROC_NULL)
+  if(neighid[1] == MPI_PROC_NULL && flag_orth[1] == 1)
   {
     for(int k=1; k<nz-1; k++) {
       for(int j=1; j<ny-1; j++)
@@ -1520,7 +1523,7 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
     }
   }
   // bdry y1 et=0
-  if(neighid[2] == MPI_PROC_NULL)
+  if(neighid[2] == MPI_PROC_NULL && flag_orth[2] == 1)
   {
     for(int k=1; k<nz-1; k++) {
       for(int i=1; i<nx-1; i++)
@@ -1573,7 +1576,7 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
     }
   }
   // bdry y2 et=0
-  if(neighid[3] == MPI_PROC_NULL)
+  if(neighid[3] == MPI_PROC_NULL && flag_orth[3] == 1)
   {
     for(int k=1; k<nz-1; k++) {
       for(int i=1; i<nx-1; i++)
@@ -1626,7 +1629,7 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
     }
   }
   // bdry z1 zt=0
-  if(neighid[4] == MPI_PROC_NULL)
+  if(neighid[4] == MPI_PROC_NULL && flag_orth[4] == 1)
   {
     for(int j=1; j<ny-1; j++) {
       for(int i=1; i<nx-1; i++)
@@ -1679,7 +1682,7 @@ set_src_higen(float *x3d, float *y3d, float *z3d,
     }
   }
   // bdry z2 zt=1
-  if(neighid[5] == MPI_PROC_NULL)
+  if(neighid[5] == MPI_PROC_NULL && flag_orth[5] == 1)
   {
     for(int j=1; j<ny-1; j++) {
       for(int i=1; i<nx-1; i++)
@@ -2121,30 +2124,6 @@ int interp_inner_source(src_t *src, gd_t *gdcurv, float coef)
       }
     }
   }
-
-  //for(int k=1; k<nz-1; k++) {
-  //  for(int j=1; j<ny-1; j++) {
-  //    for(int i=1; i<nx-1; i++)
-  //    {
-  //      gni = gni1 + i;
-  //      gnk = gnk1 + k-1; 
-  //      gnj = gnj1 + j-1; 
-  //      xi = (1.0*gni)/(total_nx-1);
-
-  //      c0 = 1-xi;
-  //      c1 = xi;
-
-  //      r0 = exp(coef*xi);
-  //      r1 = exp(coef*(1-xi)); 
-  //      
-  //      iptr  = k*siz_iz + j*siz_iy + i;
-  //      iptr1 = gnk*(total_ny-2) + gnj;
-  //      P[iptr] = c0*P_x1[iptr1] + c1*P_x2[iptr1];
-  //      Q[iptr] = r0*Q_x1[iptr1] + r1*Q_x2[iptr1];
-  //      R[iptr] = r0*R_x1[iptr1] + r1*R_x2[iptr1];
-  //    }
-  //  }
-  //}
 
   return 0;
 }

@@ -17,7 +17,7 @@ echo "EXEC_GRID=${EXEC_GRID}"
 INPUTDIR=`pwd`
 
 #-- output and conf
-PROJDIR=`pwd`/../project2
+PROJDIR=`pwd`/../project1
 PAR_FILE=${PROJDIR}/test.json
 OUTPUT_DIR=${PROJDIR}/output
 
@@ -38,7 +38,7 @@ NPROCS_Z=2
 #----------------------------------------------------------------------
 cat << ieof > ${PAR_FILE}
 {
-  "number_of_grid_points_x" : 100,
+  "number_of_grid_points_x" : 200,
   "number_of_grid_points_y" : 400,
   "number_of_grid_points_z" : 200,
 
@@ -55,18 +55,20 @@ cat << ieof > ${PAR_FILE}
   "check_smooth_et" : 1,
   "check_smooth_zt" : 1,
 
+  "flag_bdry_orth" : [1,1,0,0,0,0],
+
   "geometry_input_file" : "${INPUTDIR}/data_file_3d.txt",
   "grid_export_dir" : "${OUTPUT_DIR}",
 
   "grid_method" : {
       "#linear_tfi" : "",
       "elli_diri" : {
-          "coef" : -5,
+          "coef" : -20,
           "iter_err" : 1E-2,
           "max_iter" : 5E3
       },
       "#elli_higen" : {
-          "coef" : -20,
+          "coef" : -30,
           "iter_err" : 1E-2,
           "max_iter" : 5E3
       }

@@ -7,7 +7,7 @@ close all;
 
 flag_printf = 1;
 
-nx = 100;
+nx = 200;
 ny = 400;
 nz = 200;
 
@@ -24,20 +24,21 @@ by1 = zeros(nz,nx,3);
 by2 = zeros(nz,nx,3);
 bx1 = zeros(nz,ny,3);
 bx2 = zeros(nz,ny,3);
-
+pi=3.1415926;
+theta=45/180*pi;
 for k=1:nz
   for j=1:ny
-    bx1(k,j,1) = origin_x - (nx-1)*dx;
+    bx1(k,j,1) = origin_x - (nx-1)*dx- (nz-k)*dz*tan(theta);
     bx1(k,j,2) = origin_y + (j-1)*dy;
     bx1(k,j,3) = origin_z - (nz-k)*dz;
 
-    bx2(k,j,1) = origin_x;
+    bx2(k,j,1) = origin_x - (nz-k)*dz*tan(theta);
     bx2(k,j,2) = origin_y + (j-1)*dy;
     bx2(k,j,3) = origin_z - (nz-k)*dz;
   end
 end
 
-if 1
+if 0
 for k = 1:nz
     for j = 1:ny
         r1 = sqrt((bx2(k,j,2)-10.5e3).^2 + (bx2(k,j,3)+7.5e3).^2);

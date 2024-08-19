@@ -40,6 +40,8 @@ typedef struct{
   int check_smooth_et;
   int check_smooth_zt;
 
+  int flag_bdry_orth[6];
+
   char geometry_input_file[PAR_MAX_STRLEN];
   char output_dir[PAR_MAX_STRLEN];
   
