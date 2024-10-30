@@ -1,25 +1,26 @@
 clear all;
 close all;
 clc;
-addmypath
 
 % -------------------------- parameters input -------------------------- %
 % file and path name
-parfnm='../project2/test.json';
-output_dir='../project2/output';
+parfnm='../project/test.json';
+output_dir='../project/output';
 
 % which grid profile to plot
-subs=[1,300,1];    
-subc=[-1,1,-1];   % '-1' to plot all points in this dimension
+% subs=[1,1,1];    
+% subc=[-1,-1,1];   % '-1' to plot all points in this dimension
+% subt=[2,2,2];
+
+subs=[10,1,1];    
+subc=[1,-1,-1];   % '-1' to plot all points in this dimension
 subt=[1,1,1];
 
 % figure control parameters
 flag_km     = 0;
-flag_emlast = 1;
 flag_print  = 0;
 flag_clb    = 1;
 flag_title  = 1;
-scl_daspect = [1 1 1];
 clrmp       = 'parula';
 
 % varable to plot 
@@ -27,8 +28,8 @@ clrmp       = 'parula';
 % 'orth_etzt', 'jacobi',  
 % 'smooth_xi', 'smooth_et','smooth_zt',
 % 'step_xi', 'step_et', 'step_zt'
-varnm = 'orth_xizt';
-% varnm = 'jacobi';
+varnm = 'orth_etzt';
+% varnm = 'step_xi';
 %-----------------------------------------------------------
 %-- load coord
 %-----------------------------------------------------------
@@ -58,38 +59,31 @@ set(hid,'BackingStore','on');
 
 if subc(1) == 1
     pcolor(y,z,v);
-    xlabel(['Y axis (' str_unit ')']);
-    ylabel(['Z axis (' str_unit ')']);
+    xlabel(['y-axis (' str_unit ')']);
+    ylabel(['z-axis (' str_unit ')']);
      
 elseif subc(2) == 1
     pcolor(x,z,v);
-    xlabel(['X axis (' str_unit ')']);
-    ylabel(['Z axis (' str_unit ')']);
+    xlabel(['x-axis (' str_unit ')']);
+    ylabel(['z-axis (' str_unit ')']);
      
 elseif subc(3) == 1
     pcolor(x,y,v);
-    xlabel(['X axis (' str_unit ')']);
-    ylabel(['Y axis (' str_unit ')']);
+    xlabel(['x-axis (' str_unit ')']);
+    ylabel(['y-axis (' str_unit ')']);
 end
-
-xlabel(['X axis (' str_unit ')']);
-ylabel(['Z axis (' str_unit ')']);
+     
 
 set(gca,'layer','top');
-set(gcf,'color','white','renderer','painters');
+set(gcf,'color','white');
 
 % shading
-% shading interp;
-% shading flat;
+shading interp;
 % colorbar range/scale
 if exist('scl_caxis','var')
     caxis(scl_caxis);
 end
-% axis daspect
-if exist('scl_daspect')
-    daspect(scl_daspect);
-end
-axis equal
+axis equal tight;
 % colormap and colorbar
 if exist('clrmp')
     colormap(clrmp);
@@ -99,16 +93,10 @@ if flag_clb
 end
 % title
 if flag_title
-    title(varnm,'interpreter','none');
+    title(varnm,'Interpreter','none');
 end
 
 % save and print figure
 if flag_print
-    width= 500;
-    height=500;
-    set(gcf,'paperpositionmode','manual');
-    set(gcf,'paperunits','points');
-    set(gcf,'papersize',[width,height]);
-    set(gcf,'paperposition',[0,0,width,height]);
     print(gcf,[varnm '.png'],'-dpng');
 end

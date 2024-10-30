@@ -33,7 +33,7 @@ DIR_OBJ  := ./obj
 # 	$< The names of the first prerequisite
 #   $^ The names of all the prerequisites 
 
-OBJS := cJSON.o lib_mem.o \
+OBJS := cJSON.o lib_mem.o lib_math.o\
 			  io_funcs.o gd_t.o par_t.o \
 				quality_check.o algebra.o main.o
 

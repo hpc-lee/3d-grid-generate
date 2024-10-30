@@ -15,8 +15,9 @@ typedef struct {
   int nj1, nj2;
   int nk1, nk2;
   // global index
-  int gni1, gnj1, gnk1; // global index, do not accout ghost point
-  int gni2, gnj2, gnk2; // global index
+  int gni1, gni2; // global index, do not accout ghost point
+  int gnj1, gnj2; 
+  int gnk1, gnk2; 
 
   int total_nx;
   int total_ny;
@@ -33,25 +34,13 @@ typedef struct {
   size_t siz_iz;
   size_t siz_icmp;
 
+  float *step;
+
   char fname_part[CONST_MAX_STRLEN];
   char output_dir[CONST_MAX_STRLEN];
 
 } gd_t;
 
-typedef struct {
-
-  float *var;
-  float *x1;
-  float *x2;
-  float *y1;
-  float *y2;
-  float *z1;
-  float *z2;
-  int total_nx;
-  int total_ny;
-  int total_nz;
-
-} bdry_t;
 
 /*************************************************
  * function prototype
@@ -59,15 +48,6 @@ typedef struct {
 
 int
 init_gdcurv(gd_t *gdcurv);
-
-int
-init_bdry(bdry_t *bdry, par_t *par);
-
-int
-read_bdry(int myid, bdry_t *bdry, char *geometry_file);
-
-int
-assign_bdry_coord(gd_t *gdcurv, bdry_t *bdry, mympi_t *mympi);
 
 int
 gd_info_set(gd_t *gdcurv, mympi_t *mympi,
@@ -80,15 +60,8 @@ int
 set_output_dir(gd_t *gdcurv, mympi_t *mympi,
                par_t *par);
 
-int 
-check_bdry(float *x1, float *x2, float *y1, float *y2,float *z1, float *z2,
-           int nx, int ny, int nz);
-
 int
-permute_bdry_x(bdry_t *bdry, gd_t *gdcurv);
-
-int
-permute_bdry_y(bdry_t *bdry, gd_t *gdcurv);
+read_bdry_file(gd_t *gdcurv, par_t *par);
 
 int
 permute_coord_x(gd_t *gdcurv);
@@ -107,5 +80,8 @@ grid_pack_mesg(mympi_t *mympi, gd_t *gdcurv, int k);
 
 int
 grid_unpack_mesg(mympi_t *mympi, gd_t *gdcurv, int k);
+
+int
+cal_min_dist(gd_t *gdcurv, int *indx_i, int *indx_j, int *indx_k, float *dL_min);
 
 #endif

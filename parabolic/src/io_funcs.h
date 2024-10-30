@@ -23,10 +23,10 @@ int
 init_io_quality(io_quality_t *io_quality, gd_t *gdcurv);
 
 int
-gd_curv_coord_export(gd_t *gdcurv, mympi_t *mympi);
+gd_curv_coord_export(gd_t *gdcurv, par_t *par, mympi_t *mympi);
 
 int
-quality_export(io_quality_t *io_quality, gd_t *gdcurv, mympi_t *mympi, char *var_name);
+quality_export(io_quality_t *io_quality, gd_t *gdcurv, par_t *par, mympi_t *mympi, char *var_name);
 
 int
 io_get_nextline(FILE *fp, char *str, int length);

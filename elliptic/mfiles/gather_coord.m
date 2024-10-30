@@ -22,16 +22,14 @@ for n=1:nthd
        error([mfilename ': file ' fnm_coord 'does not exist']);
     end
 
-    subs=fliplr(subs);subc=fliplr(subc);subt=fliplr(subt);
+    %- x coord
+    x(i1:i2,j1:j2,k1:k2)=ncread(fnm_coord,'x',subs,subc,subt);
 
     %- x coord
-    x(k1:k2,j1:j2,i1:i2)=nc_varget(fnm_coord,'x',subs-1,subc,subt);
-
-    %- x coord
-    y(k1:k2,j1:j2,i1:i2)=nc_varget(fnm_coord,'y',subs-1,subc,subt);
+    y(i1:i2,j1:j2,k1:k2)=ncread(fnm_coord,'y',subs,subc,subt);
 
     %- z coord
-    z(k1:k2,j1:j2,i1:i2)=nc_varget(fnm_coord,'z',subs-1,subc,subt);
+    z(i1:i2,j1:j2,k1:k2)=ncread(fnm_coord,'z',subs,subc,subt);
 end
 
 x = squeeze(x);

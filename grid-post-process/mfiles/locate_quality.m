@@ -6,7 +6,8 @@ if ~ exist(parfnm,'file')
 end
 
 % read parameters file
-par=loadjson(parfnm);
+jsontext=fileread(parfnm);
+par=jsondecode(jsontext);
 num_of_grid = length(par.input_grids_info);
 
 total_nx = 0;
@@ -14,9 +15,9 @@ total_ny = 0;
 total_nz = 0;
 if(strcmp(par.merge_direction,"x") == 1)
   for i=1:num_of_grid
-    total_nx = total_nx + par.input_grids_info{i}.number_of_grid_points(1);
-    total_ny = par.input_grids_info{1}.number_of_grid_points(2);
-    total_nz = par.input_grids_info{1}.number_of_grid_points(3);
+    total_nx = total_nx + par.input_grids_info(i).number_of_grid_points(1);
+    total_ny = par.input_grids_info(1).number_of_grid_points(2);
+    total_nz = par.input_grids_info(1).number_of_grid_points(3);
   end
   total_nx = total_nx - num_of_grid + 1;
   ngijk=[total_nx,total_ny,total_nz];
@@ -24,9 +25,9 @@ end
 
 if(strcmp(par.merge_direction,"y") == 1)
   for i=1:num_of_grid
-    total_ny = total_ny + par.input_grids_info{i}.number_of_grid_points(2);
-    total_nx = par.input_grids_info{1}.number_of_grid_points(1);
-    total_nz = par.input_grids_info{1}.number_of_grid_points(3);
+    total_ny = total_ny + par.input_grids_info(i).number_of_grid_points(2);
+    total_nx = par.input_grids_info(1).number_of_grid_points(1);
+    total_nz = par.input_grids_info(1).number_of_grid_points(3);
   end
   total_ny = total_ny - num_of_grid + 1;
   ngijk=[total_nx,total_ny,total_nz];
@@ -34,9 +35,9 @@ end
 
 if(strcmp(par.merge_direction,"z") == 1)
   for i=1:num_of_grid
-    total_nz = total_nz + par.input_grids_info{i}.number_of_grid_points(3);
-    total_nx = par.input_grids_info{1}.number_of_grid_points(1);
-    total_ny = par.input_grids_info{1}.number_of_grid_points(2);
+    total_nz = total_nz + par.input_grids_info(i).number_of_grid_points(3);
+    total_nx = par.input_grids_info(1).number_of_grid_points(1);
+    total_ny = par.input_grids_info(1).number_of_grid_points(2);
   end
   total_nz = total_nz - num_of_grid + 1;
   ngijk=[total_nx,total_ny,total_nz];
@@ -65,11 +66,11 @@ n=0;
 for i=1:length(coordlist)
     
     coordnm=[output_dir,'/',coordlist(i).name];
-    xyzs=double(nc_attget(coordnm,nc_global,'global_index_of_first_physical_points'));
+    xyzs=double(ncreadatt(coordnm, '/', 'global_index_of_first_physical_points'));
     xs=xyzs(1);
     ys=xyzs(2);
     zs=xyzs(3);
-    xyzc=double(nc_attget(coordnm,nc_global,'count_of_physical_points'));
+    xyzc=double(ncreadatt(coordnm, '/', 'count_of_physical_points'));
     xc=xyzc(1);
     yc=xyzc(2);
     zc=xyzc(3);
@@ -97,11 +98,11 @@ for ip=1:length(px)
     
     coordnm=[output_dir,'/',coordprefix,'_px',num2str(px(ip)),...
             '_py',num2str(py(ip)),'_pz',num2str(pz(ip)),'.nc'];
-    xyzs=double(nc_attget(coordnm,nc_global,'global_index_of_first_physical_points'));
+    xyzs=double(ncreadatt(coordnm, '/', 'global_index_of_first_physical_points'));
     xs=xyzs(1);
     ys=xyzs(2);
     zs=xyzs(3);
-    xyzc=double(nc_attget(coordnm,nc_global,'count_of_physical_points'));
+    xyzc=double(ncreadatt(coordnm, '/', 'count_of_physical_points'));
     xc=xyzc(1);
     yc=xyzc(2);
     zc=xyzc(3);

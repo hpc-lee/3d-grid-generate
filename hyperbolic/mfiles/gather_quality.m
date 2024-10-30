@@ -22,10 +22,8 @@ for n=1:nthd
        error([mfilename ': file ' fnm_var 'does not exist']);
     end
 
-    subs=fliplr(subs);subc=fliplr(subc);subt=fliplr(subt);
-
     %- x coord
-    v(k1:k2,j1:j2,i1:i2)=nc_varget(fnm_var,varnm,subs-1,subc,subt);
+    v(i1:i2,j1:j2,k1:k2)=ncread(fnm_var,varnm,subs,subc,subt);
 
 end
 

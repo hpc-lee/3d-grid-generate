@@ -70,8 +70,6 @@ zt_arc_stretch(gd_t *gdcurv, float *arc_len)
       }
       for(int k=1; k<nz-1; k++)
       {
-        zt = (1.0*k)/(nz-1);
-        //r = single_exp(coef,zt);
         r = arc_len[k];
         for(int m=0; m<nz-1; m++)
         {
@@ -165,8 +163,6 @@ et_arc_stretch(gd_t *gdcurv, float *arc_len)
       }
       for(int j=1; j<ny-1; j++)
       {
-        et = (1.0*j)/(ny-1);
-        //r = single_exp(coef,et);
         r = arc_len[j];
         for(int m=0; m<ny-1; m++)
         {
@@ -260,8 +256,6 @@ xi_arc_stretch(gd_t *gdcurv, float *arc_len)
       }
       for(int i=1; i<nx-1; i++)
       {
-        xi = (1.0*i)/(nx-1);
-        //r = single_exp(coef,xi);
         r = arc_len[i];
         for(int m=0; m<nx-1; m++)
         {

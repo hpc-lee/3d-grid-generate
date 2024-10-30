@@ -32,13 +32,11 @@ int main(int argc, char** argv)
   fprintf(stdout,"par file =  %s\n", par_fname); fflush(stdout);
 
   // init MPI
-
   int myid, mpi_size;
   MPI_Init(&argc, &argv);
   MPI_Comm comm = MPI_COMM_WORLD;
   MPI_Comm_rank(comm, &myid);
   MPI_Comm_size(comm, &mpi_size);
-
 
   if (myid==0) fprintf(stdout,"comm=%d, size=%d\n", comm, mpi_size); 
   if (myid==0) fprintf(stdout,"par file =  %s\n", par_fname); 
@@ -65,26 +63,14 @@ int main(int argc, char** argv)
 
   // set str in blk
   set_output_dir(gdcurv, mympi, par);
-  
-  // read bdry and init iter grid 
-  bdry_t *bdry = (bdry_t *) malloc(sizeof(bdry_t));
-  init_bdry(bdry,par);
-  read_bdry(myid,bdry,par->geometry_input_file);
-  
-  if(par->dire_itype == X_DIRE)
-  {
-    permute_bdry_x(bdry,gdcurv);
-  }
-  if(par->dire_itype == Y_DIRE)
-  {
-    permute_bdry_y(bdry,gdcurv);
-  }
-  assign_bdry_coord(gdcurv, bdry, mympi);
 
   grid_mesg_init(mympi, gdcurv);
-  time_t t_start = time(NULL);
 
-  para_gene(gdcurv, mympi, bdry, par);
+  read_bdry_file(gdcurv, par);
+
+  time_t t_start = time(NULL);
+  para_gene(gdcurv, mympi, par);
+
   // after grid generate
   if(par->dire_itype == X_DIRE)
   {
@@ -93,7 +79,6 @@ int main(int argc, char** argv)
   if(par->dire_itype == Y_DIRE)
   {
     permute_coord_y(gdcurv);
-    modify_neighid(mympi);
   }
 
   time_t t_end = time(NULL);
@@ -102,10 +87,18 @@ int main(int argc, char** argv)
     fprintf(stdout,"\n************************************\n");
     fprintf(stdout,"grid generate running time is :%f s \n", difftime(t_end,t_start));
     fprintf(stdout,"************************************\n \n");
-
     fprintf(stdout,"export coord to file ... \n");
   }
-  gd_curv_coord_export(gdcurv,mympi);
+
+  gd_curv_coord_export(gdcurv,par,mympi);
+  
+  //  cal min dist 
+  int indx_i, indx_j, indx_k;
+  float dL_min;
+  cal_min_dist(gdcurv, &indx_i, &indx_j, &indx_k, &dL_min);
+  fprintf(stdout,"mpiid is %d, indx is (%d,%d,%d),dL_min_global is %f\n",
+          myid,indx_i, indx_j, indx_k, dL_min);
+  fflush(stdout);
 
   // grid quality check and export quality data
   io_quality_t *io_quality = (io_quality_t *) malloc(sizeof(io_quality_t));
@@ -120,6 +113,7 @@ int main(int argc, char** argv)
     init_io_quality(io_quality,gdcurv);
     grid_quality_check(io_quality,gdcurv,par,mympi);
   }
+
 
   MPI_Finalize();
 

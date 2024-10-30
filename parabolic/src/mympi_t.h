@@ -11,15 +11,13 @@
 
 typedef struct {
 
-  int       nprocx;
-  int       nprocy;
-  int       nprocz;
+  int       nproc;
 
   int       myid;
   MPI_Comm  comm;
 
-  int    topoid[3];
-  int    neighid[6];
+  int    topoid[1];
+  int    neighid[2];
   MPI_Comm    topocomm;
 
   MPI_Request *s_reqs;
@@ -48,7 +46,5 @@ mympi_set(mympi_t *mympi,
           int number_of_mpiprocs,
           MPI_Comm comm, 
           int myid);
-int
-modify_neighid(mympi_t *mympi);
 
 #endif

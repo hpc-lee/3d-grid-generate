@@ -29,24 +29,16 @@ origin_z = 0;
 bz = zeros(ny,nx,3);
 % NOTE: x direction tight
 % so coord x incremental with x
-for j=1:100
-  for i=1:nx
-    bz(j,i,1) = origin_x + (i-1)*dh;
-    bz(j,i,2) = origin_y + (j-1)*dh;
-    bz(j,i,3) = origin_z;
-  end
-end
-
-for j=101:ny
+for j=1:ny
   for i=p1:p2
     bz(j,i,1) = origin_x + (i-1)*dh;
     bz(j,i,2) = origin_y + (j-1)*dh;
     bz(j,i,3) = origin_z;
   end
   for i=p2+1:p3
-    bz(j,i,1) = origin_x + bz(j,p2,1) + cos(0.5*pi*60/90)*(i-p2)*dh;
+    bz(j,i,1) = origin_x + bz(j,p2,1) + cos(0.5*pi*90/90)*(i-p2)*dh;
     bz(j,i,2) = origin_y + (j-1)*dh;
-    bz(j,i,3) = origin_z + bz(j,p2,3) - sin(0.5*pi*60/90)*(i-p2)*dh;
+    bz(j,i,3) = origin_z + bz(j,p2,3) - sin(0.5*pi*90/90)*(i-p2)*dh;
   end
   for i=p3+1:p4
     bz(j,i,1) = origin_x + bz(j,p3,1) + (i-p3)*dh;
@@ -54,9 +46,9 @@ for j=101:ny
     bz(j,i,3) = origin_z + bz(j,p3,3);
   end
   for i=p4+1:p5
-    bz(j,i,1) = origin_x + bz(j,p4,1) + cos(0.5*pi*60/90)*(i-p4)*dh;
+    bz(j,i,1) = origin_x + bz(j,p4,1) + cos(0.5*pi*90/90)*(i-p4)*dh;
     bz(j,i,2) = origin_y + (j-1)*dh;
-    bz(j,i,3) = origin_z + bz(j,p4,3) + sin(0.5*pi*60/90)*(i-p4)*dh;
+    bz(j,i,3) = origin_z + bz(j,p4,3) + sin(0.5*pi*90/90)*(i-p4)*dh;
   end
   for i=p5+1:p6
     bz(j,i,1) = origin_x + bz(j,p5,1) + (i-p5)*dh;
@@ -104,6 +96,6 @@ for j=1:ny
 end
 
 if flag_printf
-   print(gcf,'model1.png','-r300','-dpng');
+   print(gcf,'model3.png','-r300','-dpng');
  end
 

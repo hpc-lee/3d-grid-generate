@@ -132,6 +132,9 @@ par_read_from_str(const char *str, par_t *par)
   if (item = cJSON_GetObjectItem(root, "geometry_input_file")) {
     sprintf(par->geometry_input_file, "%s", item->valuestring);
   }
+  if (item = cJSON_GetObjectItem(root, "step_input_file")) {
+    sprintf(par->step_input_file, "%s", item->valuestring);
+  }
   if (item = cJSON_GetObjectItem(root, "grid_export_dir")) {
     sprintf(par->grid_export_dir, "%s", item->valuestring);
   }
@@ -140,8 +143,8 @@ par_read_from_str(const char *str, par_t *par)
     if (subitem = cJSON_GetObjectItem(item, "coef")) {
       par->coef = subitem->valuedouble;
     }
-    if (subitem = cJSON_GetObjectItem(item, "o2i")) {
-      par->o2i = subitem->valueint;
+    if (subitem = cJSON_GetObjectItem(item, "t2b")) {
+      par->t2b = subitem->valueint;
     }
     if (subitem = cJSON_GetObjectItem(item, "direction")) {
       sprintf(par->direction, "%s", subitem->valuestring);
@@ -160,7 +163,6 @@ par_read_from_str(const char *str, par_t *par)
     }
   }
 
-
   return ierr;
 }
 
@@ -177,6 +179,7 @@ par_print(par_t *par)
   fprintf(stdout,"number of mpi procs is %d\n",par->number_of_mpiprocs);
 
   fprintf(stdout,"input geometry file is \n %s\n",par->geometry_input_file);
+  fprintf(stdout,"step file is \n %s\n",par->step_input_file);
   fprintf(stdout,"export grid dir is \n %s\n",par->grid_export_dir);
   fprintf(stdout, "-------------------------------------------------------\n");
   if (par->grid_check == 1) {
@@ -210,11 +213,11 @@ par_print(par_t *par)
   fprintf(stdout, "------- grid generate method-------\n");
   fprintf(stdout, "grid generate method is parabolic\n");
   fprintf(stdout, "parabolic coef is %f\n", par->coef);
-  if(par->o2i == 1)
+  if(par->t2b == 1)
   {
-    fprintf(stdout, "outer(bdry_2) to inner(bdry_1)\n");
+    fprintf(stdout, "top boundary to bottom boundary\n");
   } else {
-    fprintf(stdout, "inner(bdry_1) to outer(bdry_2)\n");
+    fprintf(stdout, "bottom boundary to top boundary\n");
   }
   
   fflush(stdout);

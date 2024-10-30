@@ -1,34 +1,35 @@
 clear all;
 close all;
 clc;
-addmypath
 
 % -------------------------- parameters input -------------------------- %
 % file and path name
-parfnm='../project/test.json';
-output_dir='../project/output';
+parfnm='../project1/test.json';
+output_dir='../project1/output';
 
 % which grid profile to plot
-subs=[125,50,150];    
-subc=[1,100,100];   % '-1' to plot all points in this dimension
+subs=[2,1,1];    
+subc=[1,-1,-1];   % '-1' to plot all points in this dimension
 subt=[1,1,1];
 
 % figure control parameters
-flag_km     = 0;
+flag_km     = 1;
 flag_emlast = 1;
-flag_print  = 0;
+flag_print  = 1;
 flag_clb    = 1;
+
 flag_title  = 1;
 scl_daspect = [1 1 1];
+% scl_caxis = [1,1.1];
 clrmp       = 'parula';
 
-% varable to plot 
+% varable to plot
 % 'orth_xiet', 'orth_xizt',
 % 'orth_etzt', 'jacobi',  
 % 'smooth_xi', 'smooth_et','smooth_zt',
 % 'step_xi', 'step_et', 'step_zt'
-% varnm = 'orth_etzt';
-varnm='smooth_zt';
+varnm = 'orth_etzt';
+% varnm='smooth_zt';
 % varnm = 'jacobi';
 %-----------------------------------------------------------
 %-- load coord
@@ -56,32 +57,30 @@ end
 % figure plot
 hid=figure;
 set(hid,'BackingStore','on');
-
 if subc(1) == 1
     pcolor(y,z,v);
-    xlabel(['Y axis (' str_unit ')']);
-    ylabel(['Z axis (' str_unit ')']);
+    xlabel(['y-axis (' str_unit ')']);
+    ylabel(['z-axis (' str_unit ')']);
      
 elseif subc(2) == 1
     pcolor(x,z,v);
-    xlabel(['X axis (' str_unit ')']);
-    ylabel(['Z axis (' str_unit ')']);
+    xlabel(['x-axis (' str_unit ')']);
+    ylabel(['z-axis (' str_unit ')']);
      
 elseif subc(3) == 1
     pcolor(x,y,v);
-    xlabel(['X axis (' str_unit ')']);
-    ylabel(['Y axis (' str_unit ')']);
+    xlabel(['x-axis (' str_unit ')']);
+    ylabel(['y-axis (' str_unit ')']);
 end
 
-xlabel(['X axis (' str_unit ')']);
-ylabel(['Z axis (' str_unit ')']);
 
+shading interp;
 set(gca,'layer','top');
-set(gcf,'color','white','renderer','painters');
+set(gca,'FontSize',10,FontWeight='bold');
+% set(gcf,'color','white','renderer','painters');
+set(gcf,'color','white');
+set(gcf,'Position',[200,200,650,400]);
 
-% shading
-% shading interp;
-% shading flat;
 % colorbar range/scale
 if exist('scl_caxis','var')
     caxis(scl_caxis);
@@ -90,26 +89,23 @@ end
 if exist('scl_daspect')
     daspect(scl_daspect);
 end
-axis equal
+axis equal tight;
 % colormap and colorbar
 if exist('clrmp')
     colormap(clrmp);
 end
 if flag_clb
     cid=colorbar;
+%   set(get(cid,'Title'),'string','degree');
 end
-% title
 if flag_title
-    title(varnm,'interpreter','none');
+%     title('Orthogonality\_\eta\zeta',FontSize=15);
+%     title('Smooth\_\xi',FontSize=15);
+%     title('Smooth\_\eta',FontSize=15);
+    title('Smooth\_\zeta',FontSize=15);
 end
 
 % save and print figure
 if flag_print
-    width= 500;
-    height=500;
-    set(gcf,'paperpositionmode','manual');
-    set(gcf,'paperunits','points');
-    set(gcf,'papersize',[width,height]);
-    set(gcf,'paperposition',[0,0,width,height]);
-    print(gcf,[varnm '.png'],'-dpng');
+  print(gcf,[varnm,'.png'],'-r400','-dpng');
 end

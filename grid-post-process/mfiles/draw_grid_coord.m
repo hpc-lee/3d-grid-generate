@@ -1,23 +1,22 @@
 clear all;
 close all;
 clc;
-addmypath
 
 % -------------------------- parameters input -------------------------- %
 % file and path name
-parfnm='../project/test.json';
-output_dir='../project/output';
+parfnm='../project1/test.json';
+output_dir='../project1/output';
 
 % which grid profile to plot
-subs=[1,100,1];    
+subs=[1,170,1];    
 subc=[-1,1,-1];   % '-1' to plot all points in this dimension
-subt=[4,1,4];
+subt=[1,4,1];
 
 % figure control parameters
 flag_km     = 1;
 flag_emlast = 1;
-flag_print  = 0;
-flag_title  = 1;
+flag_print  = 1;
+flag_title  = 0;
 scl_daspect = [1 1 1];
 
 %-----------------------------------------------------------
@@ -25,7 +24,6 @@ scl_daspect = [1 1 1];
 %-----------------------------------------------------------
 coordinfo=locate_coord(parfnm,output_dir,subs,subc,subt);
 [x,y,z]=gather_coord(coordinfo,output_dir);
-
 %- set coord unit
 if flag_km
    x=x/1e3;
@@ -45,32 +43,32 @@ if subc(1) == 1
     plot(permute(y,[2,1]),permute(z,[2,1]),'k-');
     hold on;
     plot(y,z,'k-');
-    xlabel(['Y axis (' str_unit ')']);
-    ylabel(['Z axis (' str_unit ')']);
+    xlabel(['y-axis (' str_unit ')']);
+    ylabel(['z-axis (' str_unit ')']);
      
 elseif subc(2) == 1
     plot(permute(x,[2,1]),permute(z,[2,1]),'k-');
     hold on;
     plot(x,z,'k-');
-    xlabel(['X axis (' str_unit ')']);
-    ylabel(['Z axis (' str_unit ')']);
+    xlabel(['x-axis (' str_unit ')']);
+    ylabel(['z-axis (' str_unit ')']);
      
 elseif subc(3) == 1
     plot(permute(x,[2,1]),permute(y,[2,1]),'k-');
     hold on;
     plot(x,y,'k-');
-    xlabel(['X axis (' str_unit ')']);
-    ylabel(['Y axis (' str_unit ')']);
+    xlabel(['x-axis (' str_unit ')']);
+    ylabel(['y-axis (' str_unit ')']);
 end
   
 set(gca,'layer','top');
-set(gcf,'color','white','renderer','painters');
+set(gca,'FontSize',10,FontWeight='bold');
+set(gcf,'color','white');
+set(gcf,'Position',[0,0,1000,600]);
 
-% axis daspect
-if exist('scl_daspect')
-    daspect(scl_daspect);
-end
-axis tight;
+% xlim([5.5,7.5]);
+% ylim([0,1.2]);
+axis equal tight;
 
 % title
 if flag_title
@@ -86,11 +84,5 @@ end
 
 % save and print figure
 if flag_print
-  width= 500;
-  height=500;
-  set(gcf,'paperpositionmode','manual');
-  set(gcf,'paperunits','points');
-  set(gcf,'papersize',[width,height]);
-  set(gcf,'paperposition',[0,0,width,height]);
-  print(gcf,[gridtitle '.png'],'-dpng');
+  print(gcf,['grid1.png'],'-r300','-dpng');
 end

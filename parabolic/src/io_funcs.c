@@ -28,7 +28,7 @@ init_io_quality(io_quality_t *io_quality, gd_t *gdcurv)
 }
 
 int
-gd_curv_coord_export(gd_t *gdcurv, mympi_t *mympi)
+gd_curv_coord_export(gd_t *gdcurv, par_t *par, mympi_t *mympi)
 {
   int ni1 = gdcurv->ni1;
   int ni2 = gdcurv->ni2;
@@ -47,47 +47,52 @@ gd_curv_coord_export(gd_t *gdcurv, mympi_t *mympi)
   size_t siz_iz = gdcurv->siz_iz;
 
   // first modify ni nj nk ... , we need export bdry ghost point
-  if(mympi->neighid[0] == MPI_PROC_NULL)
+  if(par->dire_itype == Z_DIRE || par->dire_itype == X_DIRE)
   {
-    ni = ni+1;
+    ni = ni+2;
     ni1 = ni1-1;
-  }
-  if(mympi->neighid[1] == MPI_PROC_NULL)
-  {
-    ni = ni+1;
     ni2 = ni2+1;
-  }
-  if(mympi->neighid[2] == MPI_PROC_NULL)
-  {
-    nj = nj+1;
-    nj1 = nj1-1;
-  }
-  if(mympi->neighid[3] == MPI_PROC_NULL)
-  {
-    nj = nj+1;
-    nj2 = nj2+1;
-  }
-  if(mympi->neighid[4] == MPI_PROC_NULL)
-  {
-    nk = nk+1;
+    nk = nk+2;
     nk1 = nk1-1;
-  }
-  if(mympi->neighid[5] == MPI_PROC_NULL)
-  {
-    nk = nk+1;
     nk2 = nk2+1;
+    if(mympi->neighid[0] == MPI_PROC_NULL)
+    {
+      nj = nj+1;
+      nj1 = nj1-1;
+    }
+    if(mympi->neighid[1] == MPI_PROC_NULL)
+    {
+      nj = nj+1;
+      nj2 = nj2+1;
+    }
+    if(mympi->topoid[0] != 0)
+    {
+      gnj1 = gnj1 + 1; 
+    }
   }
-  if(mympi->topoid[0] != 0)
+
+  if(par->dire_itype == Y_DIRE)
   {
-    gni1 = gni1 + 1; 
-  }
-  if(mympi->topoid[1] != 0)
-  {
-    gnj1 = gnj1 + 1; 
-  }
-  if(mympi->topoid[2] != 0)
-  {
-    gnk1 = gnk1 + 1; 
+    ni = ni+2;
+    ni1 = ni1-1;
+    ni2 = ni2+1;
+    nj = nj+2;
+    nj1 = nj1-1;
+    nj2 = nj2+1;
+    if(mympi->neighid[0] == MPI_PROC_NULL)
+    {
+      nk = nk+1;
+      nk1 = nk1-1;
+    }
+    if(mympi->neighid[1] == MPI_PROC_NULL)
+    {
+      nk = nk+1;
+      nk2 = nk2+1;
+    }
+    if(mympi->topoid[0] != 0)
+    {
+      gnk1 = gnk1 + 1; 
+    }
   }
 
   float *x3d = gdcurv->x3d;
@@ -102,7 +107,8 @@ gd_curv_coord_export(gd_t *gdcurv, mympi_t *mympi)
       for(int i=ni1; i<=ni2; i++)
       {
         iptr = k*siz_iz + j*siz_iy + i;
-        iptr1 = (k-nk1)*ni*nj + (j-nj1)*ni + (i-ni1);
+        iptr1 = (k-nk1)*nj*ni + (j-nj1)*ni + (i-ni1);
+
         coord_x[iptr1] = x3d[iptr];
         coord_y[iptr1] = y3d[iptr];
         coord_z[iptr1] = z3d[iptr];
@@ -170,7 +176,7 @@ gd_curv_coord_export(gd_t *gdcurv, mympi_t *mympi)
 }
 
 int
-quality_export(io_quality_t *io_quality, gd_t *gdcurv, mympi_t *mympi, char *var_name)
+quality_export(io_quality_t *io_quality, gd_t *gdcurv, par_t *par, mympi_t *mympi, char *var_name)
 {
   int ni1 = gdcurv->ni1;
   int ni2 = gdcurv->ni2;
@@ -189,47 +195,52 @@ quality_export(io_quality_t *io_quality, gd_t *gdcurv, mympi_t *mympi, char *var
   size_t siz_iz = gdcurv->siz_iz;
 
   // first modify ni nj nk ... , we need export bdry ghost point
-  if(mympi->neighid[0] == MPI_PROC_NULL)
+  if(par->dire_itype == Z_DIRE || par->dire_itype == X_DIRE)
   {
-    ni = ni+1;
+    ni = ni+2;
     ni1 = ni1-1;
-  }
-  if(mympi->neighid[1] == MPI_PROC_NULL)
-  {
-    ni = ni+1;
     ni2 = ni2+1;
-  }
-  if(mympi->neighid[2] == MPI_PROC_NULL)
-  {
-    nj = nj+1;
-    nj1 = nj1-1;
-  }
-  if(mympi->neighid[3] == MPI_PROC_NULL)
-  {
-    nj = nj+1;
-    nj2 = nj2+1;
-  }
-  if(mympi->neighid[4] == MPI_PROC_NULL)
-  {
-    nk = nk+1;
+    nk = nk+2;
     nk1 = nk1-1;
-  }
-  if(mympi->neighid[5] == MPI_PROC_NULL)
-  {
-    nk = nk+1;
     nk2 = nk2+1;
+    if(mympi->neighid[0] == MPI_PROC_NULL)
+    {
+      nj = nj+1;
+      nj1 = nj1-1;
+    }
+    if(mympi->neighid[1] == MPI_PROC_NULL)
+    {
+      nj = nj+1;
+      nj2 = nj2+1;
+    }
+    if(mympi->topoid[0] != 0)
+    {
+      gnj1 = gnj1 + 1; 
+    }
   }
-  if(mympi->topoid[0] != 0)
+
+  if(par->dire_itype == Y_DIRE)
   {
-    gni1 = gni1 + 1; 
-  }
-  if(mympi->topoid[1] != 0)
-  {
-    gnj1 = gnj1 + 1; 
-  }
-  if(mympi->topoid[2] != 0)
-  {
-    gnk1 = gnk1 + 1; 
+    ni = ni+2;
+    ni1 = ni1-1;
+    ni2 = ni2+1;
+    nj = nj+2;
+    nj1 = nj1-1;
+    nj2 = nj2+1;
+    if(mympi->neighid[0] == MPI_PROC_NULL)
+    {
+      nk = nk+1;
+      nk1 = nk1-1;
+    }
+    if(mympi->neighid[1] == MPI_PROC_NULL)
+    {
+      nk = nk+1;
+      nk2 = nk2+1;
+    }
+    if(mympi->topoid[0] != 0)
+    {
+      gnk1 = gnk1 + 1; 
+    }
   }
 
   float *var =  io_quality->var;

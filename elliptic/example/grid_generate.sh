@@ -27,8 +27,12 @@ rm -rf ${PROJDIR}
 mkdir -p ${PROJDIR}
 mkdir -p ${OUTPUT_DIR}
 
-#-- total mpi procs
-NUMPROCS=2
+#-- total x mpi procs
+NPROCS_X=2
+#-- total y mpi procs
+NPROCS_Y=2
+#-- total z mpi procs
+NPROCS_Z=2
 #----------------------------------------------------------------------
 #-- create main conf
 #----------------------------------------------------------------------
@@ -38,25 +42,35 @@ cat << ieof > ${PAR_FILE}
   "number_of_grid_points_y" : 541,
   "number_of_grid_points_z" : 301,
 
-  "number_of_mpiprocs" : $NUMPROCS,
+  "number_of_mpiprocs_x" : $NPROCS_X,
+  "number_of_mpiprocs_y" : $NPROCS_Y,
+  "number_of_mpiprocs_z" : $NPROCS_Z,
 
   "check_orth" : 1,
-  "check_jac"  : 0,
-  "check_step_xi" : 0,
-  "check_step_et" : 0,
-  "check_step_zt" : 0,
+  "check_jac" : 1,
+  "check_step_xi" : 1,
+  "check_step_et" : 1,
+  "check_step_zt" : 1,
   "check_smooth_xi" : 1,
   "check_smooth_et" : 1,
   "check_smooth_zt" : 1,
 
   "geometry_input_file" : "${INPUTDIR}/data_file_3d.txt",
-  "step_input_file" : "${INPUTDIR}/step_file_3d.txt",
   "grid_export_dir" : "${OUTPUT_DIR}",
+  "flag_bdry_orth" : [0,0,0,0,1,1],
 
-  "parabolic" : {
-      "coef" : 30,
-      "t2b" : 1,
-      "direction" : "z"
+  "grid_method" : {
+      "#linear_tfi" : "",
+      "#elli_diri" : {
+          "coef" : [20,20,20,20,20,20],
+          "iter_err" : 1E-2,
+          "max_iter" : 5E3
+      },
+      "elli_higen" : {
+          "coef" : [1000,1000,1000,1000,50,50],
+          "iter_err" : 1E-2,
+          "max_iter" : 5E3
+      }
   }
 }
 ieof
@@ -67,9 +81,14 @@ echo "+ created $PAR_FILE"
 #-- Performce simulation
 #-------------------------------------------------------------------------------
 #
-#-- gen run script
-echo $NUMPROCS
+#-- get np
+NUMPROCS_X=`grep number_of_mpiprocs_x ${PAR_FILE} | sed 's/:/ /g' | sed 's/,/ /g' | awk '{print $2}'`
+NUMPROCS_Y=`grep number_of_mpiprocs_y ${PAR_FILE} | sed 's/:/ /g' | sed 's/,/ /g' | awk '{print $2}'`
+NUMPROCS_Z=`grep number_of_mpiprocs_z ${PAR_FILE} | sed 's/:/ /g' | sed 's/,/ /g' | awk '{print $2}'`
+NUMPROCS=$(( NUMPROCS_X*NUMPROCS_Y*NUMPROCS_Z ))
+echo $NUMPROCS_X $NUMPROCS_Y $NUMPROCS_Z $NUMPROCS
 
+#-- gen run script
 cat << ieof > ${PROJDIR}/grid_generate.sh
 #!/bin/bash
 
@@ -78,7 +97,7 @@ set -e
 printf "\nUse $NUMPROCS CPUs on following nodes:\n"
 
 printf "\nStart grid generate ...\n";
-time $MPIDIR/bin/mpiexec -np $NUMPROCS $EXEC_GRID $PAR_FILE 100 2 2>&1 |tee log
+time $MPIDIR/bin/mpiexec -np $NUMPROCS $EXEC_GRID $PAR_FILE 100 2 2>&1 |tee log1
 if [ $? -ne 0 ]; then
     printf "\ngrid generate fail! stop!\n"
     exit 1

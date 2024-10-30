@@ -10,12 +10,12 @@ EXEC_GRID=`pwd`/../main
 echo "EXEC_GRID=${EXEC_GRID}"
 
 #-- input dir
-INPUTDIR1=/data/lihl/code/3d-grid-generate/elliptic/project1/output
-INPUTDIR2=/data/lihl/code/3d-grid-generate/elliptic/project2/output
+INPUTDIR1=/data/lihl/code/3d-grid-generate/elliptic/project/output
+#INPUTDIR1=/data/lihl/code/3d-grid-generate/parabolic/project/output
 STRETCH_FILE1=`pwd`/arc_len_file1.txt
-STRETCH_FILE2=`pwd`/arc_len_file2.txt
+#STRETCH_FILE2=`pwd`/arc_len_file2.txt
 #-- output and conf
-PROJDIR=`pwd`/../project
+PROJDIR=`pwd`/../project1
 PAR_FILE=${PROJDIR}/test.json
 OUTPUT_DIR=${PROJDIR}/output
 
@@ -31,32 +31,25 @@ mkdir -p ${OUTPUT_DIR}
 cat << ieof > ${PAR_FILE}
 {
   "input_grids_info" : [
-    {
-      "grid_import_dir" : "${INPUTDIR1}",
-      "number_of_grid_points" : [250,250,200],
-      "number_of_mpiprocs_in" : [2,2,2],
-      "flag_stretch" : 1,
-      "stretch_file" : "${STRETCH_FILE1}"
-    },
-    {
-      "grid_import_dir" : "${INPUTDIR2}",
-      "number_of_grid_points" : [250,250,200],
-      "number_of_mpiprocs_in" : [3,2,2],
-      "flag_stretch" : 1,
-      "stretch_file" : "${STRETCH_FILE2}"
-    }
+   {
+     "grid_import_dir" : "${INPUTDIR1}",
+     "number_of_grid_points" : [541,541,301],
+     "number_of_mpiprocs_in" : [2,2,2],
+     "flag_stretch" : 0,
+     "#stretch_file" : "${STRETCH_FILE1}"
+   }
   ],
     
   "stretch_direction" : "z",
   "merge_direction" : "z",
 
-  "number_of_mpiprocs_out" : [3,3,2],
+  "number_of_mpiprocs_out" : [2,2,1],
 
   "check_orth" : 1,
-  "check_jac" : 1,
-  "check_step_xi" : 1,
-  "check_step_et" : 1,
-  "check_step_zt" : 1,
+  "check_jac" : 0,
+  "check_step_xi" : 0,
+  "check_step_et" : 0,
+  "check_step_zt" : 0,
   "check_smooth_xi" : 1,
   "check_smooth_et" : 1,
   "check_smooth_zt" : 1,
@@ -64,17 +57,17 @@ cat << ieof > ${PAR_FILE}
   "flag_sample" : 0,
   "sample_factor_xi" : 2,
   "sample_factor_et" : 2,
-  "sample_factor_zt" : 3,
+  "sample_factor_zt" : 2,
 
   "grid_export_dir" : "${OUTPUT_DIR}",
 
   "flag_pml" : 1,
   "pml_layers" : {
-         "number_of_pml_x1" : 10,
-         "number_of_pml_x2" : 10,
-         "number_of_pml_y1" : 10,
-         "number_of_pml_y2" : 10,
-         "number_of_pml_z1" : 10,
+         "number_of_pml_x1" : 20,
+         "number_of_pml_x2" : 20,
+         "number_of_pml_y1" : 20,
+         "number_of_pml_y2" : 20,
+         "number_of_pml_z1" : 20,
          "number_of_pml_z2" : 0
   }
 

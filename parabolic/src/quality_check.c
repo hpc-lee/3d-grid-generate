@@ -13,63 +13,63 @@ grid_quality_check(io_quality_t *io_quality, gd_t *gdcurv, par_t *par, mympi_t *
   if(par->check_orth == 1)
   {
     char quality_name1[100] = "orth_xiet";
-    cal_xiet(io_quality, gdcurv);
-    quality_export(io_quality,gdcurv,mympi,quality_name1);
+    cal_xiet(io_quality, gdcurv, mympi->myid);
+    quality_export(io_quality,gdcurv,par,mympi,quality_name1);
     char quality_name2[100] = "orth_xizt";
-    cal_xizt(io_quality, gdcurv);
-    quality_export(io_quality,gdcurv,mympi,quality_name2);
+    cal_xizt(io_quality, gdcurv, mympi->myid);
+    quality_export(io_quality,gdcurv,par,mympi,quality_name2);
     char quality_name3[100] = "orth_etzt";
-    cal_etzt(io_quality, gdcurv);
-    quality_export(io_quality,gdcurv,mympi,quality_name3);
+    cal_etzt(io_quality, gdcurv, mympi->myid);
+    quality_export(io_quality,gdcurv,par,mympi,quality_name3);
   }
   if(par->check_jac == 1)
   {
     char quality_name[100] = "jacobi";
     cal_jacobi(io_quality, gdcurv);
-    quality_export(io_quality,gdcurv,mympi,quality_name);
+    quality_export(io_quality,gdcurv,par,mympi,quality_name);
   }
   if(par->check_step_xi == 1)
   {
     char quality_name[100] = "step_xi";
     cal_step_xi(io_quality, gdcurv);
-    quality_export(io_quality,gdcurv,mympi,quality_name);
+    quality_export(io_quality,gdcurv,par,mympi,quality_name);
   }
   if(par->check_step_et == 1)
   {
     char quality_name[100] = "step_et";
     cal_step_et(io_quality, gdcurv);
-    quality_export(io_quality,gdcurv,mympi,quality_name);
+    quality_export(io_quality,gdcurv,par,mympi,quality_name);
   }
   if(par->check_step_zt == 1)
   {
     char quality_name[100] = "step_zt";
     cal_step_zt(io_quality, gdcurv);
-    quality_export(io_quality,gdcurv,mympi,quality_name);
+    quality_export(io_quality,gdcurv,par,mympi,quality_name);
   }
   if(par->check_smooth_xi == 1)
   {
     char quality_name[100] = "smooth_xi";
     cal_smooth_xi(io_quality, gdcurv);
-    quality_export(io_quality,gdcurv,mympi,quality_name);
+    quality_export(io_quality,gdcurv,par,mympi,quality_name);
   }
   if(par->check_smooth_et == 1)
   {
     char quality_name[100] = "smooth_et";
     cal_smooth_et(io_quality, gdcurv);
-    quality_export(io_quality,gdcurv,mympi,quality_name);
+    quality_export(io_quality,gdcurv,par,mympi,quality_name);
   }
   if(par->check_smooth_zt == 1)
   {
     char quality_name[100] = "smooth_zt";
     cal_smooth_zt(io_quality, gdcurv);
-    quality_export(io_quality,gdcurv,mympi,quality_name);
+    quality_export(io_quality,gdcurv,par,mympi,quality_name);
   }
 
   return 0;
 }
 
 int 
-cal_xiet(io_quality_t *io_quality, gd_t *gdcurv)
+cal_xiet(io_quality_t *io_quality, gd_t *gdcurv, int myid)
 {
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
@@ -85,6 +85,7 @@ cal_xiet(io_quality_t *io_quality, gd_t *gdcurv)
   float trans = 180/PI;   // arc to angle
   float dot, len_xi, len_et, cos_angle;
   float x_xi, y_xi, z_xi, x_et, y_et, z_et;
+  float var_min = 90;
 
   for(int k=0; k<nz-1; k++) {
     for(int j=0; j<ny-1; j++) {
@@ -109,10 +110,13 @@ cal_xiet(io_quality_t *io_quality, gd_t *gdcurv)
         len_et = sqrt(pow(x_et,2) + pow(y_et,2) + pow(z_et,2));
         cos_angle = dot/(len_xi*len_et); 
         // offset relative 90 degree
-        var[iptr] = fabs((acos(cos_angle) * trans - 90));
+        var[iptr] = 90 - fabs((acos(cos_angle) * trans - 90));
+        var_min = var_min < var[iptr] ? var_min : var[iptr];
       }
     }
   }
+  fprintf(stdout,"id is %d, xiet angle min is %f\n",myid, var_min);
+  fflush(stdout);
   
   extend_var(var, nx, ny, nz, siz_iy, siz_iz);
 
@@ -120,7 +124,7 @@ cal_xiet(io_quality_t *io_quality, gd_t *gdcurv)
 }
 
 int 
-cal_xizt(io_quality_t *io_quality, gd_t *gdcurv)
+cal_xizt(io_quality_t *io_quality, gd_t *gdcurv, int myid)
 {
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
@@ -136,6 +140,7 @@ cal_xizt(io_quality_t *io_quality, gd_t *gdcurv)
   float trans = 180/PI;   // arc to angle
   float dot, len_xi, len_zt, cos_angle;
   float x_xi, y_xi, z_xi, x_zt, y_zt, z_zt;
+  float var_min = 90;
 
   for(int k=0; k<nz-1; k++) {
     for(int j=0; j<ny-1; j++) {
@@ -160,10 +165,13 @@ cal_xizt(io_quality_t *io_quality, gd_t *gdcurv)
         len_zt = sqrt(pow(x_zt,2) + pow(y_zt,2) + pow(z_zt,2));
         cos_angle = dot/(len_xi*len_zt); 
         // offset relative 90 degree
-        var[iptr] = fabs((acos(cos_angle) * trans - 90));
+        var[iptr] = 90 - fabs((acos(cos_angle) * trans - 90));
+        var_min = var_min < var[iptr] ? var_min : var[iptr];
       }
     }
   }
+  fprintf(stdout,"id is %d, xizt angle min is %f\n",myid, var_min);
+  fflush(stdout);
   
   extend_var(var, nx, ny, nz, siz_iy, siz_iz);
 
@@ -171,7 +179,7 @@ cal_xizt(io_quality_t *io_quality, gd_t *gdcurv)
 }
 
 int 
-cal_etzt(io_quality_t *io_quality, gd_t *gdcurv)
+cal_etzt(io_quality_t *io_quality, gd_t *gdcurv, int myid)
 {
   int nx = gdcurv->nx;
   int ny = gdcurv->ny;
@@ -187,6 +195,7 @@ cal_etzt(io_quality_t *io_quality, gd_t *gdcurv)
   float trans = 180/PI;   // arc to angle
   float dot, len_et, len_zt, cos_angle;
   float x_et, y_et, z_et, x_zt, y_zt, z_zt;
+  float var_min = 90;
 
   for(int k=0; k<nz-1; k++) {
     for(int j=0; j<ny-1; j++) {
@@ -211,10 +220,13 @@ cal_etzt(io_quality_t *io_quality, gd_t *gdcurv)
         len_zt = sqrt(pow(x_zt,2) + pow(y_zt,2) + pow(z_zt,2));
         cos_angle = dot/(len_et*len_zt); 
         // offset relative 90 degree
-        var[iptr] = fabs((acos(cos_angle) * trans - 90));
+        var[iptr] = 90 - fabs((acos(cos_angle) * trans - 90));
+        var_min = var_min < var[iptr] ? var_min : var[iptr];
       }
     }
   }
+  fprintf(stdout,"id is %d, etzt angle min is %f\n", myid, var_min);
+  fflush(stdout);
   
   extend_var(var, nx, ny, nz, siz_iy, siz_iz);
 

@@ -39,4 +39,7 @@ int
 gd_info_set(gd_t *gdcurv, par_t *par, int iprocx, int iprocy, int iprocz,
            int *global_index, int *count);
 
+int
+cal_min_dist(gd_t *gdcurv, int *indx_i, int *indx_j, int *indx_k, float *dL_min);
+
 #endif

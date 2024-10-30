@@ -4,6 +4,7 @@
 #include <math.h>
 
 #include "lib_mem.h"
+#include "lib_math.h"
 #include "gd_t.h"
 #include "constants.h"
 #include "io_funcs.h"
@@ -12,7 +13,12 @@ int
 init_gdcurv(gd_t *gdcurv)
 {
   //3 dimension, x y and z
-  gdcurv->ncmp = CONST_NDIM; 
+  gdcurv->ncmp = 3; 
+  // x dimention varies first
+  gdcurv->siz_iy = gdcurv->nx; 
+  gdcurv->siz_iz = gdcurv->nx*gdcurv->ny; 
+  gdcurv->siz_icmp = gdcurv->siz_iz*gdcurv->nz;
+
   // malloc grid space 
   gdcurv->v4d = (float *)mem_calloc_1d_float(
                   gdcurv->siz_icmp*gdcurv->ncmp, 0.0, "gd_curv_init");
@@ -39,21 +45,19 @@ gd_info_set(gd_t *gdcurv, mympi_t *mympi,
             par_t *par)
 {
   int ierr = 0;
-
+  
   if(par->dire_itype == Z_DIRE)
   {
     gdcurv->total_nx = par->number_of_grid_points_x;
     gdcurv->total_ny = par->number_of_grid_points_y;
     gdcurv->total_nz = par->number_of_grid_points_z;
   }
-  // trans y to z, z to y
   if(par->dire_itype == Y_DIRE)
   {
     gdcurv->total_nx = par->number_of_grid_points_x;
     gdcurv->total_ny = par->number_of_grid_points_z;
     gdcurv->total_nz = par->number_of_grid_points_y;
   }
-  // trans x to z, z to x
   if(par->dire_itype == X_DIRE)
   {
     gdcurv->total_nx = par->number_of_grid_points_z;
@@ -65,74 +69,31 @@ gd_info_set(gd_t *gdcurv, mympi_t *mympi,
   int number_of_grid_points_y = gdcurv->total_ny;
   int number_of_grid_points_z = gdcurv->total_nz;
 
-  // bbry point is ghost point
-  // x direction only 1 procs
-  // determine ni
-  int nx_et = number_of_grid_points_x-2;
-
-  int nx_avg  = nx_et / mympi->nprocx;
-  int nx_left = nx_et % mympi->nprocx;
-
-  int ni = nx_avg;
-
-  // not equal divided points given to first ny_left procs
-  if (mympi->topoid[0] < nx_left) {
-    ni++;
-  }
-  // global index
-  if (mympi->topoid[0]==0) {
-    gdcurv->gni1 = 0;
-  } else {
-    gdcurv->gni1 = mympi->topoid[0] * nx_avg;
-  }
-  if (nx_left != 0) {
-    gdcurv->gni1 += (mympi->topoid[0] < nx_left)? mympi->topoid[0] : nx_left;
-  }
-
   // determine nj
   int ny_et = number_of_grid_points_y-2;
 
-  int ny_avg  = ny_et / mympi->nprocy;
-  int ny_left = ny_et % mympi->nprocy;
+  int ny_avg  = ny_et / mympi->nproc;
+  int ny_left = ny_et % mympi->nproc;
 
   int nj = ny_avg;
 
   // not equal divided points given to first ny_left procs
-  if (mympi->topoid[1] < ny_left) {
+  if (mympi->topoid[0] < ny_left) {
     nj++;
   }
   // global index
-  if (mympi->topoid[1]==0) {
+  if (mympi->topoid[0]==0) {
     gdcurv->gnj1 = 0;
   } else {
-    gdcurv->gnj1 = mympi->topoid[1] * ny_avg;
+    gdcurv->gnj1 = mympi->topoid[0] * ny_avg;
   }
   if (ny_left != 0) {
-    gdcurv->gnj1 += (mympi->topoid[1] < ny_left)? mympi->topoid[1] : ny_left;
+    gdcurv->gnj1 += (mympi->topoid[0] < ny_left)? mympi->topoid[0] : ny_left;
   }
 
-  // determine nk
-  int nz_et = number_of_grid_points_z-2;
-
-  int nz_avg  = nz_et / mympi->nprocz;
-  int nz_left = nz_et % mympi->nprocz;
-
-  int nk = nz_avg;
-
-  // not equal divided points given to first ny_left procs
-  if (mympi->topoid[2] < nz_left) {
-    nk++;
-  }
-  // global index
-  if (mympi->topoid[2]==0) {
-    gdcurv->gnk1 = 0;
-  } else {
-    gdcurv->gnk1 = mympi->topoid[2] * nz_avg;
-  }
-  if (nz_left != 0) {
-    gdcurv->gnk1 += (mympi->topoid[2] < nz_left)? mympi->topoid[2] : nz_left;
-  }
-
+  // determine nj
+  int ni = number_of_grid_points_x-2;
+  int nk = number_of_grid_points_z-2;
 
   // add ghost point
   int nx = ni + 2;
@@ -157,15 +118,13 @@ gd_info_set(gd_t *gdcurv, mympi_t *mympi,
   gdcurv->nk2 = gdcurv->nk1 + nk - 1;
 
   // global index end
+  gdcurv->gni1 = 0;
+  gdcurv->gnk1 = 0;
+
   gdcurv->gni2 = gdcurv->gni1 + gdcurv->ni - 1;
   gdcurv->gnj2 = gdcurv->gnj1 + gdcurv->nj - 1;
   gdcurv->gnk2 = gdcurv->gnk1 + gdcurv->nk - 1;
   
-  // x dimention varies first
-  gdcurv->siz_iy = nx; 
-  gdcurv->siz_iz = nx*ny; 
-  gdcurv->siz_icmp = gdcurv->siz_iz*nz;
-
   return ierr;
 }
 
@@ -176,8 +135,6 @@ gd_info_print(gd_t *gdcurv, mympi_t *mympi)
   fprintf(stdout, "--> grid info:\n");
   fprintf(stdout, "-------------------------------------------------------\n");
   fprintf(stdout, "my rank id is %d\n", mympi->myid);
-  fprintf(stdout, "topo id is (%d %d %d)\n", 
-                   mympi->topoid[0], mympi->topoid[1], mympi->topoid[2]);
   fprintf(stdout, " nx    = %-10d\n", gdcurv->nx);
   fprintf(stdout, " ny    = %-10d\n", gdcurv->ny);
   fprintf(stdout, " nz    = %-10d\n", gdcurv->nz);
@@ -211,15 +168,15 @@ set_output_dir(gd_t *gdcurv, mympi_t *mympi,
   // output file name
   if(par->dire_itype == Z_DIRE)
   {
-    sprintf(gdcurv->fname_part,"px%d_py%d_pz%d", mympi->topoid[0],mympi->topoid[1],mympi->topoid[2]);
+    sprintf(gdcurv->fname_part,"px%d_py%d_pz%d", 0, mympi->topoid[0], 0);
   }
   if(par->dire_itype == Y_DIRE)
   {
-    sprintf(gdcurv->fname_part,"px%d_py%d_pz%d", mympi->topoid[0],mympi->topoid[2],mympi->topoid[1]);
+    sprintf(gdcurv->fname_part,"px%d_py%d_pz%d", 0, 0, mympi->topoid[0]);
   }
   if(par->dire_itype == X_DIRE)
   {
-    sprintf(gdcurv->fname_part,"px%d_py%d_pz%d", mympi->topoid[0],mympi->topoid[1],mympi->topoid[2]);
+    sprintf(gdcurv->fname_part,"px%d_py%d_pz%d", 0, mympi->topoid[0], 0);
   }
 
   // output
@@ -229,867 +186,195 @@ set_output_dir(gd_t *gdcurv, mympi_t *mympi,
 }
 
 int
-init_bdry(bdry_t *bdry, par_t *par)
-{
-  bdry->total_nx = par->number_of_grid_points_x;
-  bdry->total_ny = par->number_of_grid_points_y;
-  bdry->total_nz = par->number_of_grid_points_z;
-  int size_bx = bdry->total_ny*bdry->total_nz;
-  int size_by = bdry->total_nx*bdry->total_nz;
-  int size_bz = bdry->total_nx*bdry->total_ny;
-  int size = 2*(size_bx + size_by + size_bz);
-  // malloc bdry space. x y and z coord 
-  bdry->var = (float *)mem_calloc_1d_float(size*3, 0.0, "bdry_init");
-  if (bdry->var == NULL) {
-      fprintf(stderr,"Error: failed to alloc bdry vars\n");
-      fflush(stderr);
-  }
-
-  bdry->x1 = bdry->var;
-  bdry->x2 = bdry->x1+3*size_bx;
-  bdry->y1 = bdry->x2+3*size_bx;
-  bdry->y2 = bdry->y1+3*size_by;
-  bdry->z1 = bdry->y2+3*size_by;
-  bdry->z2 = bdry->z1+3*size_bz;
-
-  return 0;
-}
-
-int
-read_bdry(int myid, bdry_t *bdry, char *geometry_file)
+read_bdry_file(gd_t *gdcurv, par_t *par)
 {
   FILE *fp = NULL;
   char str[500];
+  char *geometry_file = par->geometry_input_file;
+  char *step_file = par->step_input_file;
+  int nx = gdcurv->nx;
+  int ny = gdcurv->ny;
+  int nz = gdcurv->nz;
+  int gnj1 = gdcurv->gnj1;
+  size_t siz_iy = gdcurv->siz_iy;
+  size_t siz_iz = gdcurv->siz_iz;
   
-  int total_nx = bdry->total_nx;
-  int total_ny = bdry->total_ny;
-  int total_nz = bdry->total_nz;
-
-  int size_bx = total_ny*total_nz;
-  int size_by = total_nx*total_nz;
-  int size_bz = total_nx*total_ny;
-  size_t iptr;
-
-  float *x1 = bdry->x1;
-  float *x2 = bdry->x2;
-  float *y1 = bdry->y1;
-  float *y2 = bdry->y2;
-  float *z1 = bdry->z1;
-  float *z2 = bdry->z2;
-  
+  int num_step;
   int num_point_x;
   int num_point_y;
-  int num_point_z;
+  // open step file
+  if ((fp = fopen(step_file,"r"))==NULL) {
+     fprintf(stderr,"ERROR: fail to open step file=%s\n", step_file);
+     fflush(stdout); exit(1);
+  }
+  // number of step
+  if (!io_get_nextline(fp,str,500)) {
+    sscanf(str,"%d",&num_step);
+  }
+
+  if(nz-num_step != 1) 
+  {
+    fprintf(stdout,"num_step is error, please check input file");
+    fflush(stdout); exit(1);
+  }
+
+  gdcurv->step = (float *)mem_calloc_1d_float(
+                          num_step, 0.0, "step length");
+  for (int k=0; k<num_step; k++)
+  {
+    if (!io_get_nextline(fp,str,500)) {
+      sscanf(str,"%f",gdcurv->step + k);
+    }
+  }
+  // close step file and free local pointer
+  fclose(fp);
+
   // open geometry file
   if ((fp = fopen(geometry_file,"r"))==NULL) {
      fprintf(stderr,"ERROR: fail to open geometry file=%s\n", geometry_file);
      fflush(stdout); exit(1);
   }
-  // nx number
-  if (!io_get_nextline(fp,str,500)) {
-    sscanf(str,"%d",&num_point_x);
-  }
-  // ny number
-  if (!io_get_nextline(fp,str,500)) {
-    sscanf(str,"%d",&num_point_y);
-  }
-  // nz number
-  if (!io_get_nextline(fp,str,500)) {
-    sscanf(str,"%d",&num_point_z);
-  }
-  // x1 
-  for (int k=0; k<total_nz; k++) {
-    for (int j=0; j<total_ny; j++)
-    {
-      iptr = k*total_ny + j;
-      if (!io_get_nextline(fp,str,500)) {
-        sscanf(str,"%f %f %f",x1+iptr,(x1+size_bx)+iptr,(x1+2*size_bx)+iptr);
-      }
-    }
-  }
-  // x2 
-  for (int k=0; k<total_nz; k++) {
-    for (int j=0; j<total_ny; j++)
-    {
-      iptr = k*total_ny + j;
-      if (!io_get_nextline(fp,str,500)) {
-        sscanf(str,"%f %f %f",x2+iptr,(x2+size_bx)+iptr,(x2+2*size_bx)+iptr);
-      }
-    }
-  }
-  // y1 
-  for (int k=0; k<total_nz; k++) {
-    for (int i=0; i<total_nx; i++)
-    {
-      iptr = k*total_nx + i;
-      if (!io_get_nextline(fp,str,500)) {
-        sscanf(str,"%f %f %f",y1+iptr,(y1+size_by)+iptr,(y1+2*size_by)+iptr);
-      }
-    }
-  }
-  // y2 
-  for (int k=0; k<total_nz; k++) {
-    for (int i=0; i<total_nx; i++)
-    {
-      iptr = k*total_nx + i;
-      if (!io_get_nextline(fp,str,500)) {
-        sscanf(str,"%f %f %f",y2+iptr,(y2+size_by)+iptr,(y2+2*size_by)+iptr);
-      }
-    }
-  }
-  // z1 
-  for (int j=0; j<total_ny; j++) {
-    for (int i=0; i<total_nx; i++)
-    {
-      iptr = j*total_nx + i;
-      if (!io_get_nextline(fp,str,500)) {
-        sscanf(str,"%f %f %f",z1+iptr,(z1+size_bz)+iptr,(z1+2*size_bz)+iptr);
-      }
-    }
-  }
-  // z2 
-  for (int j=0; j<total_ny; j++) {
-    for (int i=0; i<total_nx; i++)
-    {
-      iptr = j*total_nx + i;
-      if (!io_get_nextline(fp,str,500)) {
-        sscanf(str,"%f %f %f",z2+iptr,(z2+size_bz)+iptr,(z2+2*size_bz)+iptr);
-      }
-    }
-  }
-  // close file and free local pointer
-  fclose(fp); 
-  if(myid == 0)
+  // nx ny number
+  if(par->dire_itype == Z_DIRE || par->dire_itype == Y_DIRE)
   {
-    check_bdry(x1,x2,y1,y2,z1,z2,total_nx,total_ny,total_nz);
+    if (!io_get_nextline(fp,str,500)) {
+      sscanf(str,"%d %d",&num_point_x, &num_point_y);
+    }
+  }
+  if(par->dire_itype == X_DIRE)
+  {
+    if (!io_get_nextline(fp,str,500)) {
+      sscanf(str,"%d %d",&num_point_y, &num_point_x);
+    }
   }
 
-  return 0;
-}
+  size_t iptr, iptr1;
+  size_t siz_bz = gdcurv->total_nx*gdcurv->total_ny;
+  float *bz1 = (float *)mem_calloc_1d_float(siz_bz*3, 0.0, "bottom bdry");
+  float *bz2 = (float *)mem_calloc_1d_float(siz_bz*3, 0.0, "top bdry");
 
-// assign 6 bdry point to ghost
-int
-assign_bdry_coord(gd_t *gdcurv, bdry_t *bdry, mympi_t *mympi)
-{
-  int nx = gdcurv->nx;
-  int ny = gdcurv->ny;
-  int nz = gdcurv->nz;
-  int gni1 = gdcurv->gni1;
-  int gnj1 = gdcurv->gnj1;
-  int gnk1 = gdcurv->gnk1;
+  if(par->dire_itype == Z_DIRE)
+  {
+    // bz1 
+    for (int j=0; j<num_point_y; j++) {
+      for (int i=0; i<num_point_x; i++) {
+        iptr = j*num_point_x+i;  // (i,j)
+        if (!io_get_nextline(fp,str,500)) {
+          sscanf(str,"%f %f %f",bz1+iptr,bz1+siz_bz+iptr,bz1+2*siz_bz+iptr);
+        }
+      }
+    }
+    // bz2 
+    for (int j=0; j<num_point_y; j++) {
+      for (int i=0; i<num_point_x; i++) {
+        iptr = j*num_point_x+i;  // (i,j)
+        if (!io_get_nextline(fp,str,500)) {
+          sscanf(str,"%f %f %f",bz2+iptr,bz2+siz_bz+iptr,bz2+2*siz_bz+iptr);
+        }
+      }
+    }
+  }
+
+  if(par->dire_itype == Y_DIRE)
+  {
+    // bz1 
+    for (int j=0; j<num_point_y; j++) {
+      for (int i=0; i<num_point_x; i++) {
+        iptr = j*num_point_x+i;  // (i,j)
+        if (!io_get_nextline(fp,str,500)) {
+          sscanf(str,"%f %f %f",bz1+iptr,bz1+2*siz_bz+iptr,bz1+siz_bz+iptr);
+        }
+      }
+    }
+    // bz2 
+    for (int j=0; j<num_point_y; j++) {
+      for (int i=0; i<num_point_x; i++) {
+        iptr = j*num_point_x+i;  // (i,j)
+        if (!io_get_nextline(fp,str,500)) {
+          sscanf(str,"%f %f %f",bz2+iptr,bz2+2*siz_bz+iptr,bz2+siz_bz+iptr);
+        }
+      }
+    }
+  }
+
+  if(par->dire_itype == X_DIRE)
+  {
+    // bz1 
+    for (int i=0; i<num_point_x; i++) {
+      for (int j=0; j<num_point_y; j++) {
+        iptr = i*num_point_y+j;  // (i,j)
+        if (!io_get_nextline(fp,str,500)) {
+          sscanf(str,"%f %f %f",bz1+2*siz_bz+iptr,bz1+siz_bz+iptr,bz1+iptr);
+        }
+      }
+    }
+    // bz2 
+    for (int i=0; i<num_point_x; i++) {
+      for (int j=0; j<num_point_y; j++) {
+        iptr = i*num_point_y+j;  // (i,j)
+        if (!io_get_nextline(fp,str,500)) {
+          sscanf(str,"%f %f %f",bz2+2*siz_bz+iptr,bz2+siz_bz+iptr,bz2+iptr);
+        }
+      }
+    }
+  }
+  // close geometry file and free local pointer
+  fclose(fp);
+
   float *x3d = gdcurv->x3d;
   float *y3d = gdcurv->y3d;
   float *z3d = gdcurv->z3d;
-  size_t siz_iy = gdcurv->siz_iy;
-  size_t siz_iz = gdcurv->siz_iz;
-  int total_nx = gdcurv->total_nx;
-  int total_ny = gdcurv->total_ny;
-  int total_nz = gdcurv->total_nz;
-  int gni, gnj, gnk;
-  size_t iptr, iptr1;
 
-
-  float *x1 = bdry->x1;
-  float *x2 = bdry->x2;
-  float *y1 = bdry->y1;
-  float *y2 = bdry->y2;
-  float *z1 = bdry->z1;
-  float *z2 = bdry->z2;
-  size_t size_bx = total_ny*total_nz;
-  size_t size_by = total_nx*total_nz;
-  size_t size_bz = total_nx*total_ny;
-
-  // bdry x1
-  for (int k=0; k<nz; k++)
+  if(par->dire_itype == Z_DIRE || par->dire_itype == Y_DIRE)
   {
-    for (int j=0; j<ny; j++)
-    {
-      iptr = k*siz_iz + j*siz_iy;  //(0,j,k) 
-      gnk = gnk1 + k;
-      gnj = gnj1 + j;
-      iptr1 = gnk*total_ny + gnj;
-
-      x3d[iptr] = x1[iptr1+0*size_bx];
-      y3d[iptr] = x1[iptr1+1*size_bx];
-      z3d[iptr] = x1[iptr1+2*size_bx];
+    for (int j=0; j<ny; j++) {
+      for (int i=0; i<nx; i++) {
+        iptr = j*siz_iy+i;  // (i,j,0)
+        iptr1 = (gnj1+j)*num_point_x+i;  // (i,j)
+        x3d[iptr] = bz1[iptr1];
+        y3d[iptr] = bz1[iptr1+siz_bz];
+        z3d[iptr] = bz1[iptr1+2*siz_bz];
+      }
     }
-  }
-  // bdry x2
-  for (int k=0; k<nz; k++)
-  {
-    for (int j=0; j<ny; j++)
-    {
-      iptr = k*siz_iz + j*siz_iy + nx-1;  //(nx-1,j,k) 
-      gnk = gnk1 + k;
-      gnj = gnj1 + j;
-      iptr1 = gnk*total_ny + gnj;
-
-      x3d[iptr] = x2[iptr1+0*size_bx];
-      y3d[iptr] = x2[iptr1+1*size_bx];
-      z3d[iptr] = x2[iptr1+2*size_bx];
-    }
-  }
-  // bdry y1
-  if(mympi->neighid[2] == MPI_PROC_NULL)
-  {
-    for (int k=0; k<nz; k++)
-    {
-      for (int i=0; i<nx; i++)
-      {
-        iptr = k*siz_iz + i;  //(i,0,k) 
-        gnk = gnk1 + k; 
-        gni = gni1 + i; 
-        iptr1 = gnk*total_nx + gni;
-
-        x3d[iptr] = y1[iptr1+0*size_by];
-        y3d[iptr] = y1[iptr1+1*size_by];
-        z3d[iptr] = y1[iptr1+2*size_by];
+    for (int j=0; j<ny; j++) {
+      for (int i=0; i<nx; i++) {
+        iptr = (nz-1)*siz_iz+j*siz_iy+i;  // (i,j,nz-1)
+        iptr1 = (gnj1+j)*num_point_x+i;  // (i,j)
+        x3d[iptr] = bz2[iptr1];
+        y3d[iptr] = bz2[iptr1+siz_bz];
+        z3d[iptr] = bz2[iptr1+2*siz_bz];
       }
     }
   }
-  // bdry y2
-  if(mympi->neighid[3] == MPI_PROC_NULL)
-  {
-    for (int k=0; k<nz; k++)
-    {
-      for (int i=0; i<nx; i++)
-      {
-        iptr = k*siz_iz + (ny-1)*siz_iy + i;  //(i,ny-1,k) 
-        gnk = gnk1 + k; 
-        gni = gni1 + i; 
-        iptr1 = gnk*total_nx + gni;
 
-        x3d[iptr] = y2[iptr1+0*size_by];
-        y3d[iptr] = y2[iptr1+1*size_by];
-        z3d[iptr] = y2[iptr1+2*size_by];
+  if(par->dire_itype == X_DIRE)
+  {
+    for (int j=0; j<ny; j++) {
+      for (int i=0; i<nx; i++) {
+        iptr = j*siz_iy+i;  // (i,j,0)
+        iptr1 = i*num_point_y +  (gnj1+j);  // (i,j)
+        x3d[iptr] = bz1[iptr1];
+        y3d[iptr] = bz1[iptr1+siz_bz];
+        z3d[iptr] = bz1[iptr1+2*siz_bz];
+      }
+    }
+    for (int j=0; j<ny; j++) {
+      for (int i=0; i<nx; i++) {
+        iptr = (nz-1)*siz_iz+j*siz_iy+i;  // (i,j,nz-1)
+        iptr1 = i*num_point_y +  (gnj1+j);  // (i,j)
+        x3d[iptr] = bz2[iptr1];
+        y3d[iptr] = bz2[iptr1+siz_bz];
+        z3d[iptr] = bz2[iptr1+2*siz_bz];
       }
     }
   }
-  // bdry z1
-  for (int j=0; j<ny; j++)
-  {
-    for (int i=0; i<nx; i++)
-    {
-      iptr = j*siz_iy + i;  //(i,j,0) 
-      gnj = gnj1 + j; 
-      gni = gni1 + i; 
-      iptr1 = gnj*total_nx + gni;
 
-      x3d[iptr] = z1[iptr1+0*size_bz];
-      y3d[iptr] = z1[iptr1+1*size_bz];
-      z3d[iptr] = z1[iptr1+2*size_bz];
-    }
-  }
-  // bdry z2
-  for (int j=0; j<ny; j++)
-  {
-    for (int i=0; i<nx; i++)
-    {
-      iptr = (nz-1)*siz_iz + j*siz_iy + i;  //(i,j,nz-1) 
-      gnj = gnj1 + j; 
-      gni = gni1 + i; 
-      iptr1 = gnj*total_nx + gni;
-
-      x3d[iptr] = z2[iptr1+0*size_bz];
-      y3d[iptr] = z2[iptr1+1*size_bz];
-      z3d[iptr] = z2[iptr1+2*size_bz];
-    }
-  }
+  free(bz1);
+  free(bz2);
 
   return 0;
 }
 
-int 
-check_bdry(float *x1, float *x2, float *y1, float *y2, float *z1, float *z2,
-           int nx, int ny, int nz)
-{ 
-  int ierr = 0;
-  size_t iptr1, iptr2, size1, size2;
-  float dif_x,dif_y,dif_z,dif;
-  // check 12 edges line
-  // 1 check bdry y1 z1
-  for(int i=0; i<nx; i++)
-  {
-    iptr1 = 0*nx+i; // y1
-    iptr2 = 0*nx+i; // z1
-    size1 = nz*nx;  // y1
-    size2 = ny*nx;  // z1
-    dif_x = y1[iptr1] - z1[iptr2];
-    dif_y = y1[iptr1+1*size1] - z1[iptr2+1*size2];
-    dif_z = y1[iptr1+2*size1] - z1[iptr2+2*size2];
-    dif = fabs(dif_x) + fabs(dif_y) + fabs(dif_z);
-  
-    if(dif > 0.00001)
-    {
-      ierr = 1;
-      fprintf(stdout, "edge y1 z1, please check y1 and z1 boundary\n");
-      fprintf(stdout, "point %d is error\n",i+1);
-      exit(1);
-    }
-  }
-  // 2 check bdry y1 z2
-  for(int i=0; i<nx; i++)
-  {
-    iptr1 = (nz-1)*nx+i; // y1
-    iptr2 = 0*nx+i; // z2
-    size1 = nz*nx;  // y1
-    size2 = ny*nx;  // z2
-    dif_x = y1[iptr1] - z2[iptr2];
-    dif_y = y1[iptr1+1*size1] - z2[iptr2+1*size2];
-    dif_z = y1[iptr1+2*size1] - z2[iptr2+2*size2];
-    dif = fabs(dif_x) + fabs(dif_y) + fabs(dif_z);
-    if(dif > 0.00001)
-    {
-      ierr = 1;
-      fprintf(stdout, "edge y1 z2, please check y1 and z2 boundary\n");
-      fprintf(stdout, "point %d is error\n",i+1);
-      exit(1);
-    }
-  }
-  // 3 check bdry y2 z1
-  for(int i=0; i<nx; i++)
-  {
-    iptr1 = 0*nx+i; // y2
-    iptr2 = (ny-1)*nx+i; // z1
-    size1 = nz*nx;  // y2
-    size2 = ny*nx;  // z1
-    dif_x = y2[iptr1] - z1[iptr2];
-    dif_y = y2[iptr1+1*size1] - z1[iptr2+1*size2];
-    dif_z = y2[iptr1+2*size1] - z1[iptr2+2*size2];
-    dif = fabs(dif_x) + fabs(dif_y) + fabs(dif_z);
-    if(dif > 0.00001)
-    {
-      ierr = 1;
-      fprintf(stdout, "edge y2 z1, please check y2 and z1 boundary\n");
-      fprintf(stdout, "point %d is error\n",i+1);
-      exit(1);
-    }
-  }
-  // 4 check bdry y2 z2
-  for(int i=0; i<nx; i++)
-  {
-    iptr1 = (nz-1)*nx+i; // y2
-    iptr2 = (ny-1)*nx+i; // z2
-    size1 = nz*nx;  // y2
-    size2 = ny*nx;  // z2
-    dif_x = y2[iptr1] - z2[iptr2];
-    dif_y = y2[iptr1+1*size1] - z2[iptr2+1*size2];
-    dif_z = y2[iptr1+2*size1] - z2[iptr2+2*size2];
-    dif = fabs(dif_x) + fabs(dif_y) + fabs(dif_z);
-    if(dif > 0.00001)
-    {
-      ierr = 1;
-      fprintf(stdout, "edge y2 z2, please check y2 and z2 boundary\n");
-      fprintf(stdout, "point %d is error\n",i+1);
-      exit(1);
-    }
-  }
-  // 5 check bdry x1 z1
-  for(int j=0; j<ny; j++)
-  {
-    iptr1 = 0*ny+j; // x1
-    iptr2 = j*nx+0; // z1
-    size1 = nz*ny;  // x1
-    size2 = ny*nx;  // z1
-    dif_x = x1[iptr1] - z1[iptr2];
-    dif_y = x1[iptr1+1*size1] - z1[iptr2+1*size2];
-    dif_z = x1[iptr1+2*size1] - z1[iptr2+2*size2];
-
-    dif = fabs(dif_x) + fabs(dif_y) + fabs(dif_z);
-    if(dif > 0.00001)
-    {
-      ierr = 1;
-      fprintf(stdout, "edge x1 z1, please check x1 and z1 boundary\n");
-      fprintf(stdout, "point %d is error\n",j+1);
-      exit(1);
-    }
-  }
-  // 6 check bdry x1 z2
-  for(int j=0; j<ny; j++)
-  {
-    iptr1 = (nz-1)*ny+j; // x1
-    iptr2 = j*nx+0; // z2
-    size1 = nz*ny;  // x1
-    size2 = ny*nx;  // z2
-    dif_x = x1[iptr1] - z2[iptr2];
-    dif_y = x1[iptr1+1*size1] - z2[iptr2+1*size2];
-    dif_z = x1[iptr1+2*size1] - z2[iptr2+2*size2];
-    dif = fabs(dif_x) + fabs(dif_y) + fabs(dif_z);
-    if(dif > 0.00001)
-    {
-      ierr = 1;
-      fprintf(stdout, "edge x1 z2, please check x1 and z2 boundary\n");
-      fprintf(stdout, "point %d is error\n",j+1);
-      exit(1);
-    }
-  }
-  // 7 check bdry x2 z1
-  for(int j=0; j<ny; j++)
-  {
-    iptr1 = 0*ny+j; // x2
-    iptr2 = j*nx+(nx-1); // z1
-    size1 = nz*ny;  // x2
-    size2 = ny*nx;  // z1
-    dif_x = x2[iptr1] - z1[iptr2];
-    dif_y = x2[iptr1+1*size1] - z1[iptr2+1*size2];
-    dif_z = x2[iptr1+2*size1] - z1[iptr2+2*size2];
-    dif = fabs(dif_x) + fabs(dif_y) + fabs(dif_z);
-    if(dif > 0.00001)
-    {
-      ierr = 1;
-      fprintf(stdout, "edge x2 z1, please check x2 and z1 boundary\n");
-      fprintf(stdout, "point %d is error\n",j+1);
-      exit(1);
-    }
-  }
-  // 8 check bdry x2 z2
-  for(int j=0; j<ny; j++)
-  {
-    iptr1 = (nz-1)*ny+j; // x2
-    iptr2 = j*nx+(nx-1); // z2
-    size1 = nz*ny;  // x2
-    size2 = ny*nx;  // z2
-    dif_x = x2[iptr1] - z2[iptr2];
-    dif_y = x2[iptr1+1*size1] - z2[iptr2+1*size2];
-    dif_z = x2[iptr1+2*size1] - z2[iptr2+2*size2];
-    dif = fabs(dif_x) + fabs(dif_y) + fabs(dif_z);
-    if(dif > 0.00001)
-    {
-      ierr = 1;
-      fprintf(stdout, "edge x2 z2, please check x2 and z2 boundary\n");
-      fprintf(stdout, "point %d is error\n",j+1);
-      exit(1);
-    }
-  }
-
-  // 9 check bdry x1 y1
-  for(int k=0; k<nz; k++)
-  {
-    iptr1 = k*ny+0; // x1
-    iptr2 = k*nx+0; // y1
-    size1 = nz*ny;  // x1
-    size2 = nz*nx;  // y1
-    dif_x = x1[iptr1] - y1[iptr2];
-    dif_y = x1[iptr1+1*size1] - y1[iptr2+1*size2];
-    dif_z = x1[iptr1+2*size1] - y1[iptr2+2*size2];
-    dif = fabs(dif_x) + fabs(dif_y) + fabs(dif_z);
-    if(dif > 0.00001)
-    {
-      ierr = 1;
-      fprintf(stdout, "edge x1 y1, please check x1 and y1 boundary\n");
-      fprintf(stdout, "point %d is error\n",k+1);
-      exit(1);
-    }
-  }
-  // 10 check bdry x1 y2
-  for(int k=0; k<nz; k++)
-  {
-    iptr1 = k*ny+(ny-1); // x1
-    iptr2 = k*nx+0; // y2
-    size1 = nz*ny;  // x1
-    size2 = nz*nx;  // y2
-    dif_x = x1[iptr1] - y2[iptr2];
-    dif_y = x1[iptr1+1*size1] - y2[iptr2+1*size2];
-    dif_z = x1[iptr1+2*size1] - y2[iptr2+2*size2];
-    dif = fabs(dif_x) + fabs(dif_y) + fabs(dif_z);
-    if(dif > 0.00001)
-    {
-      ierr = 1;
-      fprintf(stdout, "edge x1 y2, please check x1 and y2 boundary\n");
-      fprintf(stdout, "point %d is error\n",k+1);
-      exit(1);
-    }
-  }
-  // 11 check bdry x2 y1
-  for(int k=0; k<nz; k++)
-  {
-    iptr1 = k*ny+0; // x2
-    iptr2 = k*nx+(nx-1); // y1
-    size1 = nz*ny;  // x2
-    size2 = nz*nx;  // y1
-    dif_x = x2[iptr1] - y1[iptr2];
-    dif_y = x2[iptr1+1*size1] - y1[iptr2+1*size2];
-    dif_z = x2[iptr1+2*size1] - y1[iptr2+2*size2];
-    dif = fabs(dif_x) + fabs(dif_y) + fabs(dif_z);
-    if(dif > 0.00001)
-    {
-      ierr = 1;
-      fprintf(stdout, "edge x2 y1, please check x2 and y1 boundary\n");
-      fprintf(stdout, "point %d is error\n",k+1);
-      exit(1);
-    }
-  }
-  // 12 check bdry x2 y2
-  for(int k=0; k<nz; k++)
-  {
-    iptr1 = k*ny+(ny-1); // x2
-    iptr2 = k*nx+(nx-1); // y2
-    size1 = nz*ny;  // x2
-    size2 = nz*nx;  // y2
-    dif_x = x2[iptr1] - y2[iptr2];
-    dif_y = x2[iptr1+1*size1] - y2[iptr2+1*size2];
-    dif_z = x2[iptr1+2*size1] - y2[iptr2+2*size2];
-    dif = fabs(dif_x) + fabs(dif_y) + fabs(dif_z);
-    if(dif > 0.00001)
-    {
-      ierr = 1;
-      fprintf(stdout, "edge x2 y2, please check x2 and y2 boundary\n");
-      fprintf(stdout, "point %d is error\n",k+1);
-      exit(1);
-    }
-  }
-  return 0;
-}
-
-int
-permute_bdry_x(bdry_t *bdry, gd_t *gdcurv)
-{
-  size_t iptr, iptr1;
-  // total_n* has tran in gdcurv
-  bdry->total_nx = gdcurv->total_nx;
-  bdry->total_ny = gdcurv->total_ny;
-  bdry->total_nz = gdcurv->total_nz;
-
-  int total_nx = gdcurv->total_nx;
-  int total_ny = gdcurv->total_ny;
-  int total_nz = gdcurv->total_nz;
-
-  float *x1_tmp, *x2_tmp;
-  float *z1_tmp, *z2_tmp;
-  x1_tmp = bdry->x1;
-  x2_tmp = bdry->x2;
-  z1_tmp = bdry->z1;
-  z2_tmp = bdry->z2;
-
-  bdry->x1 = z1_tmp;
-  bdry->x2 = z2_tmp;
-  bdry->z1 = x1_tmp;
-  bdry->z2 = x2_tmp;
-
-  // copy coord and change sort order
-  // old z1(ny*old_nx) -> new x1(new_nz*ny)
-  // old_nx = new_nz
-  size_t size_bx = total_nz * total_ny;
-  float *bx_coord_x = (float *) malloc(sizeof(float)*size_bx);
-  float *bx_coord_y = (float *) malloc(sizeof(float)*size_bx);
-  float *bx_coord_z = (float *) malloc(sizeof(float)*size_bx);
-  for(int k=0; k<total_nz; k++) {
-    for(int j=0; j<total_ny; j++)
-    {
-      iptr1 = j*total_nz + k;
-      iptr  = k*total_ny + j;
-      bx_coord_x[iptr] = bdry->x1[iptr1+0*size_bx];
-      bx_coord_y[iptr] = bdry->x1[iptr1+1*size_bx];
-      bx_coord_z[iptr] = bdry->x1[iptr1+2*size_bx];
-    }
-  }
-  for(int k=0; k<total_nz; k++) {
-    for(int j=0; j<total_ny; j++)
-    {
-      iptr = k*total_ny + j;
-      bdry->x1[iptr+0*size_bx] = bx_coord_z[iptr];
-      bdry->x1[iptr+1*size_bx] = bx_coord_y[iptr];
-      bdry->x1[iptr+2*size_bx] = bx_coord_x[iptr];
-    }
-  }
-
-  for(int k=0; k<total_nz; k++) {
-    for(int j=0; j<total_ny; j++)
-    {
-      iptr1 = j*total_nz + k;
-      iptr  = k*total_ny + j;
-      bx_coord_x[iptr] = bdry->x2[iptr1+0*size_bx];
-      bx_coord_y[iptr] = bdry->x2[iptr1+1*size_bx];
-      bx_coord_z[iptr] = bdry->x2[iptr1+2*size_bx];
-    }
-  }
-  for(int k=0; k<total_nz; k++) {
-    for(int j=0; j<total_ny; j++)
-    {
-      iptr = k*total_ny + j;
-      bdry->x2[iptr+0*size_bx] = bx_coord_z[iptr];
-      bdry->x2[iptr+1*size_bx] = bx_coord_y[iptr];
-      bdry->x2[iptr+2*size_bx] = bx_coord_x[iptr];
-    }
-  }
-
-  // bdry y1 y2
-  size_t size_by = total_nz * total_nx;
-  float *by_coord_x = (float *) malloc(sizeof(float)*size_by);
-  float *by_coord_y = (float *) malloc(sizeof(float)*size_by);
-  float *by_coord_z = (float *) malloc(sizeof(float)*size_by);
-  for(int k=0; k<total_nz; k++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr1 = i*total_nz + k;
-      iptr  = k*total_nx + i;
-      by_coord_x[iptr] = bdry->y1[iptr1+0*size_by];
-      by_coord_y[iptr] = bdry->y1[iptr1+1*size_by];
-      by_coord_z[iptr] = bdry->y1[iptr1+2*size_by];
-    }
-  }
-  for(int k=0; k<total_nz; k++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr = k*total_nx + i;
-      bdry->y1[iptr+0*size_by] = by_coord_z[iptr];
-      bdry->y1[iptr+1*size_by] = by_coord_y[iptr];
-      bdry->y1[iptr+2*size_by] = by_coord_x[iptr];
-    }
-  }
-
-  for(int k=0; k<total_nz; k++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr1 = i*total_nz + k;
-      iptr  = k*total_nx + i;
-      by_coord_x[iptr] = bdry->y2[iptr1+0*size_by];
-      by_coord_y[iptr] = bdry->y2[iptr1+1*size_by];
-      by_coord_z[iptr] = bdry->y2[iptr1+2*size_by];
-    }
-  }
-  for(int k=0; k<total_nz; k++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr = k*total_nx + i;
-      bdry->y2[iptr+0*size_by] = by_coord_z[iptr];
-      bdry->y2[iptr+1*size_by] = by_coord_y[iptr];
-      bdry->y2[iptr+2*size_by] = by_coord_x[iptr];
-    }
-  }
-
-  // bdry z1 z2
-  size_t size_bz = total_ny * total_nx;
-  float *bz_coord_x = (float *) malloc(sizeof(float)*size_bz);
-  float *bz_coord_y = (float *) malloc(sizeof(float)*size_bz);
-  float *bz_coord_z = (float *) malloc(sizeof(float)*size_bz);
-  for(int j=0; j<total_ny; j++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr1 = i*total_ny + j;
-      iptr  = j*total_nx + i;
-      bz_coord_x[iptr] = bdry->z1[iptr1+0*size_bz];
-      bz_coord_y[iptr] = bdry->z1[iptr1+1*size_bz];
-      bz_coord_z[iptr] = bdry->z1[iptr1+2*size_bz];
-    }
-  }
-  for(int j=0; j<total_ny; j++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr = j*total_nx + i;
-      bdry->z1[iptr+0*size_bz] = bz_coord_z[iptr];
-      bdry->z1[iptr+1*size_bz] = bz_coord_y[iptr];
-      bdry->z1[iptr+2*size_bz] = bz_coord_x[iptr];
-    }
-  }
-
-  for(int j=0; j<total_ny; j++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr1 = i*total_ny + j;
-      iptr  = j*total_nx + i;
-      bz_coord_x[iptr] = bdry->z2[iptr1+0*size_bz];
-      bz_coord_y[iptr] = bdry->z2[iptr1+1*size_bz];
-      bz_coord_z[iptr] = bdry->z2[iptr1+2*size_bz];
-    }
-  }
-  for(int j=0; j<total_ny; j++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr = j*total_nx + i;
-      bdry->z2[iptr+0*size_bz] = bz_coord_z[iptr];
-      bdry->z2[iptr+1*size_bz] = bz_coord_y[iptr];
-      bdry->z2[iptr+2*size_bz] = bz_coord_x[iptr];
-    }
-  }
-
-  free(bx_coord_x);
-  free(bx_coord_y);
-  free(bx_coord_z);
-  free(by_coord_x);
-  free(by_coord_y);
-  free(by_coord_z);
-  free(bz_coord_x);
-  free(bz_coord_y);
-  free(bz_coord_z);
-
-  return 0;
-}
-
-int
-permute_bdry_y(bdry_t *bdry, gd_t *gdcurv)
-{
-  size_t iptr, iptr1;
-  // total_n* has tran in gdcurv
-  bdry->total_nx = gdcurv->total_nx;
-  bdry->total_ny = gdcurv->total_ny;
-  bdry->total_nz = gdcurv->total_nz;
-
-  int total_nx = gdcurv->total_nx;
-  int total_ny = gdcurv->total_ny;
-  int total_nz = gdcurv->total_nz;
-
-  float *y1_tmp, *y2_tmp;
-  float *z1_tmp, *z2_tmp;
-  y1_tmp = bdry->y1;
-  y2_tmp = bdry->y2;
-  z1_tmp = bdry->z1;
-  z2_tmp = bdry->z2;
-
-  bdry->y1 = z1_tmp;
-  bdry->y2 = z2_tmp;
-  bdry->z1 = y1_tmp;
-  bdry->z2 = y2_tmp;
-
-  // copy coord and change sort order
-  // old x1(old_nz*old_ny) -> new x1(new_nz*new_ny)
-  // old_nx = new_nz old_ny = new_nz
-  size_t size_bx = total_nz * total_ny;
-  float *bx_coord_x = (float *) malloc(sizeof(float)*size_bx);
-  float *bx_coord_y = (float *) malloc(sizeof(float)*size_bx);
-  float *bx_coord_z = (float *) malloc(sizeof(float)*size_bx);
-  for(int k=0; k<total_nz; k++) {
-    for(int j=0; j<total_ny; j++)
-    {
-      iptr1 = j*total_nz + k;
-      iptr  = k*total_ny + j;
-      bx_coord_x[iptr] = bdry->x1[iptr1+0*size_bx];
-      bx_coord_y[iptr] = bdry->x1[iptr1+1*size_bx];
-      bx_coord_z[iptr] = bdry->x1[iptr1+2*size_bx];
-    }
-  }
-  for(int k=0; k<total_nz; k++) {
-    for(int j=0; j<total_ny; j++)
-    {
-      iptr = k*total_ny + j;
-      bdry->x1[iptr+0*size_bx] = bx_coord_x[iptr];
-      bdry->x1[iptr+1*size_bx] = bx_coord_z[iptr];
-      bdry->x1[iptr+2*size_bx] = bx_coord_y[iptr];
-    }
-  }
-
-  for(int k=0; k<total_nz; k++) {
-    for(int j=0; j<total_ny; j++)
-    {
-      iptr1 = j*total_nz + k;
-      iptr  = k*total_ny + j;
-      bx_coord_x[iptr] = bdry->x2[iptr1+0*size_bx];
-      bx_coord_y[iptr] = bdry->x2[iptr1+1*size_bx];
-      bx_coord_z[iptr] = bdry->x2[iptr1+2*size_bx];
-    }
-  }
-  for(int k=0; k<total_nz; k++) {
-    for(int j=0; j<total_ny; j++)
-    {
-      iptr = k*total_ny + j;
-      bdry->x2[iptr+0*size_bx] = bx_coord_x[iptr];
-      bdry->x2[iptr+1*size_bx] = bx_coord_z[iptr];
-      bdry->x2[iptr+2*size_bx] = bx_coord_y[iptr];
-    }
-  }
-
-  // bdry y1 y2
-  size_t size_by = total_nz * total_nx;
-  float *by_coord_x = (float *) malloc(sizeof(float)*size_by);
-  float *by_coord_y = (float *) malloc(sizeof(float)*size_by);
-  float *by_coord_z = (float *) malloc(sizeof(float)*size_by);
-  for(int k=0; k<total_nz; k++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr1 = k*total_nx + i;
-      iptr  = k*total_nx + i;
-      by_coord_x[iptr] = bdry->y1[iptr1+0*size_by];
-      by_coord_y[iptr] = bdry->y1[iptr1+1*size_by];
-      by_coord_z[iptr] = bdry->y1[iptr1+2*size_by];
-    }
-  }
-  for(int k=0; k<total_nz; k++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr = k*total_nx + i;
-      bdry->y1[iptr+0*size_by] = by_coord_x[iptr];
-      bdry->y1[iptr+1*size_by] = by_coord_z[iptr];
-      bdry->y1[iptr+2*size_by] = by_coord_y[iptr];
-    }
-  }
-
-  for(int k=0; k<total_nz; k++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr1 = k*total_nx + i;
-      iptr  = k*total_nx + i;
-      by_coord_x[iptr] = bdry->y2[iptr1+0*size_by];
-      by_coord_y[iptr] = bdry->y2[iptr1+1*size_by];
-      by_coord_z[iptr] = bdry->y2[iptr1+2*size_by];
-    }
-  }
-  for(int k=0; k<total_nz; k++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr = k*total_nx + i;
-      bdry->y2[iptr+0*size_by] = by_coord_x[iptr];
-      bdry->y2[iptr+1*size_by] = by_coord_z[iptr];
-      bdry->y2[iptr+2*size_by] = by_coord_y[iptr];
-    }
-  }
-
-  // bdry z1 z2
-  size_t size_bz = total_ny * total_nx;
-  float *bz_coord_x = (float *) malloc(sizeof(float)*size_bz);
-  float *bz_coord_y = (float *) malloc(sizeof(float)*size_bz);
-  float *bz_coord_z = (float *) malloc(sizeof(float)*size_bz);
-  for(int j=0; j<total_ny; j++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr1 = j*total_nx + i;
-      iptr  = j*total_nx + i;
-      bz_coord_x[iptr] = bdry->z1[iptr1+0*size_bz];
-      bz_coord_y[iptr] = bdry->z1[iptr1+1*size_bz];
-      bz_coord_z[iptr] = bdry->z1[iptr1+2*size_bz];
-    }
-  }
-  for(int j=0; j<total_ny; j++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr = j*total_nx + i;
-      bdry->z1[iptr+0*size_bz] = bz_coord_x[iptr];
-      bdry->z1[iptr+1*size_bz] = bz_coord_z[iptr];
-      bdry->z1[iptr+2*size_bz] = bz_coord_y[iptr];
-    }
-  }
-
-  for(int j=0; j<total_ny; j++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr1 = j*total_nx + i;
-      iptr  = j*total_nx + i;
-      bz_coord_x[iptr] = bdry->z2[iptr1+0*size_bz];
-      bz_coord_y[iptr] = bdry->z2[iptr1+1*size_bz];
-      bz_coord_z[iptr] = bdry->z2[iptr1+2*size_bz];
-    }
-  }
-  for(int j=0; j<total_ny; j++) {
-    for(int i=0; i<total_nx; i++)
-    {
-      iptr = j*total_nx + i;
-      bdry->z2[iptr+0*size_bz] = bz_coord_x[iptr];
-      bdry->z2[iptr+1*size_bz] = bz_coord_z[iptr];
-      bdry->z2[iptr+2*size_bz] = bz_coord_y[iptr];
-    }
-  }
-
-  free(bx_coord_x);
-  free(bx_coord_y);
-  free(bx_coord_z);
-  free(by_coord_x);
-  free(by_coord_y);
-  free(by_coord_z);
-  free(bz_coord_x);
-  free(bz_coord_y);
-  free(bz_coord_z);
-
-  return 0;
-}
 
 // 3D array permute. transposition (nx,ny,nz) -> (nz,ny,nx)
 int
@@ -1108,7 +393,6 @@ permute_coord_x(gd_t *gdcurv)
   int nk1 = gdcurv->nk1;
   int nk2 = gdcurv->nk2;
   int gni1 = gdcurv->gni1;
-  int gnj1 = gdcurv->gnj1;
   int gnk1 = gdcurv->gnk1;
 
   size_t siz_iy = gdcurv->siz_iy;
@@ -1192,7 +476,6 @@ permute_coord_y(gd_t *gdcurv)
   int nj2 = gdcurv->nj2;
   int nk1 = gdcurv->nk1;
   int nk2 = gdcurv->nk2;
-  int gni1 = gdcurv->gni1;
   int gnj1 = gdcurv->gnj1;
   int gnk1 = gdcurv->gnk1;
 
@@ -1254,7 +537,6 @@ permute_coord_y(gd_t *gdcurv)
   gdcurv->nk2 = nj2;
   gdcurv->gnj1 = gnk1;
   gdcurv->gnk1 = gnj1;
-
 
   free(tmp_coord_x); 
   free(tmp_coord_y); 
@@ -1342,17 +624,17 @@ grid_mesg_init(mympi_t *mympi, gd_t *gdcurv)
   // send
   float *sbuff_y1 = mympi->sbuff;
   float *sbuff_y2 = sbuff_y1 + mympi->siz_sbuff_y1;
-  MPI_Send_init(sbuff_y1, mympi->siz_sbuff_y1, MPI_FLOAT, mympi->neighid[2], tag[0],
+  MPI_Send_init(sbuff_y1, mympi->siz_sbuff_y1, MPI_FLOAT, mympi->neighid[0], tag[0],
                 mympi->topocomm, &(mympi->s_reqs[0]));
-  MPI_Send_init(sbuff_y2, mympi->siz_sbuff_y2, MPI_FLOAT, mympi->neighid[3], tag[1],
+  MPI_Send_init(sbuff_y2, mympi->siz_sbuff_y2, MPI_FLOAT, mympi->neighid[1], tag[1],
                 mympi->topocomm, &(mympi->s_reqs[1]));
 
   // recv
   float *rbuff_y1 = mympi->rbuff;
   float *rbuff_y2 = rbuff_y1 + mympi->siz_rbuff_y1;
-  MPI_Recv_init(rbuff_y1, mympi->siz_rbuff_y1, MPI_FLOAT, mympi->neighid[2], tag[1],
+  MPI_Recv_init(rbuff_y1, mympi->siz_rbuff_y1, MPI_FLOAT, mympi->neighid[0], tag[1],
                 mympi->topocomm, &(mympi->r_reqs[0]));
-  MPI_Recv_init(rbuff_y2, mympi->siz_rbuff_y2, MPI_FLOAT, mympi->neighid[3], tag[0],
+  MPI_Recv_init(rbuff_y2, mympi->siz_rbuff_y2, MPI_FLOAT, mympi->neighid[1], tag[0],
                 mympi->topocomm, &(mympi->r_reqs[1]));
 
   return 0;
@@ -1423,7 +705,7 @@ grid_unpack_mesg(mympi_t *mympi, gd_t *gdcurv, int k)
   float *rbuff_y2 = rbuff_y1 + mympi->siz_rbuff_y1;
 
   // y1 
-  if(neighid[2] != MPI_PROC_NULL)
+  if(neighid[0] != MPI_PROC_NULL)
   {
     for(int i=0; i<nx; i++)
     {
@@ -1440,7 +722,7 @@ grid_unpack_mesg(mympi_t *mympi, gd_t *gdcurv, int k)
   }
 
   // y2
-  if(neighid[3] != MPI_PROC_NULL)
+  if(neighid[1] != MPI_PROC_NULL)
   {
     for(int i=0; i<nx; i++)
     {
@@ -1458,3 +740,72 @@ grid_unpack_mesg(mympi_t *mympi, gd_t *gdcurv, int k)
 
   return 0;
 }
+
+int
+cal_min_dist(gd_t *gdcurv, int *indx_i, int *indx_j, int *indx_k, float *dL_min)
+{
+  float dL_min_local = 1e10;
+  float dL_min_global = 1e10;
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
+  int ni1 = gdcurv->ni1;
+  int ni2 = gdcurv->ni2;
+  int nj1 = gdcurv->nj1;
+  int nj2 = gdcurv->nj2;
+  int nk1 = gdcurv->nk1;
+  int nk2 = gdcurv->nk2;
+  size_t siz_iy = gdcurv->siz_iy;
+  size_t siz_iz = gdcurv->siz_iz;
+
+  for (int k = nk1; k < nk2; k++)
+  {
+    for (int j = nj1; j < nj2; j++)
+    {
+      for (int i = ni1; i < ni2; i++)
+      {
+        size_t iptr = i + j * siz_iy + k * siz_iz;
+        float p0[] = { x3d[iptr], y3d[iptr], z3d[iptr] };
+
+        // min L to 8 adjacent planes
+        for (int kk = -1; kk <=1; kk = kk+2)
+        {
+          for (int jj = -1; jj <= 1; jj = jj+2)
+          {
+            for (int ii = -1; ii <= 1; ii = ii+2) 
+            {
+              float p1[] = { x3d[iptr-ii], y3d[iptr-ii], z3d[iptr-ii] };
+              float p2[] = { x3d[iptr-jj*siz_iy],
+                             y3d[iptr-jj*siz_iy],
+                             z3d[iptr-jj*siz_iy] };
+              float p3[] = { x3d[iptr-kk*siz_iz],
+                             y3d[iptr-kk*siz_iz],
+                             z3d[iptr-kk*siz_iz] };
+
+              float L = dist_point2plane(p0, p1, p2, p3);
+
+              if (dL_min_local > L) dL_min_local = L;
+            }
+          }
+        }
+
+        if (dL_min_global > dL_min_local) 
+        {
+          dL_min_global = dL_min_local;
+          *dL_min = dL_min_global;
+          *indx_i = i;
+          *indx_j = j;
+          *indx_k = k;
+        }
+      }
+    }
+  }
+
+  return 0;
+}
+
+
+
+
+
+

@@ -35,13 +35,14 @@ typedef struct{
   int check_smooth_zt;
 
   char geometry_input_file[PAR_MAX_STRLEN];
+  char step_input_file[PAR_MAX_STRLEN];
   char grid_export_dir[PAR_MAX_STRLEN];
 
   int dire_itype;
   char direction[PAR_MAX_STRLEN];
 
   float coef;
-  int o2i;  // outer to inner
+  int t2b;  // top boundary to bottom boundary
 
 } par_t;
 

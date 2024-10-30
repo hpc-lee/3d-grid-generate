@@ -2,12 +2,12 @@ clc;
 clear all;
 close all;
 
-nz = 200;
+nz = 100;
 num_of_step = nz-1;
 
-%for i=1:num_of_step
+% for i=1:num_of_step
 %  step(i) = 1;
-%end
+% end
 
 % Gradient Grid
 % incre_ratio = 1.1;

@@ -63,11 +63,25 @@ int main(int argc, char** argv)
     fprintf(stdout,"new number of grid points y is %d\n",gdcurv_new->ny);
     fprintf(stdout,"new number of grid points z is %d\n",gdcurv_new->nz);
     gd_curv_coord_export(gdcurv_new,par);
+    //  cal min dist 
+    int indx_i, indx_j, indx_k;
+    float dL_min;
+    cal_min_dist(gdcurv_new, &indx_i, &indx_j, &indx_k, &dL_min);
+    fprintf(stdout,"indx is (%d,%d,%d),dL_min_global is %f\n",
+            indx_i, indx_j, indx_k, dL_min);
+    fflush(stdout);
   } else {
     fprintf(stdout,"******* not sample grid ******* \n");
     fprintf(stdout,"export coord to file ... \n");
     fflush(stdout);
     gd_curv_coord_export(gdcurv,par);
+    //  cal min dist 
+    int indx_i, indx_j, indx_k;
+    float dL_min;
+    cal_min_dist(gdcurv, &indx_i, &indx_j, &indx_k, &dL_min);
+    fprintf(stdout,"indx is (%d,%d,%d),dL_min_global is %f\n",
+            indx_i, indx_j, indx_k, dL_min);
+    fflush(stdout);
   }
 
   // grid quality check and export quality data
