@@ -4,6 +4,7 @@
 #include <math.h>
 
 #include "lib_mem.h"
+#include "lib_math.h"
 #include "gd_t.h"
 #include "constants.h"
 #include "algebra.h"
@@ -1015,6 +1016,69 @@ grid_unpack_mesg(mympi_t *mympi, gd_t *gdcurv, float *x3d, float *y3d, float *z3
         x3d[iptr] = rbuff_z2[iptr1];
         y3d[iptr] = rbuff_z2[iptr1+ni*nj];
         z3d[iptr] = rbuff_z2[iptr1+2*ni*nj];
+      }
+    }
+  }
+
+  return 0;
+}
+
+int
+cal_min_dist(gd_t *gdcurv, int *indx_i, int *indx_j, int *indx_k, float *dL_min)
+{
+  float dL_min_local = 1e10;
+  float dL_min_global = 1e10;
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
+  int ni1 = gdcurv->ni1;
+  int ni2 = gdcurv->ni2;
+  int nj1 = gdcurv->nj1;
+  int nj2 = gdcurv->nj2;
+  int nk1 = gdcurv->nk1;
+  int nk2 = gdcurv->nk2;
+  size_t siz_iy = gdcurv->siz_iy;
+  size_t siz_iz = gdcurv->siz_iz;
+
+  for (int k = nk1; k < nk2; k++)
+  {
+    for (int j = nj1; j < nj2; j++)
+    {
+      for (int i = ni1; i < ni2; i++)
+      {
+        size_t iptr = i + j * siz_iy + k * siz_iz;
+        float p0[] = { x3d[iptr], y3d[iptr], z3d[iptr] };
+
+        // min L to 8 adjacent planes
+        for (int kk = -1; kk <=1; kk = kk+2)
+        {
+          for (int jj = -1; jj <= 1; jj = jj+2)
+          {
+            for (int ii = -1; ii <= 1; ii = ii+2) 
+            {
+              float p1[] = { x3d[iptr-ii], y3d[iptr-ii], z3d[iptr-ii] };
+              float p2[] = { x3d[iptr-jj*siz_iy],
+                             y3d[iptr-jj*siz_iy],
+                             z3d[iptr-jj*siz_iy] };
+              float p3[] = { x3d[iptr-kk*siz_iz],
+                             y3d[iptr-kk*siz_iz],
+                             z3d[iptr-kk*siz_iz] };
+
+              float L = dist_point2plane(p0, p1, p2, p3);
+
+              if (dL_min_local > L) dL_min_local = L;
+            }
+          }
+        }
+
+        if (dL_min_global > dL_min_local) 
+        {
+          dL_min_global = dL_min_local;
+          *dL_min = dL_min_global;
+          *indx_i = i;
+          *indx_j = j;
+          *indx_k = k;
+        }
       }
     }
   }

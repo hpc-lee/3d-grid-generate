@@ -143,18 +143,6 @@ par_read_from_str(const char *str, par_t *par)
   if (item = cJSON_GetObjectItem(root, "grid_export_dir")) {
     sprintf(par->output_dir, "%s", item->valuestring);
   }
-
-  // default not check
-  for(int i=0; i<6; i++)
-  {
-    par->flag_bdry_orth[i] = 0;
-  }
-  if (item = cJSON_GetObjectItem(root, "flag_bdry_orth")) {
-    for (int i=0; i<6; i++)
-    {
-      par->flag_bdry_orth[i] = cJSON_GetArrayItem(item, i)->valueint;
-    }
-  }
  
   if (item = cJSON_GetObjectItem(root, "grid_method")) {
     if (subitem = cJSON_GetObjectItem(item, "linear_tfi")) {

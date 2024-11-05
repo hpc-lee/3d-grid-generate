@@ -6,8 +6,8 @@ clear all;
 close all;
 
 flag_printf = 1;
-topo = importdata("topo_new.mat");
-
+topo = importdata("/data/lihl/code/foothills_model/topo_new.mat");
+topo=topo/2;
 num_pml = 20;
 nx1=501;
 ny1=501;
@@ -53,9 +53,9 @@ end
 
 for j=1:ny
   for i=1:nx
-    bz1(j,i,1) = bz2(j,i,1);
-    bz1(j,i,2) = bz2(j,i,2);
-    bz1(j,i,3) = -(nz-1)*dz;
+    bz1(i,j,1) = bz2(i,j,1);
+    bz1(i,j,2) = bz2(i,j,2);
+    bz1(i,j,3) = -(nz-1)*dz;
   end
 end
 
@@ -91,27 +91,41 @@ end
 if flag_printf
 
     figure(1)   
-    plot3(bx1(:,:,1),bx1(:,:,2),bx1(:,:,3));
+    plot(bx1(:,:,2),bx1(:,:,3),'k-');
     hold on;
-    plot3(bx2(:,:,1),bx2(:,:,2),bx2(:,:,3));
+    plot(bx1(:,:,2)',bx1(:,:,3)','k-');
     axis equal;
- 
+
     figure(2)   
-    plot3(by1(:,:,1),by1(:,:,2),by1(:,:,3));
+    plot(bx2(:,:,2),bx2(:,:,3),'k-');
     hold on;
-    plot3(by2(:,:,1),by2(:,:,2),by2(:,:,3));
+    plot(bx2(:,:,2)',bx2(:,:,3)','k-');
     axis equal;
  
     figure(3)   
-    plot3(bz1(:,:,1),bz1(:,:,2),bz1(:,:,3));
+    plot(by1(:,:,1),by1(:,:,3),'k-');
     hold on;
-    plot3(bz2(:,:,1),bz2(:,:,2),bz2(:,:,3));
+    plot(by1(:,:,1)',by1(:,:,3)','k-');
     axis equal;
 
-    figure(4)
-    surf(bz2(:,:,1),bz2(:,:,2),bz2(:,:,3),'edgecolor','none');
-%     light;
+    figure(4)   
+    plot(by2(:,:,1),by2(:,:,3),'k-');
+    hold on;
+    plot(by2(:,:,1)',by2(:,:,3)','k-');
     axis equal;
+
+    figure(5)   
+    plot(bz1(:,:,1),bz1(:,:,2),'k-');
+    hold on;
+    plot(bz1(:,:,1)',bz1(:,:,2)','k-');
+    axis equal;
+
+    figure(6)   
+    plot(bz2(:,:,1),bz2(:,:,2),'k-');
+    hold on;
+    plot(bz2(:,:,1)',bz2(:,:,2)','k-');
+    axis equal;
+
 end
 
 % creat data file

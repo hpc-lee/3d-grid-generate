@@ -4,6 +4,7 @@
 #include <math.h>
 
 #include "lib_mem.h"
+#include "lib_math.h"
 #include "gd_t.h"
 #include "constants.h"
 #include "io_funcs.h"
@@ -351,6 +352,66 @@ permute_coord_y(gd_t *gdcurv)
   free(tmp_coord_x); 
   free(tmp_coord_y); 
   free(tmp_coord_z); 
+
+  return 0;
+}
+
+int
+cal_min_dist(gd_t *gdcurv, int *indx_i, int *indx_j, int *indx_k, float *dL_min)
+{
+  float dL_min_local = 1e10;
+  float dL_min_global = 1e10;
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
+  int nx = gdcurv->nx;
+  int ny = gdcurv->ny;
+  int nz = gdcurv->nz;
+  size_t siz_iy = gdcurv->siz_iy;
+  size_t siz_iz = gdcurv->siz_iz;
+
+  for (int k = 1; k < nz-1; k++)
+  {
+    for (int j = 1; j < ny-1; j++)
+    {
+      for (int i = 1; i < nx-1; i++)
+      {
+        size_t iptr = i + j * siz_iy + k * siz_iz;
+        float p0[] = { x3d[iptr], y3d[iptr], z3d[iptr] };
+
+        // min L to 8 adjacent planes
+        for (int kk = -1; kk <=1; kk = kk+2)
+        {
+          for (int jj = -1; jj <= 1; jj = jj+2)
+          {
+            for (int ii = -1; ii <= 1; ii = ii+2) 
+            {
+              float p1[] = { x3d[iptr-ii], y3d[iptr-ii], z3d[iptr-ii] };
+              float p2[] = { x3d[iptr-jj*siz_iy],
+                             y3d[iptr-jj*siz_iy],
+                             z3d[iptr-jj*siz_iy] };
+              float p3[] = { x3d[iptr-kk*siz_iz],
+                             y3d[iptr-kk*siz_iz],
+                             z3d[iptr-kk*siz_iz] };
+
+              float L = dist_point2plane(p0, p1, p2, p3);
+
+              if (dL_min_local > L) dL_min_local = L;
+            }
+          }
+        }
+
+        if (dL_min_global > dL_min_local) 
+        {
+          dL_min_global = dL_min_local;
+          *dL_min = dL_min_global;
+          *indx_i = i;
+          *indx_j = j;
+          *indx_k = k;
+        }
+      }
+    }
+  }
 
   return 0;
 }

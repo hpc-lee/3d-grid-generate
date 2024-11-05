@@ -10,13 +10,13 @@ int
 grid_quality_check(io_quality_t *io_quality, gd_t *gdcurv, par_t *par, mympi_t *mympi);
 
 int 
-cal_xiet(io_quality_t *io_quality, gd_t *gdcurv);
+cal_xiet(io_quality_t *io_quality, gd_t *gdcurv, int myid);
 
 int 
-cal_xizt(io_quality_t *io_quality, gd_t *gdcurv);
+cal_xizt(io_quality_t *io_quality, gd_t *gdcurv, int myid);
 
 int 
-cal_etzt(io_quality_t *io_quality, gd_t *gdcurv);
+cal_etzt(io_quality_t *io_quality, gd_t *gdcurv, int myid);
 
 int 
 cal_jacobi(io_quality_t *io_quality, gd_t *gdcurv);

@@ -5,7 +5,7 @@
  * function prototype
  *************************************************/
 int
-thomas_block(int n, double *a, double *b, double *c, double *d,
-             double *x, double *D, double *y);
+thomas_block(int n, float *a, float *b, float *c, float *d,
+             float *x, float *D, float *y);
 
 #endif

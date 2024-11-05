@@ -119,6 +119,14 @@ int main(int argc, char** argv)
   if(myid == 0) fprintf(stdout,"export coord to file ... \n");
   gd_curv_coord_export(gdcurv,mympi);
 
+  //  cal min dist 
+  int indx_i, indx_j, indx_k;
+  float dL_min;
+  cal_min_dist(gdcurv, &indx_i, &indx_j, &indx_k, &dL_min);
+  fprintf(stdout,"mpiid is %d, indx is (%d,%d,%d),dL_min_global is %f\n",
+          myid,indx_i, indx_j, indx_k, dL_min);
+  fflush(stdout);
+
   // grid quality check and export quality data
   io_quality_t *io_quality = (io_quality_t *) malloc(sizeof(io_quality_t));
   if(par->grid_check == 1)

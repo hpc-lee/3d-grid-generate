@@ -803,9 +803,3 @@ cal_min_dist(gd_t *gdcurv, int *indx_i, int *indx_j, int *indx_k, float *dL_min)
 
   return 0;
 }
-
-
-
-
-
-

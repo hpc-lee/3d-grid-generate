@@ -7,7 +7,7 @@ int
 mat_invert3x3(float m[][3])
 {
   float inv[3][3];
-  float det;
+  double det;
 
   inv[0][0] = m[1][1]*m[2][2] - m[2][1]*m[1][2];
   inv[0][1] = m[2][1]*m[0][2] - m[0][1]*m[2][2];

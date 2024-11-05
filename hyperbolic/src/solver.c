@@ -47,13 +47,13 @@
   Ux=y
 */
 int
-thomas_block(int n, double *a, double *b, double *c, double *d,
-             double *x, double *D, double *y)
+thomas_block(int n, float *a, float *b, float *c, float *d,
+             float *x, float *D, float *y)
 {
-  double mat_a[3][3], mat_b[3][3], mat_c[3][3], vec_d[3];
-  double mat_G[3][3], mat_D[3][3], vec_y[3], vec_x[3];
-  double mat1[3][3],vec[3],vec1[3],vec2[3],vec3[3];
-  double jac;
+  float mat_a[3][3], mat_b[3][3], mat_c[3][3], vec_d[3];
+  float mat_G[3][3], mat_D[3][3], vec_y[3], vec_x[3];
+  float mat1[3][3],vec[3],vec1[3],vec2[3],vec3[3];
+  float jac;
   size_t iptr1,iptr2,iptr3,iptr4;
 
   // i=0

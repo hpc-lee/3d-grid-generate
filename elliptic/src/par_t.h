@@ -47,7 +47,6 @@ typedef struct{
   // elliptic-hilgenstock
   int method_itype;
 
-  int  flag_bdry_orth[6];
   float coef[6];
 
   float iter_err;   // iteration error

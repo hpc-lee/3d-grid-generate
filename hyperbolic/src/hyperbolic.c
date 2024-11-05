@@ -34,27 +34,27 @@ hyper_gene(gd_t *gdcurv, par_t *par)
   // malloc space for thomas_block method 
   // each element is 3x3 matrix
   // xi
-  double *a_xi = NULL;
-  a_xi = (double *)mem_calloc_1d_double(size*3*3, 0.0, "init");
-  double *b_xi = NULL;
-  b_xi = (double *)mem_calloc_1d_double(size*3*3, 0.0, "init");
-  double *c_xi = NULL;
-  c_xi = (double *)mem_calloc_1d_double(size*3*3, 0.0, "init");
-  double *g_xi = NULL;
-  g_xi = (double *)mem_calloc_1d_double(size*3, 0.0, "init");
+  float *a_xi = NULL;
+  a_xi = (float *)mem_calloc_1d_float(size*3*3, 0.0, "init");
+  float *b_xi = NULL;
+  b_xi = (float *)mem_calloc_1d_float(size*3*3, 0.0, "init");
+  float *c_xi = NULL;
+  c_xi = (float *)mem_calloc_1d_float(size*3*3, 0.0, "init");
+  float *g_xi = NULL;
+  g_xi = (float *)mem_calloc_1d_float(size*3, 0.0, "init");
 
   // et
-  double *a_et = NULL;
-  a_et = (double *)mem_calloc_1d_double(size*3*3, 0.0, "init");
-  double *b_et = NULL;
-  b_et = (double *)mem_calloc_1d_double(size*3*3, 0.0, "init");
-  double *c_et = NULL;
-  c_et = (double *)mem_calloc_1d_double(size*3*3, 0.0, "init");
-  double *d_et = NULL;
-  d_et = (double *)mem_calloc_1d_double(size*3, 0.0, "init");
+  float *a_et = NULL;
+  a_et = (float *)mem_calloc_1d_float(size*3*3, 0.0, "init");
+  float *b_et = NULL;
+  b_et = (float *)mem_calloc_1d_float(size*3*3, 0.0, "init");
+  float *c_et = NULL;
+  c_et = (float *)mem_calloc_1d_float(size*3*3, 0.0, "init");
+  float *d_et = NULL;
+  d_et = (float *)mem_calloc_1d_float(size*3, 0.0, "init");
 
-  double *xyz = NULL;
-  xyz = (double *)mem_calloc_1d_double(size*3, 0.0, "init");
+  float *xyz = NULL;
+  xyz = (float *)mem_calloc_1d_float(size*3, 0.0, "init");
 
   // solve first layer
   int k=1;
@@ -129,7 +129,7 @@ cal_smooth_coef(gd_t *gdcurv, float coef, int k, float *coef_e_xi, float *coef_e
   float delta_xi,delta_xi_mdfy;
   float delta_et,delta_et_mdfy;
   float len_vec;
-  double r_xi[3], r_et[3], vec_n[3];
+  float r_xi[3], r_et[3], vec_n[3];
   float cos_alpha_xi1,cos_alpha_xi2,cos_alpha_xi;
   float cos_alpha_et1,cos_alpha_et2,cos_alpha_et;
   float alpha_xi,alpha_et;
@@ -466,8 +466,8 @@ cal_smooth_coef(gd_t *gdcurv, float coef, int k, float *coef_e_xi, float *coef_e
 }
 
 int 
-cal_matrix(gd_t *gdcurv, int k, double *a_xi, double *b_xi, double *c_xi, 
-           double *a_et, double *b_et, double *c_et, double *d_et, float *volume)
+cal_matrix(gd_t *gdcurv, int k, float *a_xi, float *b_xi, float *c_xi, 
+           float *a_et, float *b_et, float *c_et, float *d_et, float *volume)
 {
   float *x3d = gdcurv->x3d;
   float *y3d = gdcurv->y3d;
@@ -478,13 +478,13 @@ cal_matrix(gd_t *gdcurv, int k, double *a_xi, double *b_xi, double *c_xi,
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
   
-  double A[3][3],B[3][3],C[3][3];
-  double mat1[3][3], mat2[3][3], mat3[3][3];
-  double vec_d[3], vec_g[3];
+  float A[3][3],B[3][3],C[3][3];
+  float mat1[3][3], mat2[3][3], mat3[3][3];
+  float vec_d[3], vec_g[3];
   size_t iptr,iptr1,iptr2;
-  double r_xi0[3],r_et0[3],r_zt0[3];
-  double sigma[3],omega[3],tau[3];
-  double area;
+  float r_xi0[3],r_et0[3],r_zt0[3];
+  float sigma[3],omega[3],tau[3];
+  float area;
 
 
   if(k==1)
@@ -642,8 +642,8 @@ cal_matrix(gd_t *gdcurv, int k, double *a_xi, double *b_xi, double *c_xi,
 
 int
 modify_smooth(gd_t *gdcurv, int k, float *coef_e_xi, float *coef_e_et, 
-              double *a_xi, double *b_xi, double *c_xi, double *a_et, 
-              double *b_et, double *c_et, double *d_et)
+              float *a_xi, float *b_xi, float *c_xi, float *a_et, 
+              float *b_et, float *c_et, float *d_et)
 {
   float *x3d = gdcurv->x3d;
   float *y3d = gdcurv->y3d;
@@ -653,10 +653,10 @@ modify_smooth(gd_t *gdcurv, int k, float *coef_e_xi, float *coef_e_et,
   size_t siz_iy = gdcurv->siz_iy;
   size_t siz_iz = gdcurv->siz_iz;
 
-  double vec1[3],vec2[3],vec3[3],vec4[3],vec5[3];
+  float vec1[3],vec2[3],vec3[3],vec4[3],vec5[3];
   float coef_i_xi,coef_i_et;
   size_t iptr1, iptr2, iptr3, iptr4, iptr5;
-  double mat[3][3];
+  float mat[3][3];
   mat_iden3x3(mat);
   for(int j=1; j<ny-1; j++)
   {
@@ -700,8 +700,8 @@ modify_smooth(gd_t *gdcurv, int k, float *coef_e_xi, float *coef_e_et,
 }
 
 int
-modify_bdry(double *a_xi, double *b_xi, double *c_xi, double *a_et, 
-            double *b_et, double *c_et, double *d_et, int nx, int ny,
+modify_bdry(float *a_xi, float *b_xi, float *c_xi, float *a_et, 
+            float *b_et, float *c_et, float *d_et, int nx, int ny,
             float epsilon_x, int bdry_x_itype,
             float epsilon_y, int bdry_y_itype)
 {
@@ -790,7 +790,7 @@ modify_bdry(double *a_xi, double *b_xi, double *c_xi, double *a_et,
 }
 
 int
-assign_coords(gd_t *gdcurv, double *xyz, int k, float epsilon_x, 
+assign_coords(gd_t *gdcurv, float *xyz, int k, float epsilon_x, 
               int bdry_x_itype, float epsilon_y, int bdry_y_itype)
 {
   float *x3d = gdcurv->x3d;
@@ -937,26 +937,26 @@ assign_coords(gd_t *gdcurv, double *xyz, int k, float epsilon_x,
 }
 
 int
-solve_et_block(double *a_et, double *b_et, double *c_et,
-               double *d_et, double *g_xi, int nx, int ny)
+solve_et_block(float *a_et, float *b_et, float *c_et,
+               float *d_et, float *g_xi, int nx, int ny)
 {
   size_t iptr1, iptr2;
   int n = ny-2; 
-  double *a = NULL;
-  double *b = NULL;
-  double *c = NULL;
-  double *d = NULL;
-  double *g = NULL;
-  a = (double *)mem_calloc_1d_double(n*3*3, 0.0, "init");
-  b = (double *)mem_calloc_1d_double(n*3*3, 0.0, "init");
-  c = (double *)mem_calloc_1d_double(n*3*3, 0.0, "init");
-  d = (double *)mem_calloc_1d_double(n*3, 0.0, "init");
-  g = (double *)mem_calloc_1d_double(n*3, 0.0, "init");
+  float *a = NULL;
+  float *b = NULL;
+  float *c = NULL;
+  float *d = NULL;
+  float *g = NULL;
+  a = (float *)mem_calloc_1d_float(n*3*3, 0.0, "init");
+  b = (float *)mem_calloc_1d_float(n*3*3, 0.0, "init");
+  c = (float *)mem_calloc_1d_float(n*3*3, 0.0, "init");
+  d = (float *)mem_calloc_1d_float(n*3, 0.0, "init");
+  g = (float *)mem_calloc_1d_float(n*3, 0.0, "init");
   // temp var
-  double *D = NULL;
-  double *y = NULL;
-  D = (double *)mem_calloc_1d_double(n*3*3, 0.0, "init");
-  y = (double *)mem_calloc_1d_double(n*3, 0.0, "init");
+  float *D = NULL;
+  float *y = NULL;
+  D = (float *)mem_calloc_1d_float(n*3*3, 0.0, "init");
+  y = (float *)mem_calloc_1d_float(n*3, 0.0, "init");
   for(int i=0; i<nx-2; i++)
   {
     // get i=const matrix
@@ -1001,22 +1001,22 @@ solve_et_block(double *a_et, double *b_et, double *c_et,
 }
 
 int
-solve_xi_block(double *a_xi, double *b_xi, double *c_xi,
-               double *g_xi, double *xyz, int nx, int ny)
+solve_xi_block(float *a_xi, float *b_xi, float *c_xi,
+               float *g_xi, float *xyz, int nx, int ny)
 {
   size_t iptr1, iptr2;
   int n = nx-2; 
-  double *a;
-  double *b;
-  double *c;
-  double *g;
-  double *cord = NULL;
-  cord = (double *)mem_calloc_1d_double(n*3, 0.0, "init");
+  float *a;
+  float *b;
+  float *c;
+  float *g;
+  float *cord = NULL;
+  cord = (float *)mem_calloc_1d_float(n*3, 0.0, "init");
   // temp var
-  double *D = NULL;
-  double *y = NULL;
-  D = (double *)mem_calloc_1d_double(n*3*3, 0.0, "init");
-  y = (double *)mem_calloc_1d_double(n*3, 0.0, "init");
+  float *D = NULL;
+  float *y = NULL;
+  D = (float *)mem_calloc_1d_float(n*3*3, 0.0, "init");
+  y = (float *)mem_calloc_1d_float(n*3, 0.0, "init");
   for(int j=0; j<ny-2; j++)
   {
     // get j=const matrix

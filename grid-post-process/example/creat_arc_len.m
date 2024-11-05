@@ -4,15 +4,16 @@ close all;
 
 nz = 100;
 num_of_step = nz-1;
+flag_flip = 1;
 
 % for i=1:num_of_step
 %  step(i) = 1;
 % end
 
-% Gradient Grid
-% incre_ratio = 1.1;
+% % Gradient Grid
+% incre_layer = 12;
 % max_ratio = 3;
-% incre_layer = ceil(log(max_ratio)/log(incre_ratio));
+% incre_ratio = exp((log(max_ratio)/incre_layer));
 % 
 % for i=1:10
 %  step(i) = 1;
@@ -26,22 +27,9 @@ num_of_step = nz-1;
 %  step(i) = step(10+incre_layer);
 % end
 
-% % Gradient Grid
-incre_ratio = 1.1;
-max_ratio = 3;
-incre_layer = ceil(log(max_ratio)/log(incre_ratio));
-
-for i=num_of_step:-1:num_of_step-9 
-    step(i) = 1;
+if(flag_flip)
+  step=flip(step);
 end
-for i=num_of_step-10:-1:num_of_step-9-incre_layer
-    step(i) = step(i+1)*incre_ratio;
-end
-
-for i=num_of_step-10-incre_layer:-1:1
-    step(i) = step(num_of_step-9-incre_layer);
-end
-
 
 sum_step = sum(step);
 

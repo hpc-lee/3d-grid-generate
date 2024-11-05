@@ -100,4 +100,7 @@ grid_pack_mesg(mympi_t *mympi, gd_t *gdcurv, float *x3d, float *y3d, float *z3d)
 int
 grid_unpack_mesg(mympi_t *mympi, gd_t *gdcurv, float *x3d, float *y3d, float *z3d);
 
+int
+cal_min_dist(gd_t *gdcurv, int *indx_i, int *indx_j, int *indx_k, float *dL_min);
+
 #endif

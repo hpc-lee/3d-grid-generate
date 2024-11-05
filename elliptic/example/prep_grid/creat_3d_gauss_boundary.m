@@ -10,13 +10,13 @@ flag_topo_x = 0;
 flag_topo_y = 0;
 flag_topo_z = 1;
 
-num_pml = 00;
-nx1 = 500;
-ny1 = 500;
+num_pml = 20;
+nx1 = 501;
+ny1 = 501;
 
 nx = nx1+2*num_pml;
 ny = ny1+2*num_pml;
-nz = 300;
+nz = 301;
 
 dx = 10;
 dy = 10;
@@ -25,22 +25,22 @@ dz = 10;
 origin_x = 0;
 origin_y = 0;
 origin_z = 0;
-bz1 = zeros(ny,nx,3);
-bz2 = zeros(ny,nx,3);
-by1 = zeros(nz,nx,3);
-by2 = zeros(nz,nx,3);
-bx1 = zeros(nz,ny,3);
-bx2 = zeros(nz,ny,3);
+bz1 = zeros(nx,ny,3);
+bz2 = zeros(nx,ny,3);
+by1 = zeros(nx,nz,3);
+by2 = zeros(nx,nz,3);
+bx1 = zeros(ny,nz,3);
+bx2 = zeros(ny,nz,3);
 
 for j=1:ny1
   for i=1:nx1
-    bz1(j+num_pml,i+num_pml,1) = origin_x + (i-1)*dx;
-    bz1(j+num_pml,i+num_pml,2) = origin_y + (j-1)*dy;
-    bz1(j+num_pml,i+num_pml,3) = origin_z - (nz-1)*dz;
+    bz1(i+num_pml,j+num_pml,1) = origin_x + (i-1)*dx;
+    bz1(i+num_pml,j+num_pml,2) = origin_y + (j-1)*dy;
+    bz1(i+num_pml,j+num_pml,3) = origin_z - (nz-1)*dz;
 
-    bz2(j+num_pml,i+num_pml,1) = origin_x + (i-1)*dx;
-    bz2(j+num_pml,i+num_pml,2) = origin_y + (j-1)*dy;
-    bz2(j+num_pml,i+num_pml,3) = origin_z;
+    bz2(i+num_pml,j+num_pml,1) = origin_x + (i-1)*dx;
+    bz2(i+num_pml,j+num_pml,2) = origin_y + (j-1)*dy;
+    bz2(i+num_pml,j+num_pml,3) = origin_z;
   end
 end
 
@@ -51,13 +51,13 @@ if flag_topo_z
   H = 0.2*nx*dx;
   for j = 1:ny1
     for i = 1:nx1
-      r1 = sqrt((bz2(j+num_pml,i+num_pml,1)-point_x)^2 + (bz2(j+num_pml,i+num_pml,2)-point_y)^2);
+      r1 = sqrt((bz2(i+num_pml,j+num_pml,1)-point_x)^2 + (bz2(i+num_pml,j+num_pml,2)-point_y)^2);
       topo = 0;
       if(r1 <L)
           topo = 0.5*H * (1+cos(pi*r1/L));
       end
       
-      bz2(j+num_pml,i+num_pml,3) = bz2(j+num_pml,i+num_pml,3) + topo;
+      bz2(i+num_pml,j+num_pml,3) = bz2(i+num_pml,j+num_pml,3) + topo;
     end
   end
 end
@@ -66,70 +66,33 @@ end
 [bz2] = extend_abs_layer(bz2,dx,dy,nx,ny,num_pml);
 
 for j=1:ny
-  dz1 = (bz2(j,1,3)-bz1(j,1,3))/(nz-1);
-  dz2 = (bz2(j,nx,3)-bz1(j,nx,3))/(nz-1);
+  dz1 = (bz2(1,j,3)-bz1(1,j,3))/(nz-1);
+  dz2 = (bz2(nx,j,3)-bz1(nx,j,3))/(nz-1);
   for k=1:nz
-    bx1(k,j,1) = bz1(j,1,1);
-    bx1(k,j,2) = bz1(j,1,2);
-    bx1(k,j,3) = bz1(j,1,3) + (k-1)*dz1;
+    bx1(j,k,1) = bz1(1,j,1);
+    bx1(j,k,2) = bz1(1,j,2);
+    bx1(j,k,3) = bz1(1,j,3) + (k-1)*dz1;
 
-    bx2(k,j,1) = bz1(j,nx,1);
-    bx2(k,j,2) = bz1(j,nx,2);
-    bx2(k,j,3) = bz1(j,nx,3) + (k-1)*dz2;
+    bx2(j,k,1) = bz1(nx,j,1);
+    bx2(j,k,2) = bz1(nx,j,2);
+    bx2(j,k,3) = bz1(nx,j,3) + (k-1)*dz2;
   end
 end
 
 for i=1:nx
-  dz1 = (bz2(1,i,3)-bz1(1,i,3))/(nz-1);
-  dz2 = (bz2(ny,i,3)-bz1(ny,i,3))/(nz-1);
+  dz1 = (bz2(i,1,3)-bz1(i,1,3))/(nz-1);
+  dz2 = (bz2(i,ny,3)-bz1(i,ny,3))/(nz-1);
   for k=1:nz
-    by1(k,i,1) = bz1(1,i,1);
-    by1(k,i,2) = bz1(1,i,2);
-    by1(k,i,3) = bz1(1,i,3) + (k-1)*dz1;
+    by1(i,k,1) = bz1(i,1,1);
+    by1(i,k,2) = bz1(i,1,2);
+    by1(i,k,3) = bz1(i,1,3) + (k-1)*dz1;
 
-    by2(k,i,1) = bz1(ny,i,1);
-    by2(k,i,2) = bz1(ny,i,2);
-    by2(k,i,3) = bz1(ny,i,3) + (k-1)*dz2;
+    by2(i,k,1) = bz1(i,ny,1);
+    by2(i,k,2) = bz1(i,ny,2);
+    by2(i,k,3) = bz1(i,ny,3) + (k-1)*dz2;
   end
 end
 
-if flag_topo_x
-  point_z= origin_z - floor(nz/2)*dz; 
-  point_y= origin_y + floor(ny1/2)*dy; 
-  L = 0.2*ny*dy;
-  H = 0.1*ny*dy;
-  for k = 1:nz
-    for j = 1:ny1
-      r1 = sqrt((bx2(k,j+num_pml,2)-point_y)^2 + (bx2(k,j+num_pml,3)-point_z)^2);
-      topo = 0;
-      if(r1 < L)
-          topo = 0.5*H * (1+cos(pi*r1/L));
-      end
-      
-      bx2(k,j+num_pml,1) = bx2(k,j+num_pml,1) + topo;
-      bx1(k,j+num_pml,1) = bx1(k,j+num_pml,1) - topo;
-    end
-  end
-end
-
-if flag_topo_y
-  point_z= origin_z - floor(nz/2)*dz; 
-  point_x= origin_x + floor(nx1/2)*dx; 
-  L = 0.2*nx*dx;
-  H = 0.1*nx*dx;
-  for k = 1:nz
-    for i = 1:nx1
-      r1 = sqrt((by2(k,i+num_pml,1)-point_x)^2 + (by2(k,i+num_pml,3)-point_z)^2);
-      topo = 0;
-      if(r1 < L)
-          topo = 0.5*H * (1+cos(pi*r1/L));
-      end
-      
-      by2(k,i+num_pml,2) = by2(k,i+num_pml,2) + topo;
-      by1(k,i+num_pml,2) = by1(k,i+num_pml,2) - topo;
-    end
-  end
-end
 A = 0.0001;
 %[by1,by2,bz1,bz2] = arc_strech_xi(A,by1,by2,bz1,bz2);
 %[bx1,bx2,bz1,bz2] = arc_strech_et(A,bx1,bx2,bz1,bz2);

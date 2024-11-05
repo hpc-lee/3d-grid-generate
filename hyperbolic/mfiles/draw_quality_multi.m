@@ -75,7 +75,7 @@ end
      
 
 set(gca,'layer','top');
-set(gcf,'color','white','renderer','painters');
+set(gcf,'color','white');
 
 % shading
 shading interp;

@@ -85,6 +85,7 @@ cal_xiet(io_quality_t *io_quality, gd_t *gdcurv)
   float trans = 180/PI;   // arc to angle
   float dot, len_xi, len_et, cos_angle;
   float x_xi, y_xi, z_xi, x_et, y_et, z_et;
+  float var_min = 90;
 
   for(int k=0; k<nz-1; k++) {
     for(int j=0; j<ny-1; j++) {
@@ -110,9 +111,12 @@ cal_xiet(io_quality_t *io_quality, gd_t *gdcurv)
         cos_angle = dot/(len_xi*len_et); 
         // offset relative 90 degree
         var[iptr] = 90 - fabs((acos(cos_angle) * trans - 90));
+        var_min = var_min < var[iptr] ? var_min : var[iptr];
       }
     }
   }
+  fprintf(stdout,"xiet angle min is %f\n", var_min);
+  fflush(stdout);
   
   extend_var(var, nx, ny, nz, siz_iy, siz_iz);
 
@@ -136,6 +140,7 @@ cal_xizt(io_quality_t *io_quality, gd_t *gdcurv)
   float trans = 180/PI;   // arc to angle
   float dot, len_xi, len_zt, cos_angle;
   float x_xi, y_xi, z_xi, x_zt, y_zt, z_zt;
+  float var_min = 90;
 
   for(int k=0; k<nz-1; k++) {
     for(int j=0; j<ny-1; j++) {
@@ -161,9 +166,12 @@ cal_xizt(io_quality_t *io_quality, gd_t *gdcurv)
         cos_angle = dot/(len_xi*len_zt); 
         // offset relative 90 degree
         var[iptr] = 90 - fabs((acos(cos_angle) * trans - 90));
+        var_min = var_min < var[iptr] ? var_min : var[iptr];
       }
     }
   }
+  fprintf(stdout,"xizt angle min is %f\n", var_min);
+  fflush(stdout);
   
   extend_var(var, nx, ny, nz, siz_iy, siz_iz);
 
@@ -187,6 +195,7 @@ cal_etzt(io_quality_t *io_quality, gd_t *gdcurv)
   float trans = 180/PI;   // arc to angle
   float dot, len_et, len_zt, cos_angle;
   float x_et, y_et, z_et, x_zt, y_zt, z_zt;
+  float var_min = 90;
 
   for(int k=0; k<nz-1; k++) {
     for(int j=0; j<ny-1; j++) {
@@ -212,9 +221,13 @@ cal_etzt(io_quality_t *io_quality, gd_t *gdcurv)
         cos_angle = dot/(len_et*len_zt); 
         // offset relative 90 degree
         var[iptr] = 90 - fabs((acos(cos_angle) * trans - 90));
+        var_min = var_min < var[iptr] ? var_min : var[iptr];
       }
     }
   }
+  fprintf(stdout,"etzt angle min is %f\n", var_min);
+  fflush(stdout);
+  
   
   extend_var(var, nx, ny, nz, siz_iy, siz_iz);
 

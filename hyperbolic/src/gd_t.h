@@ -44,4 +44,7 @@ permute_coord_x(gd_t *gdcurv);
 int
 permute_coord_y(gd_t *gdcurv);
 
+int
+cal_min_dist(gd_t *gdcurv, int *indx_i, int *indx_j, int *indx_k, float *dL_min);
+
 #endif

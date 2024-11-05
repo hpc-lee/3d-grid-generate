@@ -28,11 +28,11 @@ mkdir -p ${PROJDIR}
 mkdir -p ${OUTPUT_DIR}
 
 #-- total x mpi procs
-NPROCS_X=2
+NPROCS_X=3
 #-- total y mpi procs
-NPROCS_Y=2
+NPROCS_Y=3
 #-- total z mpi procs
-NPROCS_Z=2
+NPROCS_Z=1
 #----------------------------------------------------------------------
 #-- create main conf
 #----------------------------------------------------------------------
@@ -47,27 +47,26 @@ cat << ieof > ${PAR_FILE}
   "number_of_mpiprocs_z" : $NPROCS_Z,
 
   "check_orth" : 1,
-  "check_jac" : 1,
-  "check_step_xi" : 1,
-  "check_step_et" : 1,
-  "check_step_zt" : 1,
+  "check_jac" : 0,
+  "check_step_xi" : 0,
+  "check_step_et" : 0,
+  "check_step_zt" : 0,
   "check_smooth_xi" : 1,
   "check_smooth_et" : 1,
   "check_smooth_zt" : 1,
 
   "geometry_input_file" : "${INPUTDIR}/data_file_3d.txt",
   "grid_export_dir" : "${OUTPUT_DIR}",
-  "flag_bdry_orth" : [0,0,0,0,1,1],
 
   "grid_method" : {
       "#linear_tfi" : "",
       "#elli_diri" : {
-          "coef" : [20,20,20,20,20,20],
+          "coef" : [20,20,20,20,60,60],
           "iter_err" : 1E-2,
           "max_iter" : 5E3
       },
       "elli_higen" : {
-          "coef" : [1000,1000,1000,1000,50,50],
+          "coef" : [50,50,50,50,50,50],
           "iter_err" : 1E-2,
           "max_iter" : 5E3
       }
