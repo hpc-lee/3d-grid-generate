@@ -28,15 +28,15 @@ mkdir -p ${PROJDIR}
 mkdir -p ${OUTPUT_DIR}
 
 #-- total mpi procs
-NUMPROCS=2
+NUMPROCS=1
 #----------------------------------------------------------------------
 #-- create main conf
 #----------------------------------------------------------------------
 cat << ieof > ${PAR_FILE}
 {
-  "number_of_grid_points_x" : 541,
-  "number_of_grid_points_y" : 541,
-  "number_of_grid_points_z" : 301,
+  "number_of_grid_points_x" : 1000,
+  "number_of_grid_points_y" : 500,
+  "number_of_grid_points_z" : 500,
 
   "number_of_mpiprocs" : $NUMPROCS,
 
@@ -54,7 +54,7 @@ cat << ieof > ${PAR_FILE}
   "grid_export_dir" : "${OUTPUT_DIR}",
 
   "parabolic" : {
-      "coef" : 30,
+      "coef" : 60,
       "t2b" : 1,
       "direction" : "z"
   }

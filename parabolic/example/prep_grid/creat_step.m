@@ -2,31 +2,31 @@ clc;
 clear all;
 close all;
 
-nz = 301;
+nz = 201;
 num_of_step = nz-1;
 
 flag_flip = 1;
-% 
-for i=1:num_of_step
+
+% for i=1:num_of_step
+%  step(i) = 1;
+% end
+
+% Gradient Grid
+incre_layer = 12;
+max_ratio = 3;
+incre_ratio = exp((log(max_ratio)/incre_layer));
+
+for i=1:10
  step(i) = 1;
 end
 
-% % Gradient Grid
-% incre_layer = 12;
-% max_ratio = 3;
-% incre_ratio = exp((log(max_ratio)/incre_layer));
-% 
-% for i=1:10
-%  step(i) = 1;
-% end
-% 
-% for i=11:10+incre_layer
-%  step(i) = step(i-1)*incre_ratio;
-% end
-% 
-% for i=11+incre_layer:num_of_step
-%  step(i) = step(10+incre_layer);
-% end
+for i=11:10+incre_layer
+ step(i) = step(i-1)*incre_ratio;
+end
+
+for i=11+incre_layer:num_of_step
+ step(i) = step(10+incre_layer);
+end
 
 if(flag_flip)
   step=flip(step);

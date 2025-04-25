@@ -96,7 +96,7 @@ int main(int argc, char** argv)
   int indx_i, indx_j, indx_k;
   float dL_min;
   cal_min_dist(gdcurv, &indx_i, &indx_j, &indx_k, &dL_min);
-  fprintf(stdout,"mpiid is %d, indx is (%d,%d,%d),dL_min_global is %f\n",
+  fprintf(stdout,"mpi id is %d, indx is (%d,%d,%d),dL_min_global is %f\n",
           myid,indx_i, indx_j, indx_k, dL_min);
   fflush(stdout);
 

@@ -1,0 +1,260 @@
+par file =  /data/lihl/code/3d-grid-generate/parabolic/example/../project1/test.json
+comm=4301824, size=1
+par file =  /data/lihl/code/3d-grid-generate/parabolic/example/../project1/test.json
+number of total gird points x is 401
+number of total gird points y is 401
+number of total gird points z is 201
+number of mpi procs is 1
+input geometry file is 
+ /data/lihl/code/3d-grid-generate/parabolic/example/data_file_3d.txt
+step file is 
+ /data/lihl/code/3d-grid-generate/parabolic/example/step_file_3d.txt
+export grid dir is 
+ /data/lihl/code/3d-grid-generate/parabolic/example/../project1/output
+-------------------------------------------------------
+------- grid quality check-------
+------- check grid orthogonality-------
+------- check grid smooth xi direction-------
+------- check grid smooth et direction-------
+------- check grid smooth zt direction-------
+------- grid generate method-------
+grid generate method is parabolic
+parabolic coef is 20.000000
+top boundary to bottom boundary
+set mpi topo ...
+-------------------------------------------------------
+--> grid info:
+-------------------------------------------------------
+my rank id is 0
+ nx    = 401       
+ ny    = 401       
+ nz    = 201       
+ ni    = 399       
+ nj    = 399       
+ nk    = 199       
+ ni1   = 1         
+ ni2   = 399       
+ nj1   = 1         
+ nj2   = 399       
+ nk1   = 1         
+ nk2   = 199       
+ ni1_to_glob_phys0   = 0         
+ ni2_to_glob_phys0   = 398       
+ nj1_to_glob_phys0   = 0         
+ nj2_to_glob_phys0   = 398       
+ nk1_to_glob_phys0   = 0         
+ nk2_to_glob_phys0   = 198       
+march direction from top bdry(k=nz-1) to bottom bdry(k=1)
+so we flip bdry, set top bdry to bottom bdry
+number of layer is 2
+number of layer is 3
+number of layer is 4
+number of layer is 5
+number of layer is 6
+number of layer is 7
+number of layer is 8
+number of layer is 9
+number of layer is 10
+number of layer is 11
+number of layer is 12
+number of layer is 13
+number of layer is 14
+number of layer is 15
+number of layer is 16
+number of layer is 17
+number of layer is 18
+number of layer is 19
+number of layer is 20
+number of layer is 21
+number of layer is 22
+number of layer is 23
+number of layer is 24
+number of layer is 25
+number of layer is 26
+number of layer is 27
+number of layer is 28
+number of layer is 29
+number of layer is 30
+number of layer is 31
+number of layer is 32
+number of layer is 33
+number of layer is 34
+number of layer is 35
+number of layer is 36
+number of layer is 37
+number of layer is 38
+number of layer is 39
+number of layer is 40
+number of layer is 41
+number of layer is 42
+number of layer is 43
+number of layer is 44
+number of layer is 45
+number of layer is 46
+number of layer is 47
+number of layer is 48
+number of layer is 49
+number of layer is 50
+number of layer is 51
+number of layer is 52
+number of layer is 53
+number of layer is 54
+number of layer is 55
+number of layer is 56
+number of layer is 57
+number of layer is 58
+number of layer is 59
+number of layer is 60
+number of layer is 61
+number of layer is 62
+number of layer is 63
+number of layer is 64
+number of layer is 65
+number of layer is 66
+number of layer is 67
+number of layer is 68
+number of layer is 69
+number of layer is 70
+number of layer is 71
+number of layer is 72
+number of layer is 73
+number of layer is 74
+number of layer is 75
+number of layer is 76
+number of layer is 77
+number of layer is 78
+number of layer is 79
+number of layer is 80
+number of layer is 81
+number of layer is 82
+number of layer is 83
+number of layer is 84
+number of layer is 85
+number of layer is 86
+number of layer is 87
+number of layer is 88
+number of layer is 89
+number of layer is 90
+number of layer is 91
+number of layer is 92
+number of layer is 93
+number of layer is 94
+number of layer is 95
+number of layer is 96
+number of layer is 97
+number of layer is 98
+number of layer is 99
+number of layer is 100
+number of layer is 101
+number of layer is 102
+number of layer is 103
+number of layer is 104
+number of layer is 105
+number of layer is 106
+number of layer is 107
+number of layer is 108
+number of layer is 109
+number of layer is 110
+number of layer is 111
+number of layer is 112
+number of layer is 113
+number of layer is 114
+number of layer is 115
+number of layer is 116
+number of layer is 117
+number of layer is 118
+number of layer is 119
+number of layer is 120
+number of layer is 121
+number of layer is 122
+number of layer is 123
+number of layer is 124
+number of layer is 125
+number of layer is 126
+number of layer is 127
+number of layer is 128
+number of layer is 129
+number of layer is 130
+number of layer is 131
+number of layer is 132
+number of layer is 133
+number of layer is 134
+number of layer is 135
+number of layer is 136
+number of layer is 137
+number of layer is 138
+number of layer is 139
+number of layer is 140
+number of layer is 141
+number of layer is 142
+number of layer is 143
+number of layer is 144
+number of layer is 145
+number of layer is 146
+number of layer is 147
+number of layer is 148
+number of layer is 149
+number of layer is 150
+number of layer is 151
+number of layer is 152
+number of layer is 153
+number of layer is 154
+number of layer is 155
+number of layer is 156
+number of layer is 157
+number of layer is 158
+number of layer is 159
+number of layer is 160
+number of layer is 161
+number of layer is 162
+number of layer is 163
+number of layer is 164
+number of layer is 165
+number of layer is 166
+number of layer is 167
+number of layer is 168
+number of layer is 169
+number of layer is 170
+number of layer is 171
+number of layer is 172
+number of layer is 173
+number of layer is 174
+number of layer is 175
+number of layer is 176
+number of layer is 177
+number of layer is 178
+number of layer is 179
+number of layer is 180
+number of layer is 181
+number of layer is 182
+number of layer is 183
+number of layer is 184
+number of layer is 185
+number of layer is 186
+number of layer is 187
+number of layer is 188
+number of layer is 189
+number of layer is 190
+number of layer is 191
+number of layer is 192
+number of layer is 193
+number of layer is 194
+number of layer is 195
+number of layer is 196
+number of layer is 197
+number of layer is 198
+number of layer is 199
+number of layer is 200
+
+************************************
+grid generate running time is :4.000000 s 
+************************************
+ 
+export coord to file ... 
+mpi id is 0, indx is (308,192,192),dL_min_global is 1.872281
+****************************************************** 
+***** grid quality check and export quality data ***** 
+****************************************************** 
+id is 0, xiet angle min is 43.713867
+id is 0, xizt angle min is 34.935875
+id is 0, etzt angle min is 34.936062
