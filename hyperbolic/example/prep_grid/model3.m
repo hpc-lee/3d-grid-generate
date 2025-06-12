@@ -1,86 +1,91 @@
+% creat boundary data file bz1 bz2
+
 clc;
 clear all;
 close all;
 
-% p1        p2        p5            p6
-% ...........         ...............
-%           .         .
-%           .         .
-%           ...........    
-%           p3        p4
-
 flag_printf = 1;
+flag_topo_z = 1;
 
 nx = 401;
-ny = 301;
+ny = 401;
 
-p1 = 1;
-p2 = 101;
-p3 = 151;
-p4 = 251;
-p5 = 301;
-p6 = 401;
+dx = 10;
+dy = 10;
 
-dh = 1;
+nz = 201;
+dz = 10;
+
 origin_x = 0;
 origin_y = 0;
 origin_z = 0;
+bz = zeros(nx,ny,3);
 
-bz = zeros(ny,nx,3);
-% NOTE: x direction tight
-% so coord x incremental with x
 for j=1:ny
-  for i=p1:p2
-    bz(j,i,1) = origin_x + (i-1)*dh;
-    bz(j,i,2) = origin_y + (j-1)*dh;
-    bz(j,i,3) = origin_z;
-  end
-  for i=p2+1:p3
-    bz(j,i,1) = origin_x + bz(j,p2,1) + cos(0.5*pi*90/90)*(i-p2)*dh;
-    bz(j,i,2) = origin_y + (j-1)*dh;
-    bz(j,i,3) = origin_z + bz(j,p2,3) - sin(0.5*pi*90/90)*(i-p2)*dh;
-  end
-  for i=p3+1:p4
-    bz(j,i,1) = origin_x + bz(j,p3,1) + (i-p3)*dh;
-    bz(j,i,2) = origin_y + (j-1)*dh;
-    bz(j,i,3) = origin_z + bz(j,p3,3);
-  end
-  for i=p4+1:p5
-    bz(j,i,1) = origin_x + bz(j,p4,1) + cos(0.5*pi*90/90)*(i-p4)*dh;
-    bz(j,i,2) = origin_y + (j-1)*dh;
-    bz(j,i,3) = origin_z + bz(j,p4,3) + sin(0.5*pi*90/90)*(i-p4)*dh;
-  end
-  for i=p5+1:p6
-    bz(j,i,1) = origin_x + bz(j,p5,1) + (i-p5)*dh;
-    bz(j,i,2) = origin_y + (j-1)*dh;
-    bz(j,i,3) = origin_z + bz(j,p5,3);
+  for i=1:nx
+    bz(i,j,1) = origin_x + (i-1)*dx;
+    bz(i,j,2) = origin_y + (j-1)*dy;
+    bz(i,j,3) = origin_z;
   end
 end
 
-% for j = 1:301
-%     bz(j,:,3) = smooth(bz(j,:,3),20);
-%     bz(j,:,1) = smooth(bz(j,:,1),20);
-% end
+if flag_topo_z
+  point_x= origin_x + floor(nx/2)*dx; 
+  point_y= origin_y + floor(ny/2)*dy; 
+  L = 200;
+  H = 2000;
+  for j = 1:ny
+    for i = 1:nx
+      r1 = (bz(i,j,1)-point_x)^2 + (bz(i,j,2)-point_y)^2;
 
-if flag_printf
-    figure(1)   
-    surf(bz(:,:,1),bz(:,:,2),bz(:,:,3));
-    axis equal;
-    shading interp;
-    set(gcf,'Position',[200,200,650,400]);
-    xlabel('X axis (m)');
-%     ylabel('Y axis (m)');
-    zlabel('Z axis (m)');
-    colorbar;
-    view(10,30);
-    %xlim([-100,700]);
-    %ylim([-400,100]);
-%     title('concave step model',FontSize=15);
-    set(gca,'layer','top');
-    set(gca,'FontSize',10,FontWeight='bold');
-    set(gcf,'color','white','renderer','painters');
+        topo = H * exp(-r1/L^2);
+        if(topo>500)
+            topo =500;
+        end
+        
+      bz(i,j,3) = bz(i,j,3) - topo;
+    end
+  end
 end
 
+% smooth alone two direction
+for i=1:nx
+  bz(i,:,1) = smooth(bz(i,:,1),20);
+  bz(i,:,2) = smooth(bz(i,:,2),20);
+  bz(i,:,3) = smooth(bz(i,:,3),20);
+end
+
+for j=1:ny
+  bz(:,j,1) = smooth(bz(:,j,1),20);
+  bz(:,j,2) = smooth(bz(:,j,2),20);
+  bz(:,j,3) = smooth(bz(:,j,3),20);
+end
+
+% A = 0.000001;
+% [bz] = arc_stretch(A,bz);
+
+
+figure(1)
+surf(bz(:,:,1)/1e3,bz(:,:,2)/1e3,bz(:,:,3)/1e3);
+shading interp;
+hold on;
+plot3(bz(:,201,1)/1e3,bz(:,201,2)/1e3,bz(:,201,3)/1e3,'r',LineWidth=3);
+
+grid off;
+axis equal;
+%caxis([-0.5,0]);
+cid = colorbar;
+cid.Label.String='(km)';
+set(gca,'layer','top');
+set(gcf,'color','white');
+set(gcf,'Position',[0,0,1900,1000]);
+set(gca, FontWeight='bold', FontSize=15);
+xlabel('X axis (km)',FontWeight='bold',rotation=-35,position=[2.7 -0.7]);
+ylabel('Y axis (km)',FontWeight='bold',rotation=50, position=[4.8 1.5]);
+zlabel('Z axis (km)',FontWeight='bold',rotation=0,position=[-0.4 0.2]);
+view(40,70);
+
+grid off;
 % creat data file
 file_name = '../data_file_3d.txt';
 fid=fopen(file_name,'w'); % Output file name 
@@ -91,11 +96,11 @@ fprintf(fid,'%d\n',ny);
 fprintf(fid,'# bz coords\n'); 
 for j=1:ny
   for i=1:nx
-    fprintf(fid,'%.9e %.9e %.9e\n',bz(j,i,1),bz(j,i,2),bz(j,i,3));
+    fprintf(fid,'%.9e %.9e %.9e\n',bz(i,j,1),bz(i,j,2),bz(i,j,3));
   end
 end
 
 if flag_printf
-   print(gcf,'model3.png','-r300','-dpng');
- end
+   print(gcf,'model3.png','-r400','-dpng');
+end
 

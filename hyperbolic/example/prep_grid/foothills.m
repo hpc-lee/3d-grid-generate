@@ -7,7 +7,7 @@ close all;
 flag_printf = 1;
 flag_sample = 0;
 
-topo = importdata("/data/lihl/code/foothills_model/topo_new.mat");
+topo = importdata("/data/lihl/code/foothills_3d/topo_new.mat");
 
 num_pml = 20;
 nx1=501;

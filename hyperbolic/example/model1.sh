@@ -10,12 +10,10 @@ EXEC_GRID=`pwd`/../main
 echo "EXEC_GRID=${EXEC_GRID}"
 
 #-- input dir
-#INPUTDIR1=/data/lihl/code/3d-grid-generate/elliptic/project/output
-INPUTDIR1=/data/lihl/code/3d-grid-generate/hyperbolic/project/output
-STRETCH_FILE1=`pwd`/arc_len_file1.txt
-#STRETCH_FILE2=`pwd`/arc_len_file2.txt
+INPUTDIR=`pwd`
+
 #-- output and conf
-PROJDIR=`pwd`/../project1
+PROJDIR=`pwd`/../project
 PAR_FILE=${PROJDIR}/test.json
 OUTPUT_DIR=${PROJDIR}/output
 
@@ -30,20 +28,9 @@ mkdir -p ${OUTPUT_DIR}
 #----------------------------------------------------------------------
 cat << ieof > ${PAR_FILE}
 {
-  "input_grids_info" : [
-   {
-     "grid_import_dir" : "${INPUTDIR1}",
-     "number_of_grid_points" : [401,301,201],
-     "number_of_mpiprocs_in" : [1,1,1],
-     "flag_stretch" : 0,
-     "stretch_file" : "${STRETCH_FILE1}"
-   }
-  ],
-    
-  "stretch_direction" : "z",
-  "merge_direction" : "z",
-
-  "number_of_mpiprocs_out" : [5,5,1],
+  "number_of_grid_points_x" : 401,
+  "number_of_grid_points_y" : 301,
+  "number_of_grid_points_z" : 201,
 
   "check_orth" : 1,
   "check_jac" : 1,
@@ -54,23 +41,21 @@ cat << ieof > ${PAR_FILE}
   "check_smooth_et" : 1,
   "check_smooth_zt" : 1,
 
-  "flag_sample" : 0,
-  "sample_factor_xi" : 2,
-  "sample_factor_et" : 2,
-  "sample_factor_zt" : 2,
-
+  "geometry_input_file" : "${INPUTDIR}/data_file_3d.txt",
   "grid_export_dir" : "${OUTPUT_DIR}",
 
-  "flag_pml" : 0,
-  "pml_layers" : {
-         "number_of_pml_x1" : 20,
-         "number_of_pml_x2" : 20,
-         "number_of_pml_y1" : 20,
-         "number_of_pml_y2" : 20,
-         "number_of_pml_z1" : 20,
-         "number_of_pml_z2" : 0
-  }
+  "flag_stretch" : 1,
 
+  "hyperbolic" : {
+      "coef" : 65.0,
+      "bdry_x_type" : 1,
+      "epsilon_x" : 0.0,
+      "bdry_y_type" : 1,
+      "epsilon_y" : 0.0,
+      "direction" : "z",
+      "t2b" : 1,
+      "step_input_file" : "${INPUTDIR}/step_file_3d.txt"
+  }
 }
 ieof
 
@@ -86,7 +71,7 @@ cat << ieof > ${PROJDIR}/grid_generate.sh
 
 set -e
 
-printf "\nStart grid post process ...\n";
+printf "\nStart grid generate ...\n";
 time $EXEC_GRID $PAR_FILE 100 2>&1 |tee log
 if [ $? -ne 0 ]; then
     printf "\ngrid generate fail! stop!\n"

@@ -180,6 +180,116 @@ grid_init_set_hyper(gd_t *gdcurv, par_t *par)
   return 0;
 }
 
+// stretch grid base on arc length 
+int 
+zt_arc_stretch(gd_t *gdcurv)
+{
+  int nx = gdcurv->nx;
+  int ny = gdcurv->ny;
+  int nz = gdcurv->nz;
+  size_t siz_iy = gdcurv->siz_iy;
+  size_t siz_iz = gdcurv->siz_iz;
+  size_t iptr,iptr1;
+  float x_len,y_len,z_len,dh_len;
+  float r, ratio, zt;
+  int n;
+  float *x3d = gdcurv->x3d;
+  float *y3d = gdcurv->y3d;
+  float *z3d = gdcurv->z3d;
+  float *x3d_temp; 
+  float *y3d_temp; 
+  float *z3d_temp;
+  float *arc_len;
+  float *s;
+  float *u;
+
+  x3d_temp = (float *)mem_calloc_1d_float(
+              nz, 0.0, "init");
+  y3d_temp = (float *)mem_calloc_1d_float(
+              nz, 0.0, "init");
+  z3d_temp = (float *)mem_calloc_1d_float(
+              nz, 0.0, "init");
+  arc_len  = (float *)mem_calloc_1d_float(
+              nz, 0.0, "init");
+  s = (float *)mem_calloc_1d_float(
+              nz, 0.0, "init");
+  u = (float *)mem_calloc_1d_float(
+              nz, 0.0, "init");
+
+  float arc_len_sum = 0;
+  for(int k=1; k<nz; k++)
+  {
+    arc_len[k] = arc_len[k-1] + gdcurv->step[k-1];
+    arc_len_sum += gdcurv->step[k-1];
+  }
+
+  for(int k=0; k<nz; k++)
+  {
+    arc_len[k] /= arc_len_sum;
+  }
+
+ 
+  // line by line. 
+  for(int j=0; j<ny; j++)
+  {
+    for(int i=0; i<nx; i++)
+    {
+      // copy old coords to temp space
+      for(int k=0; k<nz; k++)
+      {
+        iptr1 = k*siz_iz + j*siz_iy + i;     //(i,j,k)
+        x3d_temp[k] = x3d[iptr1];
+        y3d_temp[k] = y3d[iptr1];
+        z3d_temp[k] = z3d[iptr1];
+      }
+      // cal arc length
+      for(int k=1; k<nz; k++)
+      {
+        x_len = x3d_temp[k] - x3d_temp[k-1];
+        y_len = y3d_temp[k] - y3d_temp[k-1];
+        z_len = z3d_temp[k] - z3d_temp[k-1];
+        dh_len = sqrt(pow(x_len,2) + pow(y_len,2) + pow(z_len,2));
+        s[k] = s[k-1] + dh_len;
+      }
+      // arc length normalized
+      for(int k=0; k<nz; k++)
+      {
+        u[k] = s[k]/s[nz-1];
+      }
+      for(int k=1; k<nz-1; k++)
+      {
+        r = arc_len[k];
+        for(int m=0; m<nz-1; m++)
+        {
+          if(r>=u[m] && r<u[m+1]) {
+            n=m; 
+            break;
+          }
+        }
+
+        // linear interp
+        iptr = k*siz_iz + j*siz_iy + i;
+        x_len = x3d_temp[n+1] - x3d_temp[n];
+        y_len = y3d_temp[n+1] - y3d_temp[n];
+        z_len = z3d_temp[n+1] - z3d_temp[n];
+        ratio = (r - u[n])/(u[n+1]-u[n]);
+        x3d[iptr] = x3d_temp[n] + x_len*ratio;
+        y3d[iptr] = y3d_temp[n] + y_len*ratio;
+        z3d[iptr] = z3d_temp[n] + z_len*ratio;
+      }
+    }
+  }
+
+  free(x3d_temp);
+  free(y3d_temp);
+  free(z3d_temp);
+  free(arc_len);
+  free(s);
+  free(u);
+
+  return 0;
+}
+
 // 3D array flip z direction.  nz-1->0 0->nz-1 i->(nz-1)-i 
 int
 flip_coord_z(gd_t *gdcurv)

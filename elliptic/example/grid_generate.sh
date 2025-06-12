@@ -17,7 +17,7 @@ echo "EXEC_GRID=${EXEC_GRID}"
 INPUTDIR=`pwd`
 
 #-- output and conf
-PROJDIR=`pwd`/../project
+PROJDIR=`pwd`/../project2
 PAR_FILE=${PROJDIR}/test.json
 OUTPUT_DIR=${PROJDIR}/output
 
@@ -28,9 +28,9 @@ mkdir -p ${PROJDIR}
 mkdir -p ${OUTPUT_DIR}
 
 #-- total x mpi procs
-NPROCS_X=3
+NPROCS_X=1
 #-- total y mpi procs
-NPROCS_Y=3
+NPROCS_Y=1
 #-- total z mpi procs
 NPROCS_Z=1
 #----------------------------------------------------------------------
@@ -38,9 +38,9 @@ NPROCS_Z=1
 #----------------------------------------------------------------------
 cat << ieof > ${PAR_FILE}
 {
-  "number_of_grid_points_x" : 541,
-  "number_of_grid_points_y" : 541,
-  "number_of_grid_points_z" : 301,
+  "number_of_grid_points_x" : 500,
+  "number_of_grid_points_y" : 250,
+  "number_of_grid_points_z" : 250,
 
   "number_of_mpiprocs_x" : $NPROCS_X,
   "number_of_mpiprocs_y" : $NPROCS_Y,
@@ -60,12 +60,12 @@ cat << ieof > ${PAR_FILE}
 
   "grid_method" : {
       "#linear_tfi" : "",
-      "#elli_diri" : {
-          "coef" : [20,20,20,20,60,60],
+      "elli_diri" : {
+          "coef" : [20,20,20,20,20,20],
           "iter_err" : 1E-2,
           "max_iter" : 5E3
       },
-      "elli_higen" : {
+      "#elli_higen" : {
           "coef" : [50,50,50,50,50,50],
           "iter_err" : 1E-2,
           "max_iter" : 5E3

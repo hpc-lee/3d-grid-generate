@@ -8,15 +8,15 @@ close all;
 flag_printf = 1;
 flag_topo_x = 0;
 flag_topo_y = 0;
-flag_topo_z = 1;
+flag_topo_z = 0;
 
-num_pml = 20;
-nx1 = 501;
-ny1 = 501;
+num_pml = 00;
+nx1 = 101;
+ny1 = 71;
 
 nx = nx1+2*num_pml;
 ny = ny1+2*num_pml;
-nz = 301;
+nz = 51;
 
 dx = 10;
 dy = 10;
@@ -48,7 +48,7 @@ if flag_topo_z
   point_x= origin_x + floor(nx1/2)*dx; 
   point_y= origin_y + floor(ny1/2)*dy; 
   L = 0.3*nx*dx;
-  H = 0.2*nx*dx;
+  H = 0.1*nx*dx;
   for j = 1:ny1
     for i = 1:nx1
       r1 = sqrt((bz2(i+num_pml,j+num_pml,1)-point_x)^2 + (bz2(i+num_pml,j+num_pml,2)-point_y)^2);

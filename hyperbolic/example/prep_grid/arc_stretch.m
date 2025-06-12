@@ -1,4 +1,4 @@
-function  [bdry] = arc_strech(A,bdry)
+function  [bdry] = arc_stretch(A,bdry)
 
 n2 = size(bdry,1);
 n1 = size(bdry,2);

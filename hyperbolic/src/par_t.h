@@ -34,6 +34,8 @@ typedef struct{
   int check_smooth_et;
   int check_smooth_zt;
 
+  int flag_stretch;
+
   char geometry_input_file[PAR_MAX_STRLEN];
   char step_input_file[PAR_MAX_STRLEN];
   char grid_export_dir[PAR_MAX_STRLEN];
@@ -42,7 +44,7 @@ typedef struct{
   char direction[PAR_MAX_STRLEN];
   float coef;
 
-  int o2i;  // for parabolic hyperbolic. outer to inner
+  int t2b;  // for parabolic hyperbolic. top to bottom
   int bdry_x_itype; // for hyperbolic
   int bdry_y_itype; // for hyperbolic
   float epsilon_x;  // for hyperbolic

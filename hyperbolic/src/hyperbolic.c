@@ -19,7 +19,7 @@ hyper_gene(gd_t *gdcurv, par_t *par)
   size_t size = (nx-2)*(ny-2);  // not include bdry 2 points
 
   float coef = par->coef;
-  int o2i = par->o2i;
+  int t2b = par->t2b;
   int bdry_x_itype = par->bdry_x_itype;
   float epsilon_x = par->epsilon_x;
   int bdry_y_itype = par->bdry_y_itype;
@@ -65,7 +65,6 @@ hyper_gene(gd_t *gdcurv, par_t *par)
   solve_xi_block(a_xi,b_xi,c_xi,g_xi,xyz,nx,ny);
   assign_coords(gdcurv,xyz,k,epsilon_x,bdry_x_itype,epsilon_y,bdry_y_itype);
 
-
   for(int k=1; k<nz; k++)
   {
     cal_smooth_coef(gdcurv,coef,k,coef_e_xi,coef_e_et);
@@ -79,7 +78,12 @@ hyper_gene(gd_t *gdcurv, par_t *par)
     fflush(stdout);
   }
 
-  if(o2i == 1)
+  if(par->flag_stretch == 1)
+  {
+    zt_arc_stretch(gdcurv);
+  }
+
+  if(t2b == 1)
   {
     //fprintf(stdout,"hyperbolic method, inner bdry(k=0), outer bdry(nz-1)\n");
     //fprintf(stdout,"we default set read init bdry is inner bdry(k=0)\n");

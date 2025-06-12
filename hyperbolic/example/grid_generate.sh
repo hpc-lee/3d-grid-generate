@@ -28,9 +28,9 @@ mkdir -p ${OUTPUT_DIR}
 #----------------------------------------------------------------------
 cat << ieof > ${PAR_FILE}
 {
-  "number_of_grid_points_x" : 541,
-  "number_of_grid_points_y" : 541,
-  "number_of_grid_points_z" : 301,
+  "number_of_grid_points_x" : 1000,
+  "number_of_grid_points_y" : 1000,
+  "number_of_grid_points_z" : 500,
 
   "check_orth" : 1,
   "check_jac" : 0,
@@ -45,7 +45,7 @@ cat << ieof > ${PAR_FILE}
   "grid_export_dir" : "${OUTPUT_DIR}",
 
   "hyperbolic" : {
-      "coef" : 40.0,
+      "coef" : 60.0,
       "bdry_x_type" : 1,
       "epsilon_x" : 0.0,
       "bdry_y_type" : 1,

@@ -35,6 +35,9 @@ init_gdcurv(gd_t *gdcurv, int nx, int ny, int nz);
 int
 grid_init_set_hyper(gd_t *gdcurv, par_t *par);
 
+int 
+zt_arc_stretch(gd_t *gdcurv);
+
 int
 flip_coord_z(gd_t *gdcurv);
 

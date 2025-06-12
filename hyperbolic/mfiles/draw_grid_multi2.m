@@ -7,33 +7,25 @@ clc;
 parfnm='../project/test.json';
 output_dir='../project/output';
 
-nx = 1501;
-ny = 1001;
-nz = 301;
-s1=1;
-s2=1;
-s3=nz;
-s4=751;
-s5=501;
 % profiles to plot
 % profile 1
-subs{1}=[s1,1,1];      % start from index '1'
+subs{1}=[401,1,1];      % start from index '1'
 subc{1}=[1,-1,-1];     % '-1' to plot all points in this dimension
 subt{1}=[1,1,1];
 % profile 2
-subs{2}=[1,s2,1];      % start from index '1'
+subs{2}=[1,1,1];      % start from index '1'
 subc{2}=[-1,1,-1];     % '-1' to plot all points in this dimension
 subt{2}=[1,1,1];
 % profile 3
-subs{3}=[1,1,s3];      % start from index '1'
+subs{3}=[1,1,201];      % start from index '1'
 subc{3}=[-1,-1,1];     % '-1' to plot all points in this dimension
 subt{3}=[1,1,1];
 % profile 4
-subs{4}=[s4,1,1];      % start from index '1'
+subs{4}=[201,1,1];      % start from index '1'
 subc{4}=[1,-1,-1];     % '-1' to plot all points in this dimension
 subt{4}=[1,1,1];
 % profile 5
-subs{5}=[1,s5,1];      % start from index '1'
+subs{5}=[1,149,1];      % start from index '1'
 subc{5}=[-1,1,-1];     % '-1' to plot all points in this dimension
 subt{5}=[1,1,1];
 
@@ -63,26 +55,24 @@ for i=1:length(subs)
      str_unit='m';
   end
 end
-a=10;
+a=4;
 h = figure;
 set(h,'BackingStore','on');
-surf(x{1}(s5:a:ny,1:a:nz),y{1}(s5:a:ny,1:a:nz),z{1}(s5:a:ny,1:a:nz),'FaceColor', [1,1,1]);
+surf(x{1}(149:a:301,1:a:201),y{1}(149:a:301,1:a:201),z{1}(149:a:301,1:a:201),'FaceColor', [1,1,1]);
 hold on;
-surf(x{2}(s4:a:nx,1:a:nz),y{2}(s4:a:nx,1:a:nz),z{2}(s4:a:nx,1:a:nz),'FaceColor', [1,1,1]);
-surf(x{3}(1:a:nx,s5:a:ny),y{3}(1:a:nx,s5:a:ny),z{3}(1:a:nx,s5:a:ny),'FaceColor', [1,1,1]);
-surf(x{3}(s4:a:nx,1:a:s5),y{3}(s4:a:nx,1:a:s5),z{3}(s4:a:nx,1:a:s5),'FaceColor', [1,1,1]);
-surf(x{4}(1:a:s5,1:a:nz),y{4}(1:a:s5,1:a:nz),z{4}(1:a:s5,1:a:nz),'FaceColor', [1,1,1]);
-surf(x{5}(1:a:s4,1:a:nz),y{5}(1:a:s4,1:a:nz),z{5}(1:a:s4,1:a:nz),'FaceColor', [1,1,1]);
-% shading interp;
-
-xlabel('X axis (km)',rotation=30,position=[10 -55]);
-ylabel('Y axis (km)',rotation=-30,position=[-55 -2.0]);
+surf(x{2}(1:a:201,1:a:201),y{2}(1:a:201,1:a:201),z{2}(1:a:201,1:a:201),'FaceColor', [1,1,1]);
+surf(x{3}(1:a:201,1:a:301),y{3}(1:a:201,1:a:301),z{3}(1:a:201,1:a:301),'FaceColor', [1,1,1]);
+surf(x{3}(201:a:401,149:a:301),y{3}(201:a:401,149:a:301),z{3}(201:a:401,149:a:301),'FaceColor', [1,1,1]);
+surf(x{4}(1:a:149,1:a:201),y{4}(1:a:149,1:a:201),z{4}(1:a:149,1:a:201),'FaceColor', [1,1,1]);
+surf(x{5}(201:a:401,1:a:201),y{5}(201:a:401,1:a:201),z{5}(201:a:401,1:a:201),'FaceColor', [1,1,1]);
+xlabel('X axis (km)',rotation=-20,position=[3.7 -3.5]);
+ylabel('Y axis (km)',rotation=45,position=[5.2 -1.8]);
 zlabel('Z axis (km)');
 set(gca,'layer','top');
 set(gca,'FontSize',15,FontWeight='bold');
 set(gcf,'color','white');
 set(gcf,'Position',[0,0,1920,1200]);
-view(-45,30)
+view(30,30)
 axis equal tight;
 box off;
 grid off;
@@ -91,7 +81,7 @@ grid off;
 % set(cid,'Location','southoutside','Position',[0.21,0.038,0.61,0.025]);
 % colormap(gray);
 
-%save and print figure
+% save and print figure
 if flag_print
-  print(gcf,['grid1.png'],'-r400','-dpng');
+  print(gcf,['grid2.png'],'-r400','-dpng');
 end

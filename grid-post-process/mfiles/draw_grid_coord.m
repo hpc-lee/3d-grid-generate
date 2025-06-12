@@ -8,9 +8,12 @@ parfnm='../project1/test.json';
 output_dir='../project1/output';
 
 % which grid profile to plot
-subs=[1,170,1];    
+subs=[1,151,1];    
 subc=[-1,1,-1];   % '-1' to plot all points in this dimension
-subt=[1,4,1];
+subt=[4,4,4];
+% subs=[11,1,1];    
+% subc=[1,-1,-1];   % '-1' to plot all points in this dimension
+% subt=[7,6,4];
 
 % figure control parameters
 flag_km     = 1;
@@ -43,28 +46,28 @@ if subc(1) == 1
     plot(permute(y,[2,1]),permute(z,[2,1]),'k-');
     hold on;
     plot(y,z,'k-');
-    xlabel(['y-axis (' str_unit ')']);
-    ylabel(['z-axis (' str_unit ')']);
+    xlabel(['Y axis (' str_unit ')']);
+    ylabel(['Z axis (' str_unit ')']);
      
 elseif subc(2) == 1
     plot(permute(x,[2,1]),permute(z,[2,1]),'k-');
     hold on;
     plot(x,z,'k-');
-    xlabel(['x-axis (' str_unit ')']);
-    ylabel(['z-axis (' str_unit ')']);
+    xlabel(['X axis (' str_unit ')']);
+    ylabel(['Z axis (' str_unit ')']);
      
 elseif subc(3) == 1
     plot(permute(x,[2,1]),permute(y,[2,1]),'k-');
     hold on;
     plot(x,y,'k-');
-    xlabel(['x-axis (' str_unit ')']);
-    ylabel(['y-axis (' str_unit ')']);
+    xlabel(['X axis (' str_unit ')']);
+    ylabel(['Y axis (' str_unit ')']);
 end
   
 set(gca,'layer','top');
-set(gca,'FontSize',10,FontWeight='bold');
-set(gcf,'color','white');
-set(gcf,'Position',[0,0,1000,600]);
+set(gca,'FontSize',20,FontWeight='bold');
+set(gcf,'color','white','renderer','painters');
+set(gcf,'Position',[0,0,1920,1200]);
 
 % xlim([5.5,7.5]);
 % ylim([0,1.2]);
@@ -84,5 +87,5 @@ end
 
 % save and print figure
 if flag_print
-  print(gcf,['grid1.png'],'-r300','-dpng');
+  print(gcf,['para3d-model3.png'],'-r400','-dpng');
 end

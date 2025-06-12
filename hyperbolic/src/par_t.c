@@ -105,6 +105,11 @@ par_read_from_str(const char *str, par_t *par)
     par->grid_check = 1;
   }
 
+  par->flag_stretch = 0;
+  if (item = cJSON_GetObjectItem(root, "flag_stretch")) {
+    par->flag_stretch = item->valueint;
+  }
+
   if (item = cJSON_GetObjectItem(root, "geometry_input_file")) {
     sprintf(par->geometry_input_file, "%s", item->valuestring);
   }
@@ -128,8 +133,8 @@ par_read_from_str(const char *str, par_t *par)
     if (subitem = cJSON_GetObjectItem(item, "bdry_y_type")) {
       par->bdry_y_itype = subitem->valueint;
     }
-    if (subitem = cJSON_GetObjectItem(item, "o2i")) {
-      par->o2i = subitem->valueint;
+    if (subitem = cJSON_GetObjectItem(item, "t2b")) {
+      par->t2b = subitem->valueint;
     }
     if (subitem = cJSON_GetObjectItem(item, "direction")) {
       sprintf(par->direction, "%s", subitem->valuestring);
@@ -221,7 +226,7 @@ par_print(par_t *par)
   if(par->dire_itype == Z_DIRE) {
     fprintf(stdout, "grid generate direction is z\n");
   }
-  if(par->o2i == 1)
+  if(par->t2b == 1)
   {
     fprintf(stdout, "outer(bdry_2) to inner(bdry_1)\n");
   } else {

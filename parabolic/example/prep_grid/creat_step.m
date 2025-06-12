@@ -2,7 +2,7 @@ clc;
 clear all;
 close all;
 
-nz = 201;
+nz = 301;
 num_of_step = nz-1;
 
 flag_flip = 1;

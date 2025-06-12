@@ -2,14 +2,14 @@ clc;
 clear all;
 close all;
 
-flag_printf = 1;
+flag_printf = 0;
 flag_topo_z = 1;
 
 num_pml = 0;
-nx1 = 401;
+nx1 = 1000;
 nx = nx1 + 2*num_pml; 
 
-ny1 = 401;
+ny1 = 1000;
 ny = ny1 + 2*num_pml; 
 
 dx = 1;

@@ -4,14 +4,14 @@ clc;
 
 % -------------------------- parameters input -------------------------- %
 % file and path name
-parfnm='../project1/test.json';
-output_dir='../project1/output';
+parfnm='../project/test.json';
+output_dir='../project/output';
 
 % which grid profile to plot
-% subs=[30,1,1];    
-% subc=[1,-1,-1];   % '-1' to plot all points in this dimension
-% subt=[1,4,4];
-subs=[1,151,1];    
+% subs=[1,1,100];    
+% subc=[-1,-1,1];   % '-1' to plot all points in this dimension
+% subt=[1,1,1];
+subs=[1,442,1];    
 subc=[-1,1,-1];   % '-1' to plot all points in this dimension
 subt=[4,1,4];
 % figure control parameters

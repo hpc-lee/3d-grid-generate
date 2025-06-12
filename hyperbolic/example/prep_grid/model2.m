@@ -8,10 +8,10 @@ nx = 401;
 ny = 301;
 
 p1 = 1;
-p2 = 101;
-p3 = 151;
-p4 = 251;
-p5 = 301;
+p2 = 81;
+p3 = 131;
+p4 = 271;
+p5 = 321;
 p6 = 401;
 
 dh = 10;
@@ -30,7 +30,7 @@ for j=1:ny
   for i=p2+1:p3
     bz(i,j,1) = origin_x + bz(p2,j,1) + cos(0.5*pi*90/90)*(i-p2)*dh;
     bz(i,j,2) = origin_y + (j-1)*dh;
-    bz(i,j,3) = origin_z + bz(p2,j,3) - sin(0.5*pi*90/90)*(i-p2)*dh;
+    bz(i,j,3) = origin_z + bz(p2,j,3) + sin(0.5*pi*90/90)*(i-p2)*dh;
   end
   for i=p3+1:p4
     bz(i,j,1) = origin_x + bz(p3,j,1) + (i-p3)*dh;
@@ -40,7 +40,7 @@ for j=1:ny
   for i=p4+1:p5
     bz(i,j,1) = origin_x + bz(p4,j,1) + cos(0.5*pi*90/90)*(i-p4)*dh;
     bz(i,j,2) = origin_y + (j-1)*dh;
-    bz(i,j,3) = origin_z + bz(p4,j,3) + sin(0.5*pi*90/90)*(i-p4)*dh;
+    bz(i,j,3) = origin_z + bz(p4,j,3) - sin(0.5*pi*90/90)*(i-p4)*dh;
   end
   for i=p5+1:p6
     bz(i,j,1) = origin_x + bz(p5,j,1) + (i-p5)*dh;
@@ -87,9 +87,9 @@ cid.Label.String='(km)';
 %
 set(gcf,'color','white');
 set(gcf,'Position',[0,0,1900,1000]);
-xlabel('X axis (km)',FontWeight='bold',rotation=-10,position=[2.0 -1.3]);
-ylabel('Y axis (km)',FontWeight='bold',rotation=60, position=[3.6 0.3]);
-zlabel('Z axis (km)',FontWeight='bold',rotation=0,position=[-0.3 0.3]);
+xlabel('X axis (km)',FontWeight='bold',rotation=-10,position=[2.0 -0.5]);
+ylabel('Y axis (km)',FontWeight='bold',rotation=60, position=[3.4 1.0]);
+zlabel('Z axis (km)',FontWeight='bold',rotation=0,position=[-0.3 0.9]);
 set(gca,'layer','top');
 set(gca, FontWeight='bold', FontSize=15);
 view(20,30);
@@ -109,6 +109,6 @@ for j=1:ny
 end
 
 if flag_printf
-   print(gcf,'model1.png','-r400','-dpng');
+   print(gcf,'model2.png','-r400','-dpng');
  end
 

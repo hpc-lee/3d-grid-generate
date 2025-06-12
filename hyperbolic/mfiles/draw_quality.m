@@ -8,28 +8,35 @@ parfnm='../project/test.json';
 output_dir='../project/output';
 
 % which grid profile to plot
-% subs=[1,1,1];    
-% subc=[-1,-1,1];   % '-1' to plot all points in this dimension
-% subt=[2,2,2];
-
-subs=[40,1,1];    
-subc=[1,-1,-1];   % '-1' to plot all points in this dimension
+%subs=[201,1,1];    
+%subc=[1,-1,-1];   % '-1' to plot all points in this dimension
+%subt=[1,1,1];
+subs=[1,201,1];    
+subc=[-1,1,-1];   % '-1' to plot all points in this dimension
 subt=[1,1,1];
 
 % figure control parameters
-flag_km     = 0;
-flag_print  = 0;
+flag_km     = 1;
+flag_emlast = 1;
+flag_print  = 1;
 flag_clb    = 1;
+
 flag_title  = 1;
+% scl_daspect = [1 1 1];
+% scl_caxis = [1,1.1];
+% scl_caxis = [40,90];
 clrmp       = 'parula';
 
-% varable to plot 
+% varable to plot
 % 'orth_xiet', 'orth_xizt',
 % 'orth_etzt', 'jacobi',  
 % 'smooth_xi', 'smooth_et','smooth_zt',
-% 'step_xi', 'step_et', 'step_zt'
-% varnm = 'orth_etzt';
-varnm = 'smooth_zt';
+% % 'step_xi', 'step_et', 'step_zt'
+% varnm = 'orth_xizt';
+varnm='smooth_zt';
+% varnm='smooth_et';
+% varnm='smooth_xi';
+% varnm = 'jacobi';
 %-----------------------------------------------------------
 %-- load coord
 %-----------------------------------------------------------
@@ -56,32 +63,36 @@ end
 % figure plot
 hid=figure;
 set(hid,'BackingStore','on');
-
 if subc(1) == 1
     pcolor(y,z,v);
-    xlabel(['y-axis (' str_unit ')']);
-    ylabel(['z-axis (' str_unit ')']);
+    xlabel(['Y axis (' str_unit ')']);
+    ylabel(['Z axis (' str_unit ')']);
      
 elseif subc(2) == 1
     pcolor(x,z,v);
-    xlabel(['x-axis (' str_unit ')']);
-    ylabel(['z-axis (' str_unit ')']);
+    xlabel(['X axis (' str_unit ')']);
+    ylabel(['Z axis (' str_unit ')']);
      
 elseif subc(3) == 1
     pcolor(x,y,v);
-    xlabel(['x-axis (' str_unit ')']);
-    ylabel(['y-axis (' str_unit ')']);
+    xlabel(['X axis (' str_unit ')']);
+    ylabel(['Z axis (' str_unit ')']);
 end
-     
 
-set(gca,'layer','top');
-set(gcf,'color','white','renderer','painters');
-
-% shading
 shading interp;
+set(gca,'layer','top');
+% set(gcf,'color','white','renderer','painters');
+set(gcf,'color','white');
+set(gcf,'Position',[200,200,1200,800]);
+set(gca,'FontSize',15,FontWeight='bold');
+
 % colorbar range/scale
 if exist('scl_caxis','var')
     caxis(scl_caxis);
+end
+% axis daspect
+if exist('scl_daspect')
+    daspect(scl_daspect);
 end
 axis equal tight;
 % colormap and colorbar
@@ -89,14 +100,20 @@ if exist('clrmp')
     colormap(clrmp);
 end
 if flag_clb
-    cid=colorbar;
+  cid=colorbar;
+  set(get(cid,'Title'),'string','degree');
 end
-% title
 if flag_title
-    title(varnm,'Interpreter','none');
+%       title('J',FontSize=15);
+%     title('Q\_\xi\eta',FontSize=15);
+    title('Q\_\xi\zeta',FontSize=15);
+%     title('Q\_\eta\zeta',FontSize=15);
+%     title('S\_\xi',FontSize=15);
+%     title('S\_\eta',FontSize=15);
+%     title('S\_\zeta',FontSize=15);
 end
 
 % save and print figure
 if flag_print
-    print(gcf,[varnm '.png'],'-dpng');
+  print(gcf,['03-3d-model2-',varnm,'.png'],'-r400','-dpng');
 end

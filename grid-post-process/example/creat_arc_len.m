@@ -2,13 +2,13 @@ clc;
 clear all;
 close all;
 
-nz = 100;
+nz = 201;
 num_of_step = nz-1;
 flag_flip = 1;
 
-% for i=1:num_of_step
-%  step(i) = 1;
-% end
+for i=1:num_of_step
+ step(i) = 1;
+end
 
 % % Gradient Grid
 % incre_layer = 12;
@@ -26,7 +26,7 @@ flag_flip = 1;
 % for i=11+incre_layer:num_of_step
 %  step(i) = step(10+incre_layer);
 % end
-
+% 
 if(flag_flip)
   step=flip(step);
 end
