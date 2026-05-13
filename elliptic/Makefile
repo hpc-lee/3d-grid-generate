@@ -11,7 +11,7 @@
 CC    :=  $(MPIHOME)/bin/mpicc
 
 #-- 
-CFLAGS := -I$(NETCDF)/include -I$(MPIHOME)/include -I./lib/ -I./src/ $(CFLAGS)
+CFLAGS := -I$(NETCDF)/include -I$(MPIHOME)/include -I../lib/ -I./src/ $(CFLAGS)
 
 #- O3
 CFLAGS := -O3 -std=c99 $(CFLAGS)
@@ -50,7 +50,7 @@ main: $(OBJS)
 
 $(DIR_OBJ)/%.o : src/%.c
 	${CC} $(CFLAGS) -c $^ -o $@ 
-$(DIR_OBJ)/%.o : lib/%.c
+$(DIR_OBJ)/%.o : ../lib/%.c
 	${CC} $(CFLAGS) -c $^ -o $@ 
 
 cleanexe:

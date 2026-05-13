@@ -11,7 +11,7 @@ echo "EXEC_GRID=${EXEC_GRID}"
 
 #-- input dir
 #INPUTDIR1=/data/lihl/code/3d-grid-generate/elliptic/project/output
-INPUTDIR1=/data/lihl/code/3d-grid-generate/hyperbolic/project/output
+INPUTDIR1=/data/lihl/code/3d-grid-generate/parabolic/project1/output
 STRETCH_FILE1=`pwd`/arc_len_file1.txt
 #STRETCH_FILE2=`pwd`/arc_len_file2.txt
 #-- output and conf
@@ -33,8 +33,8 @@ cat << ieof > ${PAR_FILE}
   "input_grids_info" : [
    {
      "grid_import_dir" : "${INPUTDIR1}",
-     "number_of_grid_points" : [401,301,201],
-     "number_of_mpiprocs_in" : [1,1,1],
+     "number_of_grid_points" : [401,401,201],
+     "number_of_mpiprocs_in" : [1,3,1],
      "flag_stretch" : 0,
      "stretch_file" : "${STRETCH_FILE1}"
    }
@@ -43,7 +43,7 @@ cat << ieof > ${PAR_FILE}
   "stretch_direction" : "z",
   "merge_direction" : "z",
 
-  "number_of_mpiprocs_out" : [5,5,1],
+  "number_of_mpiprocs_out" : [2,2,1],
 
   "check_orth" : 1,
   "check_jac" : 1,
@@ -61,7 +61,7 @@ cat << ieof > ${PAR_FILE}
 
   "grid_export_dir" : "${OUTPUT_DIR}",
 
-  "flag_pml" : 0,
+  "flag_pml" : 1,
   "pml_layers" : {
          "number_of_pml_x1" : 20,
          "number_of_pml_x2" : 20,

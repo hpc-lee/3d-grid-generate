@@ -1,0 +1,1219 @@
+\documentclass[11pt,a4paper]{report}
+
+% Packages
+\usepackage{amsmath,amssymb}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{longtable}
+\usepackage{xcolor}
+
+\geometry{margin=2.5cm}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+\lstset{
+    language=C,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray}
+}
+
+\lstdefinestyle{python}{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray}
+}
+
+\lstdefinestyle{bash}{
+    language=bash,
+    basicstyle=\ttfamily\small,
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray}
+}
+
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\rvec}{\bm{r}}
+\newcommand{\nvec}{\bm{n}}
+\newcommand{\tvec}{\bm{t}}
+\newcommand{\xivec}{\bm{\xi}}
+\newcommand{\etavec}{\bm{\eta}}
+\newcommand{\zetavec}{\bm{\zeta}}
+
+\title{\textbf{3D Curvilinear Grid Generation Package}\\[0.5em]
+\large User Manual and Algorithm Reference}
+\author{}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document provides a comprehensive reference for the 3D curvilinear grid generation package. The package implements three grid generation methods---parabolic, hyperbolic, and elliptic---for constructing body-fitted structured meshes suitable for seismic wave numerical simulation with finite-difference methods. This manual covers the mathematical foundations, detailed algorithmic descriptions, grid quality metrics, post-processing capabilities, configuration guide, file formats, and usage instructions. All mathematical derivations and algorithmic descriptions are drawn directly from the C source code implementation.
+\end{abstract}
+
+\tableofcontents
+
+%=============================================================================
+\chapter{Introduction}
+%=============================================================================
+
+\section{Background}
+
+Curvilinear grid generation is a fundamental pre-processing step for finite-difference seismic wave simulation in domains with complex topography and subsurface structures. Unlike Cartesian grids, curvilinear grids conform to irregular boundaries such as the free surface (topography), eliminating the staircase approximation errors that plague Cartesian methods at material interfaces.
+
+In three dimensions, the computational domain is mapped from a unit cube $(\xi, \eta, \zeta) \in [0,1]^3$ to physical space $(x, y, z)$. This mapping requires careful handling of three coordinate directions and six boundary surfaces, making the grid generation problem significantly more complex than its 2D counterpart.
+
+The physical coordinates of grid points are denoted by:
+
+\begin{equation}
+    \rvec(i,j,k) = (x_{i,j,k},\; y_{i,j,k},\; z_{i,j,k})^T, \quad
+    i = 1,\dots,n_x,\; j = 1,\dots,n_y,\; k = 1,\dots,n_z
+\end{equation}
+
+where $n_x$, $n_y$, $n_z$ are the number of grid points in each direction.
+
+\section{Method Comparison}
+
+This package provides C implementations of three distinct grid generation methods:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lp{3cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Property} & \textbf{Parabolic} & \textbf{Hyperbolic} & \textbf{Elliptic} \\
+\midrule
+Boundary surfaces & 2 (start + target) & 1 (initial surface) & 6 (all faces) \\
+Generation mechanism & Predictor-corrector marching & Orthogonality + volume conservation marching & Elliptic PDE iteration \\
+Computational cost & Low & Low & High (iterative) \\
+Parallelization & None & None & MPI (3D decomposition) \\
+Topography handling & Moderate & Extreme (cliffs, dams) & General \\
+Grid quality control & Clustering coefficient & Smoothing + arc-stretch & Source terms P, Q, R \\
+Output format & NetCDF (partitioned) & NetCDF (partitioned) & NetCDF (partitioned) \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of 3D grid generation methods.}
+\end{table}
+
+\section{Coordinate System Convention}
+
+Throughout this manual, computational coordinates are denoted by $(\xi, \eta, \zeta)$ corresponding to discrete indices $(i, j, k)$. The physical coordinate system is right-handed with $x$ positive to the right, $y$ positive forward, and $z$ positive upward. The marching direction (for parabolic and hyperbolic methods) can be along any of the three computational axes.
+
+\section{Software Architecture}
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{ccc}
+\toprule
+\textbf{Component} & \textbf{Source Directory} & \textbf{Language} \\
+\midrule
+Boundary preparation & \texttt{*/example/prep\_grid/} & Python 3 \\
+Boundary export & \texttt{plotting/export\_c.py} & Python 3 \\
+Visualization & \texttt{plotting/} & Python 3 (Matplotlib) \\
+Grid generation (elliptic) & \texttt{elliptic/src/} & C + MPI \\
+Grid generation (hyperbolic) & \texttt{hyperbolic/src/} & C \\
+Grid generation (parabolic) & \texttt{parabolic/src/} & C + MPI \\
+Post-processing & \texttt{grid-post-process/src/} & C \\
+Shared libraries & \texttt{lib/} & C \\
+\bottomrule
+\end{tabular}
+\caption{Software component organization.}
+\end{figure}
+
+%=============================================================================
+\chapter{Mathematical Foundations}
+%=============================================================================
+
+\section{Coordinate Transformation}
+
+A 3D curvilinear grid defines a one-to-one mapping from computational coordinates $(\xi, \eta, \zeta)$ to physical coordinates $(x, y, z)$:
+
+\begin{equation}
+    \rvec(\xi, \eta, \zeta) = \begin{pmatrix} x(\xi, \eta, \zeta) \\ y(\xi, \eta, \zeta) \\ z(\xi, \eta, \zeta) \end{pmatrix}
+\end{equation}
+
+The grid generation problem is: given boundary surface positions in physical space, determine the interior mapping such that the resulting grid possesses desired properties (smoothness, orthogonality, appropriate cell volumes).
+
+\section{Tangent Vectors}
+
+The covariant tangent vectors at each grid point are computed using central finite differences for interior points and one-sided differences at boundaries:
+
+\begin{align}
+    \rvec_\xi(i,j,k) &= \pd{\rvec}{\xi} \approx \frac{\rvec(i+1,j,k) - \rvec(i,j,k)}{\Delta\xi} \\
+    \rvec_\eta(i,j,k) &= \pd{\rvec}{\eta} \approx \frac{\rvec(i,j+1,k) - \rvec(i,j,k)}{\Delta\eta} \\
+    \rvec_\zeta(i,j,k) &= \pd{\rvec}{\zeta} \approx \frac{\rvec(i,j,k+1) - \rvec(i,j,k)}{\Delta\zeta}
+\end{align}
+
+In practice, $\Delta\xi = \Delta\eta = \Delta\zeta = 1$ is used since the computational coordinates are discrete indices.
+
+\section{Metric Tensors}
+
+The covariant metric tensor components $g_{ij}$ form a $3 \times 3$ symmetric positive-definite matrix:
+
+\begin{align}
+    g_{11} &= \rvec_\xi \cdot \rvec_\xi, \quad
+    g_{22} = \rvec_\eta \cdot \rvec_\eta, \quad
+    g_{33} = \rvec_\zeta \cdot \rvec_\zeta \\
+    g_{12} &= \rvec_\xi \cdot \rvec_\eta, \quad
+    g_{13} = \rvec_\xi \cdot \rvec_\zeta, \quad
+    g_{23} = \rvec_\eta \cdot \rvec_\zeta
+\end{align}
+
+The derived metric coefficients used throughout the code are:
+
+\begin{align}
+    \alpha_1 &= g_{22} g_{33} - g_{23}^2 \\
+    \alpha_2 &= g_{11} g_{33} - g_{13}^2 \\
+    \alpha_3 &= g_{11} g_{22} - g_{12}^2
+\end{align}
+
+And the cross-coupling terms:
+
+\begin{align}
+    \beta_{12} &= g_{13} g_{23} - g_{12} g_{33} \\
+    \beta_{23} &= g_{12} g_{13} - g_{11} g_{23} \\
+    \beta_{13} &= g_{12} g_{23} - g_{13} g_{22}
+\end{align}
+
+\section{Jacobian Determinant}
+
+The Jacobian determinant (cell volume) is computed as the scalar triple product of the three tangent vectors:
+
+\begin{equation}
+    J = \rvec_\xi \cdot (\rvec_\eta \times \rvec_\zeta)
+\end{equation}
+
+Explicitly in component form:
+
+\begin{equation}
+    J = \begin{vmatrix}
+        x_\xi & x_\eta & x_\zeta \\
+        y_\xi & y_\eta & y_\zeta \\
+        z_\xi & z_\eta & z_\zeta
+    \end{vmatrix}
+\end{equation}
+
+A valid grid requires $J > 0$ at every grid point. A negative Jacobian indicates cell folding (crossing grid lines), which renders the grid unusable for numerical simulation.
+
+\section{Orthogonality}
+
+Grid line orthogonality is described by the angles between pairs of coordinate directions:
+
+\begin{align}
+    \theta_{\xi\eta} &= \arccos \left( \frac{g_{12}}{\sqrt{g_{11} g_{22}}} \right) \times \frac{180}{\pi} \\
+    \theta_{\xi\zeta} &= \arccos \left( \frac{g_{13}}{\sqrt{g_{11} g_{33}}} \right) \times \frac{180}{\pi} \\
+    \theta_{\eta\zeta} &= \arccos \left( \frac{g_{23}}{\sqrt{g_{22} g_{33}}} \right) \times \frac{180}{\pi}
+\end{align}
+
+Ideal orthogonality requires all three angles to be $90^\circ$, meaning $g_{12} = g_{13} = g_{23} = 0$.
+
+\section{Normal Vectors}
+
+The unit normal vector to a surface spanned by $\rvec_\xi$ and $\rvec_\eta$ is:
+
+\begin{equation}
+    \nvec = \frac{\rvec_\xi \times \rvec_\eta}{|\rvec_\xi \times \rvec_\eta|}
+\end{equation}
+
+This normal vector is used extensively in the parabolic predictor step for extrapolation from the current grid layer.
+
+\section{Arc-Length Parameterization}
+
+The normalized arc length along a coordinate direction provides a measure of cumulative distance:
+
+\begin{equation}
+    s(i) = \frac{\sum_{k=1}^{i} \Delta s(k)}{\sum_{k=1}^{n} \Delta s(k)}, \quad
+    \Delta s(k) = |\rvec(k) - \rvec(k-1)|
+\end{equation}
+
+This is used for grid point redistribution (arc-length stretching) to control clustering near boundaries or regions of interest.
+
+%=============================================================================
+\chapter{Parabolic Grid Generation}
+%=============================================================================
+
+\section{Overview}
+
+The parabolic method generates 3D grids by a predictor-corrector marching scheme from one boundary surface (the starting surface) toward another (the target surface). The method can march along any of the three coordinate directions (x, y, or z) by appropriate permutation of coordinates. The method is computationally efficient and suitable for moderate topography where the marching direction can be reasonably aligned with the coordinate transformation.
+
+\section{Boundary Specification}
+
+For z-direction marching (most common), two boundary surfaces are required:
+\begin{itemize}
+    \item $\rvec_{bz1}(i,j)$ --- bottom boundary surface, shape $(n_x, n_y, 3)$
+    \item $\rvec_{bz2}(i,j)$ --- top boundary surface, shape $(n_x, n_y, 3)$
+\end{itemize}
+
+For x-direction marching, the boundaries are on the $y$--$z$ planes:
+\begin{itemize}
+    \item $\rvec_{bx1}(k,j)$ --- left boundary surface, shape $(n_z, n_y, 3)$
+    \item $\rvec_{bx2}(k,j)$ --- right boundary surface, shape $(n_z, n_y, 3)$
+\end{itemize}
+
+For y-direction marching:
+\begin{itemize}
+    \item $\rvec_{by1}(k,i)$ --- front boundary surface, shape $(n_z, n_x, 3)$
+    \item $\rvec_{by2}(k,i)$ --- rear boundary surface, shape $(n_z, n_x, 3)$
+\end{itemize}
+
+\section{Step Length Control}
+
+The spacing between grid layers in the marching direction is controlled by a normalized step distribution $\bar{s}(k)$, where $k = 1, \dots, n_z-1$. The step values are normalized to sum to 1:
+
+\begin{equation}
+    \bar{s}(k) = \frac{s(k)}{\sum_{j=1}^{n_z-1} s(j)}
+\end{equation}
+
+Smaller step values produce clustering of grid layers near the starting boundary, while larger values spread them out.
+
+\section{Predictor-Corrector Algorithm}
+
+\subsection{Prediction Step}
+
+For each point at layer $k$, the predictor estimates the position at layer $k+1$ using a weighted combination of two estimates:
+
+\begin{enumerate}
+    \item \textbf{Normal direction point:} Extrapolates from layer $k$ along the unit surface normal:
+    \begin{equation}
+        \rvec_{\text{norm}} = \rvec_k + \hat{c}_1 \cdot R \cdot \nvec_k
+    \end{equation}
+    where $\nvec_k$ is the surface unit normal computed from $\rvec_\xi \times \rvec_\eta$, $R$ is the local step length, and $\hat{c}_1$ is a curvature parameter.
+
+    \item \textbf{Linear interpolation point:} Interpolates linearly between the current layer and the target surface:
+    \begin{equation}
+        \rvec_{\text{lin}} = \rvec_k + \hat{c}_1 \cdot (\rvec_{\text{top}} - \rvec_k)
+    \end{equation}
+\end{enumerate}
+
+The final prediction is a blending of these two estimates with an exponential weight controlled by the clustering coefficient $c$:
+
+\begin{equation}
+    \rvec_{k+1}^{\text{pred}} = e^{-c \cdot \hat{t}} \cdot \rvec_{\text{norm}} + (1 - e^{-c \cdot \hat{t}}) \cdot \rvec_{\text{lin}}
+\end{equation}
+
+where $\hat{t}$ is the normalized marching coordinate at layer $k$. The coefficient $c$ controls how quickly the grid transitions from surface-following (normal) behavior near the starting surface to linear behavior near the target surface. Larger values of $c$ produce more clustering near the starting boundary.
+
+\subsection{Correction Step}
+
+The correction step solves a tridiagonal system of equations derived from the elliptic grid generation equations to smooth the predicted grid along each computational plane. For each $\zeta$ (marching direction) layer, a one-dimensional smoothing operator is applied along the $\xi$ and $\eta$ directions:
+
+\begin{equation}
+    \alpha_1 \rvec_{i-1,j}^{\text{new}} + \alpha_2 \rvec_{i,j}^{\text{new}} + \alpha_3 \rvec_{i+1,j}^{\text{new}} = \rvec_{i,j}^{\text{pred}}
+\end{equation}
+
+This tridiagonal system is solved using the Thomas algorithm (a simplified form of Gaussian elimination specialized for tridiagonal matrices), which has $O(n)$ computational complexity.
+
+\subsection{Thomas Algorithm}
+
+For a tridiagonal system $a_i x_{i-1} + b_i x_i + c_i x_{i+1} = d_i$:
+
+\begin{enumerate}
+    \item \textbf{Forward elimination:}
+    \begin{align}
+        c'_1 &= c_1 / b_1 \\
+        c'_i &= c_i / (b_i - a_i c'_{i-1}), \quad i = 2,\dots,n-1 \\
+        d'_1 &= d_1 / b_1 \\
+        d'_i &= (d_i - a_i d'_{i-1}) / (b_i - a_i c'_{i-1}), \quad i = 2,\dots,n
+    \end{align}
+
+    \item \textbf{Backward substitution:}
+    \begin{align}
+        x_n &= d'_n \\
+        x_i &= d'_i - c'_i x_{i+1}, \quad i = n-1,\dots,1
+    \end{align}
+\end{enumerate}
+
+\subsection{Boundary Conditions}
+
+At geometric symmetry boundaries, linear extrapolation is used:
+\begin{equation}
+    \rvec_0 = 2\rvec_1 - \rvec_2
+\end{equation}
+
+This ensures that grid lines approach the boundary smoothly without artificial curvature.
+
+\section{Coordinate Permutation}
+
+After grid generation with a non-z marching direction, the coordinate axes are permuted to restore the standard $(x, y, z)$ ordering. For example, if marching is in the x-direction, the generated coordinates are permuted from $(y, z, x)$ back to $(x, y, z)$.
+
+\section{Algorithm Summary}
+
+\begin{enumerate}
+    \item Read boundary surfaces and step distribution
+    \item Set grid points on the starting boundary ($k=1$)
+    \item For each marching step $k = 2, \dots, n_z$:
+    \begin{enumerate}
+        \item For each $(i,j)$ on the current layer, predict $\rvec_{i,j,k}$ using normal extrapolation blended with linear target
+        \item Correct the predicted points by solving tridiagonal systems along $\xi$ and $\eta$ directions
+        \item Apply boundary conditions
+    \end{enumerate}
+    \item Permute coordinates if needed
+    \item Compute quality metrics and export to NetCDF
+\end{enumerate}
+
+%=============================================================================
+\chapter{Hyperbolic Grid Generation}
+%=============================================================================
+
+\section{Overview}
+
+The hyperbolic grid generation method constructs 3D grids by marching outward from a single initial boundary surface while simultaneously enforcing orthogonality constraints and volume conservation (or equivalently, a specified grid spacing distribution). This method was originally proposed by Steger and Chaussee (1980) and later extended to 3D by Chan and Steger (1992). It is particularly well-suited for domains with extreme topography (steep cliffs, near-vertical structures) where parabolic or elliptic methods may fail to maintain grid quality.
+
+The hyperbolic method's key advantages are:
+\begin{itemize}
+    \item Requires only one boundary surface (not two or six)
+    \item Computationally efficient (marching, not iterative)
+    \item Naturally enforces orthogonality at the starting surface
+    \item Robust for extreme topography
+\end{itemize}
+
+\section{Governing Equations}
+
+Let $\rvec(\xi, \eta, \zeta)$ be the grid mapping, where $\zeta$ is the marching direction. The grid lines must satisfy two fundamental constraints at each layer:
+
+\subsection{Orthogonality Constraints}
+
+Grid lines in the marching direction ($\zeta$) must be orthogonal to the two tangential directions ($\xi$ and $\eta$):
+
+\begin{align}
+    \rvec_\xi \cdot \rvec_\zeta &= 0 \label{eq:ortho_xi} \\
+    \rvec_\eta \cdot \rvec_\zeta &= 0 \label{eq:ortho_eta}
+\end{align}
+
+These conditions ensure that the grid is locally orthogonal at every interior point, which is essential for minimizing numerical errors in finite-difference wave propagation.
+
+\subsection{Volume Conservation}
+
+The third equation comes from specifying the cell volume (Jacobian determinant) according to a prescribed distribution:
+
+\begin{equation}
+    \rvec_\xi \cdot (\rvec_\eta \times \rvec_\zeta) = V(\xi, \eta, \zeta)
+\end{equation}
+
+or equivalently, controlling the grid spacing along the marching direction:
+\begin{equation}
+    |\rvec_\zeta| = \Delta s(\xi, \eta, \zeta)
+\end{equation}
+
+where $\Delta s$ is derived from the step distribution file.
+
+\subsection{Linearized System}
+
+Expanding $\rvec_\zeta$ in terms of the known grid at layer $k$ and the unknown at layer $k+1$:
+\begin{equation}
+    \rvec_\zeta \approx \rvec_{k+1} - \rvec_k
+\end{equation}
+
+Substituting into the orthogonality and volume constraints yields a linear system that can be solved for $\rvec_{k+1}$.
+
+\section{Block Tridiagonal Solver}
+
+The resulting linear system has a block tridiagonal structure with $3 \times 3$ blocks, reflecting the three spatial coordinates at each grid point. The general form is:
+
+\begin{equation}
+    B_i \rvec_{i-1, k+1} + C_i \rvec_{i, k+1} + D_i \rvec_{i+1, k+1} = E_i
+\end{equation}
+
+where $B_i$, $C_i$, $D_i$ are $3 \times 3$ matrices and $\rvec_i$ is the 3-component grid position vector.
+
+\subsection{Block Thomas Algorithm}
+
+The block Thomas algorithm generalizes the scalar Thomas algorithm:
+
+\begin{enumerate}
+    \item \textbf{Forward elimination} ($i = 1, \dots, n$):
+    \begin{align}
+        G_1 &= C_1^{-1} D_1 \\
+        G_i &= (C_i - B_i G_{i-1})^{-1} D_i, \quad i = 2,\dots,n-1 \\
+        F_1 &= C_1^{-1} E_1 \\
+        F_i &= (C_i - B_i G_{i-1})^{-1} (E_i - B_i F_{i-1}), \quad i = 2,\dots,n
+    \end{align}
+
+    \item \textbf{Backward substitution} ($i = n, \dots, 1$):
+    \begin{align}
+        \rvec_n &= F_n \\
+        \rvec_i &= F_i - G_i \rvec_{i+1}, \quad i = n-1,\dots,1
+    \end{align}
+\end{enumerate}
+
+The $3 \times 3$ matrix inversions in the forward elimination are computed using Cramer's rule with explicit determinant formulas for efficiency.
+
+\section{Smoothing Coefficients}
+
+To prevent grid line crossing and improve smoothness, a dissipation (smoothing) term is added. The smoothing coefficient at each point depends on several factors:
+
+\begin{enumerate}
+    \item \textbf{Marching distance factor:}
+    \begin{equation}
+        S = \sqrt{\frac{k}{n_z - 1}}
+    \end{equation}
+    Grid points farther from the starting surface receive stronger smoothing.
+
+    \item \textbf{Angular dependence:} The angle $\alpha$ between grid lines affects smoothing:
+    \begin{equation}
+        c_\alpha = \begin{cases}
+            \dfrac{1}{1 - \cos^2\alpha}, & \cos\alpha \geq 0 \\
+            1, & \cos\alpha < 0
+        \end{cases}
+    \end{equation}
+
+    \item \textbf{Grid density factor:} The ratio of grid points in the $\xi$ and $\eta$ directions:
+    \begin{equation}
+        N_\xi = \frac{n_\xi}{n_\xi + n_\eta}
+    \end{equation}
+
+    \item \textbf{Combined coefficient:}
+    \begin{equation}
+        c_{\text{smooth}} = c_0 \cdot N_\xi \cdot S \cdot \Delta\xi_{\text{mod}} \cdot c_\alpha
+    \end{equation}
+    where $c_0$ is the user-specified base smoothing coefficient.
+\end{enumerate}
+
+\section{Boundary Conditions}
+
+The hyperbolic method supports two types of boundary conditions at the edges of each computational plane:
+
+\subsection{Type 1: Floating Boundary (Neumann-like)}
+
+Boundary points adjust freely, damped by the epsilon parameter. For the boundary at $\xi = 0$:
+
+\begin{equation}
+    \rvec_{0}^{n+1} = \rvec_{0}^{n} + (1 + \varepsilon)(\rvec_{1}^{n+1} - \rvec_{1}^{n}) - \varepsilon(\rvec_{2}^{n+1} - \rvec_{2}^{n})
+\end{equation}
+
+where $\varepsilon$ (typically 0.01--0.1) controls how tightly the boundary follows the interior. Smaller $\varepsilon$ produces a more tightly coupled boundary that moves with the interior; larger $\varepsilon$ allows the boundary to drift more independently.
+
+\subsection{Type 2: Cartesian Boundary (Dirichlet-like)}
+
+One coordinate is fixed to maintain a Cartesian boundary condition:
+\begin{align}
+    x_0^{n+1} &= x_0^{n} \\
+    y_0^{n+1} &= y_0^{n} + (y_1^{n+1} - y_1^{n}) \\
+    z_0^{n+1} &= z_0^{n} + (z_1^{n+1} - z_1^{n})
+\end{align}
+
+This is useful when the boundary must remain on a specific plane (e.g., symmetry planes or domain boundaries that must stay aligned with the Cartesian axes).
+
+\section{Arc-Length Stretching}
+
+An optional arc-length stretching step can redistribute grid points along the marching direction to cluster points near boundaries where higher resolution is needed. The redistribution follows a user-provided normalized arc-length function $s(k) \in [0, 1]$:
+
+\begin{equation}
+    \rvec_k^{\text{new}} = \rvec(\xi, \eta, s(k))
+\end{equation}
+
+Points are interpolated from the uniformly-spaced grid to positions specified by the arc-length distribution.
+
+\section{Algorithm Summary}
+
+\begin{enumerate}
+    \item Read the initial boundary surface and step distribution
+    \item Optionally read the arc-length stretching file
+    \item Set grid points on the initial surface ($k=1$)
+    \item For each marching step $k = 2, \dots, n_z$:
+    \begin{enumerate}
+        \item Compute tangent vectors $\rvec_\xi$, $\rvec_\eta$ from layer $k-1$
+        \item Compute unit normal vector $\nvec = (\rvec_\xi \times \rvec_\eta) / |\rvec_\xi \times \rvec_\eta|$
+        \item Construct block tridiagonal system from orthogonality and volume constraints
+        \item Add smoothing (dissipation) terms
+        \item Solve block tridiagonal system via block Thomas algorithm
+        \item Apply boundary conditions (Type 1 or Type 2)
+    \end{enumerate}
+    \item Optionally apply arc-length stretching in the marching direction
+    \item Compute quality metrics and export to NetCDF
+\end{enumerate}
+
+%=============================================================================
+\chapter{Elliptic Grid Generation}
+%=============================================================================
+
+\section{Overview}
+
+The elliptic method generates grids by solving a system of Poisson-type elliptic partial differential equations. Unlike marching methods, the elliptic method simultaneously determines all interior grid points through iterative solution, providing the most general and controllable grid generation approach. All six boundary surfaces are specified, and the interior is determined by the elliptic PDE system with user-controlled source terms.
+
+The method supports MPI parallel execution via 3D Cartesian domain decomposition, making it suitable for large-scale grid generation problems.
+
+\section{Governing Equations}
+
+The elliptic grid generation system is based on the Poisson equations for the computational coordinates in physical space:
+
+\begin{align}
+    \xi_{xx} + \xi_{yy} + \xi_{zz} &= P(\xi, \eta, \zeta) \label{eq:poisson_xi} \\
+    \eta_{xx} + \eta_{yy} + \eta_{zz} &= Q(\xi, \eta, \zeta) \label{eq:poisson_eta} \\
+    \zeta_{xx} + \zeta_{yy} + \zeta_{zz} &= R(\xi, \eta, \zeta) \label{eq:poisson_zeta}
+\end{align}
+
+where $P$, $Q$, $R$ are source terms that control grid point clustering and orthogonality.
+
+Inverting these equations to solve for physical coordinates in computational space yields:
+
+\begin{equation}
+    \sum_{i=1}^{3} \sum_{j=1}^{3} g^{ij} \rvec_{\xi_i \xi_j} + P \rvec_\xi + Q \rvec_\eta + R \rvec_\zeta = 0
+\end{equation}
+
+where $g^{ij}$ are the contravariant metric tensor components.
+
+\section{Boundary Specification}
+
+The elliptic method requires all six boundary surfaces:
+
+\begin{itemize}
+    \item $bx_1$, $bx_2$: boundaries at $\xi = 0$ and $\xi = 1$, shape $(n_y, n_z, 3)$
+    \item $by_1$, $by_2$: boundaries at $\eta = 0$ and $\eta = 1$, shape $(n_x, n_z, 3)$
+    \item $bz_1$, $bz_2$: boundaries at $\zeta = 0$ and $\zeta = 1$, shape $(n_x, n_y, 3)$
+\end{itemize}
+
+All six surfaces must be specified consistently so that edges and corners match.
+
+\section{Transfinite Interpolation (TFI) Initialization}
+
+An initial grid is generated by transfinite interpolation (TFI) from the six boundary surfaces. TFI provides a smooth initial guess that exactly matches all boundaries, significantly reducing the number of SOR iterations required for convergence.
+
+The TFI formula for a 3D domain is:
+
+\begin{align}
+    \rvec_{\text{TFI}}(\xi, \eta, \zeta) &= (1-\xi)\rvec_{bx1}(\eta,\zeta) + \xi\rvec_{bx2}(\eta,\zeta) \nonumber\\
+    &+ (1-\eta)\rvec_{by1}(\xi,\zeta) + \eta\rvec_{by2}(\xi,\zeta) \nonumber\\
+    &+ (1-\zeta)\rvec_{bz1}(\xi,\eta) + \zeta\rvec_{bz2}(\xi,\eta) \nonumber\\
+    &- (1-\xi)(1-\eta)\rvec_{\text{edge}_1} - \xi(1-\eta)\rvec_{\text{edge}_2} - \dots \quad \text{(edge corrections)} \nonumber\\
+    &+ \text{corner correction terms}
+\end{align}
+
+The edge and corner correction terms subtract the double-counted and triple-counted contributions from the 1D and 2D interpolants.
+
+\section{Source Terms}
+
+\subsection{Dirichlet Boundary Source Terms}
+
+For the Dirichlet formulation (\texttt{diri\_gene}), source terms $P$, $Q$, $R$ are computed on the boundary surfaces to enforce orthogonality and specified grid point spacing near the boundaries. On a boundary face, ghost points are projected along the surface normal:
+
+\begin{equation}
+    \rvec_{\text{ghost}} = \rvec_{\text{bound}} + \rvec_\xi
+\end{equation}
+
+where $\rvec_\xi$ at the boundary is the surface tangent direction projected normally. The source terms are then computed from the difference between the ghost point projection and the actual interior point.
+
+\subsection{Hilgenstock Source Terms}
+
+The Hilgenstock formulation (\texttt{higen\_gene}) provides adaptive source terms based on angle and spacing deviation from targets:
+
+\begin{align}
+    \Delta\theta &= \frac{\theta_0 - \theta}{\theta_0}, \quad \theta_0 = \frac{\pi}{2} \\
+    P &= a \cdot \tanh(\Delta\theta_\xi) \\
+    Q &= a \cdot \tanh(\Delta\theta_\eta) \\
+    R &= a \cdot \tanh(\Delta\theta_\zeta)
+\end{align}
+
+where $a = 0.2$ is a relaxation constant. The $\tanh$ function provides smooth saturation so that large deviations do not cause instability.
+
+\subsection{Clustering Source Terms}
+
+Additional source terms control grid clustering toward specific boundaries using exponential decay functions:
+
+\begin{equation}
+    P(\xi, \eta, \zeta) = \sum_{i=1}^{4} a_i \cdot \text{sign}(\xi) \cdot e^{-d_i |\xi - \xi_{\text{ref}}|}
+\end{equation}
+
+where $a_i$ are user-specified amplitude coefficients and $d_i$ are decay weights. These terms attract grid lines toward the specified reference surfaces.
+
+\section{SOR Iteration}
+
+The discretized Poisson system is solved using Successive Over-Relaxation (SOR) with $\omega = 1.0$ (Gauss-Seidel in practice). At each interior point $(i,j,k)$, the updated position is:
+
+\begin{equation}
+    \rvec_{i,j,k}^{\text{new}} = (1 - \omega)\rvec_{i,j,k}^{\text{old}} + \frac{\omega}{2(\alpha_1 + \alpha_2 + \alpha_3)}
+    \begin{bmatrix}
+        \alpha_1(\rvec_{i+1,j,k} + \rvec_{i-1,j,k}) \\
+        + \alpha_2(\rvec_{i,j+1,k} + \rvec_{i,j-1,k}) \\
+        + \alpha_3(\rvec_{i,j,k+1} + \rvec_{i,j,k-1}) \\
+        + 2\beta_{12}\rvec_{ij} + 2\beta_{23}\rvec_{jk} + 2\beta_{13}\rvec_{ik} \\
+        + \alpha_1 P \rvec_\xi + \alpha_2 Q \rvec_\eta + \alpha_3 R \rvec_\zeta
+    \end{bmatrix}
+\end{equation}
+
+\subsection{Convergence Criteria}
+
+Convergence is measured by the maximum relative change across all interior points:
+
+\begin{equation}
+    \max_{i,j,k} \left( \frac{|\Delta x|}{\Delta x_i}, \frac{|\Delta y|}{\Delta y_j}, \frac{|\Delta z|}{\Delta z_k} \right) < \epsilon
+\end{equation}
+
+where $\epsilon$ is the convergence tolerance (\texttt{iter\_err}, typically $10^{-4}$ to $10^{-6}$). Iteration stops when either convergence is achieved or the maximum number of iterations (\texttt{max\_iter}) is reached.
+
+\section{MPI Domain Decomposition}
+
+\subsection{Topology}
+
+The 3D grid is decomposed using a Cartesian process topology with $p_x \times p_y \times p_z$ MPI processes. Each process owns a contiguous subdomain of the global grid and handles both interior updates and boundary communication.
+
+\subsection{Ghost Cell Exchange}
+
+Each process maintains a halo (ghost) layer around its subdomain. After each SOR iteration, processes exchange boundary data with their six neighbors using non-blocking MPI send/receive operations:
+
+\begin{itemize}
+    \item East/West neighbors: exchange $y$--$z$ planes
+    \item North/South neighbors: exchange $x$--$z$ planes
+    \item Top/Bottom neighbors: exchange $x$--$y$ planes
+\end{itemize}
+
+Processes at the global domain boundaries have \texttt{MPI\_PROC\_NULL} neighbors, simplifying the communication logic.
+
+\subsection{Global Convergence}
+
+Convergence requires a global reduction across all MPI processes. Each process computes its local maximum change, and the global maximum is obtained via \texttt{MPI\_Allreduce} with \texttt{MPI\_MAX}:
+
+\begin{lstlisting}[language=C]
+double local_max_res = compute_local_max_residual();
+double global_max_res;
+MPI_Allreduce(&local_max_res, &global_max_res, 1,
+              MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+\end{lstlisting}
+
+\subsection{Source Term Communication}
+
+Source terms computed on boundary faces are shared with neighboring processes using \texttt{MPI\_Allreduce} with \texttt{MPI\_SUM}, accumulating contributions from all overlapping subdomains.
+
+\section{Algorithm Summary}
+
+\begin{enumerate}
+    \item Read six boundary surfaces
+    \item Create MPI Cartesian communicator with $p_x \times p_y \times p_z$ topology
+    \item Compute TFI initial grid
+    \item Compute source terms $P$, $Q$, $R$ on boundaries
+    \item \textbf{Iterate until convergence:}
+    \begin{enumerate}
+        \item Update interior points using SOR formula
+        \item Exchange ghost cells with MPI neighbors
+        \item Update source terms at boundaries (Hilgenstock only)
+        \item Check convergence via global reduction
+    \end{enumerate}
+    \item Compute quality metrics
+    \item Each process exports its subdomain to a partitioned NetCDF file
+\end{enumerate}
+
+%=============================================================================
+\chapter{Grid Quality Metrics}
+%=============================================================================
+
+\section{Overview}
+
+The package computes grid quality metrics at every grid point during generation. These metrics enable quantitative assessment of grid suitability for seismic simulation.
+
+\section{Orthogonality Metrics}
+
+Three orthogonality metrics measure the deviation of grid line intersections from $90^\circ$:
+
+\begin{align}
+    \text{orth\_xiet}(i,j,k) &= 90 - \left| \theta_{\xi\eta}(i,j,k) - 90 \right| \\
+    \text{orth\_xizt}(i,j,k) &= 90 - \left| \theta_{\xi\zeta}(i,j,k) - 90 \right| \\
+    \text{orth\_etzt}(i,j,k) &= 90 - \left| \theta_{\eta\zeta}(i,j,k) - 90 \right|
+\end{align}
+
+where $\theta_{\xi\eta}$ is computed from the metric tensors as:
+
+\begin{equation}
+    \theta_{\xi\eta} = \arccos\left( \frac{g_{12}}{\sqrt{g_{11} \cdot g_{22}}} \right) \times \frac{180^\circ}{\pi}
+\end{equation}
+
+A perfect grid has all three orthogonality metrics equal to 90. The metric decreases as grid lines deviate from perpendicular. A value of 0 indicates that the two grid directions are parallel (worst case). In practice, values above 70 are considered acceptable, and values above 85 are excellent.
+
+\section{Jacobian Determinant}
+
+The Jacobian determinant measures the signed volume of each grid cell:
+
+\begin{equation}
+    \text{jacobi}(i,j,k) = \rvec_\xi \cdot (\rvec_\eta \times \rvec_\zeta)
+\end{equation}
+
+A positive Jacobian ($J > 0$) indicates a valid right-handed cell. A negative Jacobian indicates cell folding (negative volume), which renders the grid unusable. All grid generation methods monitor the minimum Jacobian to detect failures.
+
+\section{Smoothness Metrics}
+
+Grid smoothness is quantified by the ratio of adjacent cell sizes along each coordinate direction:
+
+\begin{equation}
+    \text{smooth\_xi}(i,j,k) = \max\left( \frac{|\rvec_{i+1} - \rvec_i|}{|\rvec_i - \rvec_{i-1}|}, \; \frac{|\rvec_i - \rvec_{i-1}|}{|\rvec_{i+1} - \rvec_i|} \right)
+\end{equation}
+
+A perfectly smooth grid has a smoothness value of 1.0 (uniform spacing). Values significantly larger than 1 indicate abrupt changes in grid spacing, which can cause numerical dispersion and instability in wave propagation simulations.
+
+For boundary points where a two-sided difference is not available, a one-sided ratio using only the nearest interior neighbor is used instead.
+
+\section{Step Size Metrics}
+
+The physical step lengths between adjacent grid points in each direction:
+
+\begin{align}
+    \text{step\_xi}(i,j,k) &= |\rvec(i+1,j,k) - \rvec(i,j,k)| \\
+    \text{step\_et}(i,j,k) &= |\rvec(i,j+1,k) - \rvec(i,j,k)| \\
+    \text{step\_zt}(i,j,k) &= |\rvec(i,j,k+1) - \rvec(i,j,k)|
+\end{align}
+
+These are simple Euclidean distances and are useful for verifying that grid spacing satisfies the CFL stability condition and the points-per-wavelength requirement of seismic simulations.
+
+\section{Minimum Distance}
+
+An additional metric identifies the minimum distance from each grid point to the faces of adjacent cells using the point-to-plane distance formula:
+
+\begin{equation}
+    d = \frac{|(\rvec - \rvec_0) \cdot \nvec|}{|\nvec|}
+\end{equation}
+
+where $\rvec_0$ is a point on the face and $\nvec$ is the face normal vector. The global minimum of this metric indicates the most critically small cell face, which governs the maximum stable time step.
+
+%=============================================================================
+\chapter{Post-Processing}
+%=============================================================================
+
+\section{Grid Merging}
+
+Multiple independently generated grids can be merged to form a larger composite grid. Merging is supported along any of the three coordinate directions:
+
+\begin{equation}
+    n_x^{\text{merged}} = n_x^{(1)} + n_x^{(2)} - 1 \quad \text{(x-direction merge)}
+\end{equation}
+
+The shared boundary points are aligned and one set of duplicate coordinates is removed.
+
+\section{Grid Sampling (Upsampling)}
+
+Grids can be upsampled by integer factors in each direction using trilinear interpolation. Given a grid with dimensions $(n_x, n_y, n_z)$ and upsampling factors $(s_x, s_y, s_z)$, the refined grid has dimensions:
+
+\begin{equation}
+    (n_x', n_y', n_z') = (s_x \cdot n_x, \; s_y \cdot n_y, \; s_z \cdot n_z)
+\end{equation}
+
+For each new point, the 8 surrounding coarse-grid points are identified, and the interpolated value is:
+
+\begin{equation}
+    f(x,y,z) = \sum_{i=0}^{1} \sum_{j=0}^{1} \sum_{k=0}^{1} f_{ijk} \cdot w_x^i \cdot w_y^j \cdot w_z^k
+\end{equation}
+
+where $w_x = (x - x_0)/(x_1 - x_0)$ is the normalized interpolation weight in the x direction, and similarly for y and z.
+
+\section{Arc-Length Stretching}
+
+Arc-length stretching redistributes grid points along a specified direction based on a normalized cumulative arc-length distribution $s \in [0,1]$. This allows flexible clustering of grid points:
+
+\begin{enumerate}
+    \item A step distribution $s(k)$ is specified, defining the relative spacing between layers
+    \item The cumulative arc-length function is computed: $L(k) = \sum_{i=1}^{k} s(i)$
+    \item Points are redistributed so that equal increments of the computational coordinate correspond to equal arc-length increments
+\end{enumerate}
+
+The stretching can be applied in any of the three coordinate directions independently.
+
+\section{PML Layer Support}
+
+For seismic wave simulation with absorbing boundary conditions, the grid can be extended with Perfectly Matched Layer (PML) regions. The post-processor handles PML grid extension by:
+
+\begin{enumerate}
+    \item Extending the grid point count to include PML layers at domain boundaries
+    \item Doubling grid points in PML regions for sufficient wave sampling
+    \item Balancing PML point distribution across MPI processes for load balance
+\end{enumerate}
+
+%=============================================================================
+\chapter{Configuration Guide}
+%=============================================================================
+
+\section{JSON Configuration Format}
+
+All runtime parameters are specified in a JSON configuration file. The parser uses the cJSON library with support for nested objects. Keys prefixed with \texttt{\#} or \texttt{//} are treated as comments.
+
+\section{Common Parameters}
+
+\begin{longtable}{llp{7cm}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{number\_of\_grid\_points\_x} & int & $n_x$: grid points in $\xi$ direction \\
+\texttt{number\_of\_grid\_points\_y} & int & $n_y$: grid points in $\eta$ direction \\
+\texttt{number\_of\_grid\_points\_z} & int & $n_z$: grid points in $\zeta$ direction \\
+\texttt{geometry\_input\_file} & string & Path to boundary geometry file \\
+\texttt{grid\_export\_dir} & string & Output directory for grid NetCDF files \\
+\texttt{check\_orth\_xiet} & int (0/1) & Compute $\xi$--$\eta$ orthogonality metric \\
+\texttt{check\_orth\_xizt} & int (0/1) & Compute $\xi$--$\zeta$ orthogonality metric \\
+\texttt{check\_orth\_etzt} & int (0/1) & Compute $\eta$--$\zeta$ orthogonality metric \\
+\texttt{check\_jac} & int (0/1) & Compute Jacobian determinant \\
+\texttt{check\_smooth\_xi} & int (0/1) & Compute $\xi$ smoothness \\
+\texttt{check\_smooth\_et} & int (0/1) & Compute $\eta$ smoothness \\
+\texttt{check\_smooth\_zt} & int (0/1) & Compute $\zeta$ smoothness \\
+\texttt{check\_step\_xi} & int (0/1) & Compute $\xi$ step size \\
+\texttt{check\_step\_et} & int (0/1) & Compute $\eta$ step size \\
+\texttt{check\_step\_zt} & int (0/1) & Compute $\zeta$ step size \\
+\end{longtable}
+
+\section{Parabolic-Specific Parameters}
+
+\begin{longtable}{llp{7cm}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{step\_input\_file} & string & Path to step distribution file \\
+\texttt{coef} & int & Clustering coefficient (typical: 1--10). Larger values cluster more points near the starting boundary \\
+\texttt{t2b} & int (0/1) & Top-to-bottom marching flag: 0 = start→target, 1 = target→start \\
+\texttt{parabolic.direction} & string & Marching direction: \texttt{"x"}, \texttt{"y"}, or \texttt{"z"} \\
+\end{longtable}
+
+\section{Hyperbolic-Specific Parameters}
+
+\begin{longtable}{llp{7cm}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{step\_input\_file} & string & Path to step distribution file \\
+\texttt{flag\_stretch} & int (0/1) & Enable arc-length stretching (requires arc-length file) \\
+\texttt{hyp\_arc\_file} & string & Path to arc-length file (if \texttt{flag\_stretch = 1}) \\
+\texttt{hyperbolic.coef} & int & Base smoothing coefficient (typical: 1--5) \\
+\texttt{hyperbolic.bdry\_type} & [int, int] & Boundary types for $\xi$ and $\eta$ edges: 1 = floating, 2 = Cartesian \\
+\texttt{hyperbolic.epsilon} & [float, float] & Damping parameters for floating boundaries (typical: 0.01--0.1) \\
+\texttt{hyperbolic.direction} & string & Marching direction: \texttt{"x"}, \texttt{"y"}, or \texttt{"z"} \\
+\end{longtable}
+
+\section{Elliptic-Specific Parameters}
+
+\begin{longtable}{llp{7cm}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{number\_of\_mpiprocs\_x} & int & $p_x$: MPI processes along $\xi$ \\
+\texttt{number\_of\_mpiprocs\_y} & int & $p_y$: MPI processes along $\eta$ \\
+\texttt{number\_of\_mpiprocs\_z} & int & $p_z$: MPI processes along $\zeta$ \\
+\texttt{grid\_method.elli\_diri.coef} & [int$\times$4] & Source term amplitudes $a_1,\dots,a_4$ \\
+\texttt{grid\_method.elli\_diri.weight} & [float$\times$2] & Exponential decay weights $d_1, d_2$ \\
+\texttt{grid\_method.elli\_diri.iter\_err} & float & SOR convergence tolerance (typical: $10^{-5}$) \\
+\texttt{grid\_method.elli\_diri.max\_iter} & int & Maximum SOR iterations (typical: 5000--50000) \\
+\end{longtable}
+
+\section{Post-Processing Parameters}
+
+\begin{longtable}{llp{7cm}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{input\_grid\_number} & int & Number of input grids to merge (for merge mode) \\
+\texttt{merge\_direction} & string & Merging axis: \texttt{"x"}, \texttt{"y"}, or \texttt{"z"} \\
+\texttt{flag\_sample} & int (0/1) & Enable grid upsampling \\
+\texttt{sample\_factor} & [int, int, int] & Upsampling factors $[s_x, s_y, s_z]$ \\
+\texttt{pml\_weight\_2x} & int (0/1) & Double point count for PML regions \\
+\end{longtable}
+
+%=============================================================================
+\chapter{Installation and Usage}
+%=============================================================================
+
+\section{Prerequisites}
+
+\subsection{C Compilation}
+\begin{itemize}
+    \item GCC $\geq$ 7.0 (for hyperbolic and post-processing)
+    \item MPI compiler, e.g., mpicc (for parabolic and elliptic)
+    \item NetCDF-C library ($\geq$ 4.0) with development headers
+    \item cJSON library (bundled in \texttt{lib/})
+\end{itemize}
+
+\subsection{Python Environment}
+\begin{itemize}
+    \item Python $\geq$ 3.10
+    \item NumPy, SciPy, Matplotlib
+    \item netCDF4 (Python binding to NetCDF-C)
+\end{itemize}
+
+\section{Building}
+
+Set environment variables for library paths, then build each module:
+
+\begin{lstlisting}[style=bash]
+# Set environment (adjust paths for your system)
+export GNUHOME=/usr
+export NETCDF=/path/to/netcdf
+
+# Build hyperbolic (serial)
+cd hyperbolic && make && cd ..
+
+# Build parabolic (MPI)
+cd parabolic && make && cd ..
+
+# Build grid post-process (serial)
+cd grid-post-process && make && cd ..
+
+# Build elliptic (MPI)
+cd elliptic && make && cd ..
+\end{lstlisting}
+
+\section{Workflow}
+
+A typical grid generation workflow consists of three stages:
+
+\subsection{Stage 1: Generate Boundary Data (Python)}
+
+\begin{lstlisting}[style=bash]
+# Elliptic: 6-boundary model with Gaussian topography
+cd elliptic/example/prep_grid
+python3 creat_3d_gauss_boundary.py
+# => ../data_file_3d.txt
+
+# Hyperbolic: 1-boundary model
+cd hyperbolic/example/prep_grid
+python3 model1.py
+# => ../data_file_3d.txt, ../step_file_3d.txt (via creat_step.py)
+
+# Parabolic: 2-boundary model
+cd parabolic/example/prep_grid
+python3 model1.py
+# => ../data_file_3d.txt, ../step_file_3d.txt (via creat_step.py)
+\end{lstlisting}
+
+Each boundary script includes a \texttt{flag\_printf} variable. When set to 1, the script automatically generates and saves diagnostic plots to the \texttt{../plot/} directory.
+
+\subsection{Stage 2: Run Grid Generation (C)}
+
+\begin{lstlisting}[style=bash]
+cd elliptic/example
+bash grid_generate.sh
+# => output/coord_px*_py*_pz*.nc
+\end{lstlisting}
+
+The grid generation binary reads the JSON configuration file and the boundary geometry file, computes the grid, and writes NetCDF output.
+
+\subsection{Stage 3: Post-Processing and Visualization}
+
+\begin{lstlisting}[style=bash]
+# Post-process (merge, sample, stretch, PML)
+cd grid-post-process/example
+bash grid_post_proc.sh
+
+# Visualize
+cd plotting
+python3 draw_grid.py
+python3 draw_quality.py
+\end{lstlisting}
+
+%=============================================================================
+\chapter{File Formats}
+%=============================================================================
+
+\section{Geometry File}
+
+The geometry file uses a C-format text representation parsed by \texttt{fscanf}. Comment lines begin with \texttt{\#}.
+
+\subsection{6-Boundary Format (Elliptic)}
+
+Used when all six boundary surfaces are specified:
+
+\begin{lstlisting}[language={}]
+# nx number
+101
+# ny number
+71
+# nz number
+51
+# bx1 coords
+0.000000000e+00 0.000000000e+00 -5.000000000e+02
+... (ny*nz = 71*51 lines)
+# bx2 coords
+... (ny*nz lines)
+# by1 coords
+... (nx*nz = 101*51 lines)
+# by2 coords
+... (nx*nz lines)
+# bz1 coords
+... (nx*ny = 101*71 lines)
+# bz2 coords
+... (nx*ny lines)
+\end{lstlisting}
+
+\subsection{2-Boundary Format (Parabolic)}
+
+Used when two boundary surfaces (start and target) are specified:
+
+\begin{lstlisting}[language={}]
+# nx ny number
+401 301
+# bz1 coords
+... (nx*ny lines)
+# bz2 coords
+... (nx*ny lines)
+\end{lstlisting}
+
+\subsection{1-Boundary Format (Hyperbolic)}
+
+Used when a single initial boundary surface is specified. The format varies by marching direction:
+
+\textbf{Z-direction marching:}
+\begin{lstlisting}[language={}]
+# nx number
+401
+# ny number
+401
+# bz coords
+... (nx*ny = 401*401 lines)
+\end{lstlisting}
+
+\textbf{X-direction marching:}
+\begin{lstlisting}[language={}]
+# ny number
+NY
+# nz number
+NZ
+# bx coords
+... (ny*nz lines)
+\end{lstlisting}
+
+\textbf{Y-direction marching:}
+\begin{lstlisting}[language={}]
+# nx number
+NX
+# nz number
+NZ
+# by coords
+... (nx*nz lines)
+\end{lstlisting}
+
+\section{Step File}
+
+Defines the relative spacing between grid layers in the marching direction:
+
+\begin{lstlisting}[language={}]
+# number of step
+200
+# step
+-15.0
+-15.0
+... (N lines)
+\end{lstlisting}
+
+Values are normalized internally. Negative values indicate decreasing spacing moving away from the starting surface.
+
+\section{Arc-Length File}
+
+Defines the cumulative arc-length distribution for grid point redistribution:
+
+\begin{lstlisting}[language={}]
+# number of points
+201
+# arc_len
+0.000000
+0.005000
+... (N lines, monotonically increasing from 0 to 1)
+\end{lstlisting}
+
+\section{NetCDF Output Format}
+
+Grid coordinates and quality metrics are stored in NetCDF format with MPI-partitioned files:
+
+\begin{itemize}
+    \item \textbf{Coordinate files:} \texttt{coord\_px\{i\}\_py\{j\}\_pz\{k\}.nc}
+    \begin{itemize}
+        \item Variables: \texttt{x}, \texttt{y}, \texttt{z} (float arrays, dimension sizes matching subdomain)
+    \end{itemize}
+    \item \textbf{Quality metric files:} \texttt{\{metric\}\_px\{i\}\_py\{j\}\_pz\{k\}.nc}
+    \begin{itemize}
+        \item Variables correspond to quality metric names
+    \end{itemize}
+\end{itemize}
+
+\subsection{Global Attributes}
+
+Each NetCDF file contains:
+
+\begin{itemize}
+    \item \texttt{global\_index\_of\_first\_physical\_points}: Array $[x_{\text{start}}, y_{\text{start}}, z_{\text{start}}]$ --- 0-based starting indices in the global grid
+    \item \texttt{count\_of\_physical\_points}: Array $[n_x^{\text{local}}, n_y^{\text{local}}, n_z^{\text{local}}]$ --- number of points in this subdomain (including ghost points)
+\end{itemize}
+
+These attributes enable reconstruction of the full global grid from the partitioned files.
+
+%=============================================================================
+\chapter{Mathematical Derivations}
+%=============================================================================
+
+\section{Derivation of the SOR Formula}
+
+Starting from the Poisson equations in computational space (Eqs.~\ref{eq:poisson_xi}--\ref{eq:poisson_zeta}), we transform to physical space. The Laplacian in computational coordinates is:
+
+\begin{equation}
+    \nabla^2 \rvec = \sum_{i=1}^{3} \sum_{j=1}^{3} g^{ij} \pdd{\rvec}{\xi_i}{\xi_j} + (\nabla^2 \xi) \pd{\rvec}{\xi} + (\nabla^2 \eta) \pd{\rvec}{\eta} + (\nabla^2 \zeta) \pd{\rvec}{\zeta}
+\end{equation}
+
+Setting $\nabla^2 \xi = P$, $\nabla^2 \eta = Q$, $\nabla^2 \zeta = R$ gives the governing PDE.
+
+Discretizing with central differences in computational space ($\Delta\xi = \Delta\eta = \Delta\zeta = 1$) and solving for $\rvec_{i,j,k}$ yields the SOR update formula in Section~5.4.
+
+\section{Derivation of the Hyperbolic System}
+
+Following Chan \& Steger (1992), we linearize the orthogonality and volume constraints about the known grid at layer $k$. Let $\rvec^{k+1} = \rvec^k + \Delta \rvec$. Then:
+
+\begin{align}
+    \rvec_\xi \cdot (\rvec^{k+1} - \rvec^k)_\zeta &= -\rvec_\xi \cdot \rvec_\zeta^k \\
+    \rvec_\eta \cdot (\rvec^{k+1} - \rvec^k)_\zeta &= -\rvec_\eta \cdot \rvec_\zeta^k
+\end{align}
+
+With finite differences $\rvec_\zeta^{k+1} \approx \rvec^{k+1} - \rvec^k$, this produces a linear system for $\rvec^{k+1}$ at each $k$.
+
+\end{document}

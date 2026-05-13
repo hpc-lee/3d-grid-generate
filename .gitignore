@@ -1,0 +1,35 @@
+# Compiled
+*.o
+main
+obj/
+
+# Generated data files
+output/
+*.log
+log
+log*
+data_file_3d.txt
+step_file_3d.txt
+arc_len_file*.txt
+
+# Tags
+tags
+
+# Python
+__pycache__/
+*.pyc
+
+# Plots (generated at runtime)
+*.png
+*.svg
+plot/
+plotting/*.png
+plotting/*.svg
+
+# LaTeX aux
+docs/*.aux
+docs/*.out
+docs/*.toc
+
+# Project directories (generated at runtime)
+project*/

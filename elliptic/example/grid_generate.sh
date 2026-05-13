@@ -38,9 +38,9 @@ NPROCS_Z=1
 #----------------------------------------------------------------------
 cat << ieof > ${PAR_FILE}
 {
-  "number_of_grid_points_x" : 500,
-  "number_of_grid_points_y" : 250,
-  "number_of_grid_points_z" : 250,
+  "number_of_grid_points_x" : 101,
+  "number_of_grid_points_y" : 71,
+  "number_of_grid_points_z" : 51,
 
   "number_of_mpiprocs_x" : $NPROCS_X,
   "number_of_mpiprocs_y" : $NPROCS_Y,
